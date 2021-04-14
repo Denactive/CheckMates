@@ -51,10 +51,10 @@ public:
     Connection accept();
     std::string read();
     void write(std::string);
-    void on_read(boost::system::error_code err, size_t bytes);
-    void on_write(boost::system::error_code err, size_t bytes);
 
 private:
+    void on_read(boost::system::error_code err, size_t bytes);
+    void on_write(boost::system::error_code err, size_t bytes);
     static const int max_msg = 1024;
     char read_buffer_ [max_msg];
     char write_buffer_ [max_msg];
