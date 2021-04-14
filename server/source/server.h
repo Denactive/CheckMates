@@ -6,7 +6,7 @@
 #define CHECKMATES_SERVER_H
 
 class Options {
-    
+
 };
 
 class Server {
