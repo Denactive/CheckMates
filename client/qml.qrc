@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/userPhoto.png</file>
+        <file>qml/Cell.qml</file>
+        <file>qml/CellsModel.qml</file>
+        <file>qml/Chessboard.qml</file>
+        <file>qml/GraphicsGame.qml</file>
+        <file>qml/GraphicsGameForm.ui.qml</file>
+        <file>qml/main.qml</file>
+    </qresource>
+    <qresource prefix="/img"/>
+    <qresource prefix="/qml"/>
+</RCC>
