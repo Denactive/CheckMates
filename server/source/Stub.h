@@ -14,13 +14,6 @@ class MatcherQueue: public iMatcherQueue {
     int a();
 };
 
-class iStats{
-    virtual int a() = 0;
-};
-
-class Stats: public iStats {
-    int a();
-};
 
 class Community {
     int a();

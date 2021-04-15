@@ -22,6 +22,7 @@ public:
     void stalemate_handler();
     void create_log();
 private:
+    BDServer log;
     ChessBoard board;
     Player wPlayer;
     Player bPlayer;

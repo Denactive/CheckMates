@@ -7,6 +7,8 @@
 #include "GameSession.h"
 #include "Stub.h"
 
+#include "Stats.h"
+
 class iUser{
 public:
     virtual std::string get_info() = 0;

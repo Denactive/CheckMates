@@ -9,5 +9,6 @@
 #include "TurnControl.h"
 #include "TurnHistory.h"
 #include "Stub.h"
+#include "Stats.h"
 
 
