@@ -4,13 +4,13 @@
 
 #ifndef CHECKMATES_NET_H
 #define CHECKMATES_NET_H
-//
-//#include <boost/beast.hpp>
-//#include <boost/asio.hpp>
+
+#include <boost/beast.hpp>
+#include <boost/asio.hpp>
+#include <boost/date_time.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread.hpp>
 //#include <boost/regex.hpp>
-//#include <boost/date_time.hpp>
-//#include <boost/bind.hpp>
-//#include <boost/thread.hpp>
 //#include <boost/beast/core.hpp>
 //#include <boost/shared_ptr.hpp>
 //#include <boost/utility/result_of.hpp>
@@ -20,6 +20,11 @@
 //#include <boost/asio/strand.hpp>
 //#include <boost/asio/ip/tcp.hpp>
 //#include <boost/asio/dispatch.hpp>
+
+#define ASIO_STANDALONE
+#include <boost/asio.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/ts/internet.hpp>
 
 #include <string>
 #include <vector>

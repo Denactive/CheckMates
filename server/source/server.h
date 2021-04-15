@@ -44,7 +44,7 @@ public:
 private:
     Options opts_;
     bool started_ = 0;
-    // boost::asio::io_service service_;
+    boost::asio::io_service service_;
     Net net_;
 };
 
