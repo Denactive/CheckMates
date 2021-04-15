@@ -1,18 +1,18 @@
-
-
 #ifndef CHECKMATES_AUTHORIZER_H
 #define CHECKMATES_AUTHORIZER_H
+#include "GameSession.h"
 
-class iBDServer {
+class iAuthorizer {
 public:
-    virtual std::string query(std::string q) = 0;
+    virtual User authorize(Connection& connection) = 0;
+    virtual User register(Connection& connection) = 0;
 };
 
-class BDServer: public iBDServer {
+class Authorizer: public iAuthorizer {
 public:
-    std::string query(std::string q);
+    User authorize(Connection& connection);
+    User register(Connection& connection);
 private :
-    std::string fileDB();
 };
 
 #endif //CHECKMATES_AUTHORIZER_H
