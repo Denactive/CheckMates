@@ -12,7 +12,15 @@ set(SOURCE_DIR source)
 set(LIB_DIR lib)
 include_directories(source/)
 
-add_executable(${PROGRAM_NAME} ${SOURCE_DIR}/main.cpp source/main.cpp source/server.cpp source/server.h source/Net.cpp source/Net.h)
+add_executable(${PROGRAM_NAME}
+        ${SOURCE_DIR}/main.cpp
+        source/server.cpp
+        source/net.cpp
+        source/matcher.cpp
+        source/user.cpp
+        source/community.cpp
+        source/ServerDB.cpp
+        )
 #target_link_libraries(${PROGRAM_NAME} word_finder_shared)
 
 #делайте либами

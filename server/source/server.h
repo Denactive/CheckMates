@@ -5,12 +5,14 @@
 #ifndef CHECKMATES_SERVER_H
 #define CHECKMATES_SERVER_H
 
-#include "Net.h"
+#include "net.h"
 #include <string>
 
 class Options {
 public:
-    Options(std::string owner, std::string ip, unsigned short port): owner_(name_owner), ip_(ip), port_(port);
+    Options(std::string owner, std::string ip, unsigned short port):
+        owner_(owner), ip_(ip), port_(port) {
+    }
     std::string get_info() { return "owner: " + owner_ + "\nip: " + ip_ + ":" + std::to_string(port_); }
 
     void set_port(unsigned short port) { port_ = port; }
@@ -29,15 +31,19 @@ private:
 
 class Server {
 public:
+    Server(Options opts):
+            opts_(opts) {
+    }
     void run();
     void stop();
     void restart();
     bool is_running();
 
 private:
-    bool started = 0;
-    boost::asio::io_service service;
-    Net net;
+    Options opts_;
+    bool started_ = 0;
+    boost::asio::io_service service_;
+    Net net_;
 };
 
 

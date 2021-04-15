@@ -27,7 +27,8 @@ typedef struct {
 class HTTP_document {
 public:
     HTTP_document (std::vector<std::string> headers, std::string message):
-        headers_(headers), message_(message);
+        headers_(headers), message_(message) {
+    }
     std::string get_message();
     std::vector<std::string> get_headers() { return headers_;};
     void set_message(std::string msg) {message_ = msg;}
@@ -42,7 +43,19 @@ private:
 
 class WS_format {
 public:
-    std::string parse (std::string);
+    void run();
+    void game_request_handler();
+    void game_response_handler();
+    void chat_handler();
+private:
+};
+
+class HTTP_format {
+public:
+    void run();
+    void request_handler();
+    void authorize_handler();
+    void register_handler();
 private:
 };
 
