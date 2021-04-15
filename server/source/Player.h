@@ -1,24 +1,33 @@
 #ifndef CHECKMATES_PLAYER_H
 #define CHECKMATES_PLAYER_H
+#include "User.h"
+#include "ChessPiece.h"
 
+class iPlayer {
 
-class Player {
+public:
+    virtual std::vector<std::string> all_available_Moves() = 0;
+    virtual void try_move() = 0;
+    virtual void is_check() = 0;
+    virtual void is_mate() = 0;
+    virtual void is_statemate() = 0;
+    virtual User get_user() = 0;
+    virtual void set_pieces() = 0;
+};
+
+class Player: public iPlayer {
 private:
-    ChessBoard& board:
-    User & user;
-    chess_piece pieces[16]
-
-    +
-
-    + all_available_Moves(): std::array<std::string>
-
-    + try_move()
-    + is_check()
-    + is_mate()
-    + is_statemate()+ get_user(): User
-
-    + set_pieces
-
+    ChessBoard& board;
+    User& user;
+    ChessPiece pieces[16];
+public:
+    std::vector<std::string> all_available_Moves();
+    void try_move();
+    void is_check();
+    void is_mate();
+    void is_statemate();
+    User get_user();
+    void set_pieces();
 };
 
 

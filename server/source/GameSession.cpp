@@ -1,5 +1,6 @@
 #include "GameSession.h"
 #include "ChessBoard.h"
+#include "Player.h"
 
 #include <vector>
 #include <string>
@@ -13,7 +14,7 @@ public:
 private:
     ChessBoard board;
     Player wPlayer;
-    PLayer bPlayer;
+    Player bPlayer;
     std::string status;
     TurnControl control;
     TurnHistory history;

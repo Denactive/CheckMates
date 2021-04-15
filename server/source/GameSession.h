@@ -1,10 +1,9 @@
-//
-// Created by yura11011 on 14.04.2021.
-//
-
 #ifndef CHECKMATES_GAMESESSION_H
 #define CHECKMATES_GAMESESSION_H
-
-
+#include <vector>
+#include <string>
+#include "ChessBoard.h"
+#include "ChessPiece.h"
+#include "Player.h"
 
 #endif //CHECKMATES_GAMESESSION_H

@@ -3,9 +3,3 @@
 //
 
 #include "server.h"
-int main() {
-    while (true) {
-
-    }
-    return 0;
-}
