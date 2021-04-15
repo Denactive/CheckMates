@@ -6,14 +6,14 @@
 #define CHECKMATES_CHESSPIECE_H
 #include "GameSession.h"
 
-class IChessPiece {
+class ChessPiece {
 public:
-virtual void move() = 0;
-virtual std::vector<std::string> available_moves();
-virtual void capture_piece();
+void move();
+std::vector<std::string> available_moves();
+void capture_piece();
 };
 
-class King :public IChessPiece {
+class King :public ChessPiece {
 private:
     char position[2];
     std::vector<std::string> avail_moves;
@@ -25,7 +25,7 @@ public:
     void capture_piece();
 };
 
-class Queen :public IChessPiece {
+class Queen :public ChessPiece {
 private:
     char position[2];
     std::vector<std::string> avail_moves;
@@ -37,7 +37,7 @@ public:
     void capture_piece();
 };
 
-class Bishop :public IChessPiece {
+class Bishop :public ChessPiece {
 private:
     char position[2];
     std::vector<std::string> avail_moves;
@@ -49,7 +49,7 @@ public:
     void capture_piece();
 };
 
-class Rook :public IChessPiece {
+class Rook :public ChessPiece {
 private:
     char position[2];
     std::vector<std::string> avail_moves;
@@ -61,7 +61,7 @@ public:
     void capture_piece();
 };
 
-class Knight :public IChessPiece {
+class Knight :public ChessPiece {
 private:
     char position[2];
     std::vector<std::string> avail_moves;
@@ -73,7 +73,7 @@ public:
     void capture_piece();
 };
 
-class Pawn :public IChessPiece {
+class Pawn :public ChessPiece {
 private:
     char position[2];
     std::vector<std::string> avail_moves;
@@ -82,7 +82,7 @@ public:
     void is_check();
     void is_captured();
     std::vector<std::string> available_moves();
-    void capture_piece()
+    void capture_piece();
     void is_promoted();
 };
 #endif //CHECKMATES_CHESSPIECE_H

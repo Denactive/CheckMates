@@ -1,16 +1,26 @@
 #include "GameSession.h"
-#include "ChessBoard.h"
-#include "Player.h"
 
-#include <vector>
-#include <string>
 
-class GameSession {
+class iGameSession {
 public:
     void run();
     std::string get_status();
     int get_time();
     void draw_handler();
+    void give_up_handler();
+    void stalemate_handler();
+    void create_log();
+};
+
+class GameSession: public iGameSession {
+public:
+    void run();
+    std::string get_status();
+    int get_time();
+    void draw_handler();
+    void give_up_handler();
+    void stalemate_handler();
+    void create_log();
 private:
     ChessBoard board;
     Player wPlayer;
@@ -18,7 +28,5 @@ private:
     std::string status;
     TurnControl control;
     TurnHistory history;
-    void give_up_handler();
-    void stalemate_handler();
-    void create_log();
+
 };

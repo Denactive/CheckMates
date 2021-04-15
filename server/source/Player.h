@@ -1,7 +1,7 @@
 #ifndef CHECKMATES_PLAYER_H
 #define CHECKMATES_PLAYER_H
 #include "User.h"
-#include "ChessPiece.h"
+#include "GameSession.h"
 
 class iPlayer {
 
@@ -21,6 +21,7 @@ private:
     User& user;
     ChessPiece pieces[16];
 public:
+    Player();
     std::vector<std::string> all_available_Moves();
     void try_move();
     void is_check();

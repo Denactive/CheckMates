@@ -4,14 +4,16 @@
 
 #ifndef CHECKMATES_CHESSBOARD_H
 #define CHECKMATES_CHESSBOARD_H
-#include <vector>
-#include <string>
+
 #include "GameSession.h"
 
 
 class ChessBoard {
 private:
     std::vector<char> board;
+public:
+    void get_board();
+    void chess_board();
 };
 
 

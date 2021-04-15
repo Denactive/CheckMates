@@ -5,7 +5,7 @@
 #ifndef CHECKMATES_USER_H
 #define CHECKMATES_USER_H
 #include "GameSession.h"
-#include "ChessBoard.h"
+#include "Stub.h"
 
 class iUser{
 public:
@@ -14,15 +14,17 @@ public:
     virtual std::string get_nickname() = 0;
     virtual int get_rating() = 0;
     virtual void set_rating(int rating) = 0;
-    virtual void enter_mq(iMatcherQueue) = 0;
-    virtual void leave_mq(iMatcherQueue) = 0;
-    virtual iStats get_full_stats() = 0;
-    virtual Community create_community = 0;
-    virtual Chat create_chat(const iUser*) = 0;
+    virtual void enter_mq(MatcherQueue) = 0;
+    virtual void leave_mq(MatcherQueue) = 0;
+    virtual Stats get_full_stats() = 0;
+    virtual Community create_community() = 0;
+    virtual Chat create_chat() = 0;
 
 };
-class User :public iUser {
+
+class User : public iUser {
 public:
+    User();
     Connection& connection;
     size_t id;
     std::string nickname;
@@ -37,7 +39,8 @@ public:
     void leave_mq(MatcherQueue);
     Stats get_full_stats();
     Community create_community();
-    Chat create_chat(const User*);
+    Chat create_chat();
+    Chat create_chat(const User&);
 };
 
 

@@ -1,9 +1,13 @@
-#ifndef CHECKMATES_GAMESESSION_H
-#define CHECKMATES_GAMESESSION_H
+#pragma once
+
 #include <vector>
 #include <string>
 #include "ChessBoard.h"
 #include "ChessPiece.h"
 #include "Player.h"
+#include "User.h"
+#include "TurnControl.h"
+#include "TurnHistory.h"
+#include "Stub.h"
 
-#endif //CHECKMATES_GAMESESSION_H
+
