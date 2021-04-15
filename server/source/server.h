@@ -32,10 +32,11 @@ private:
 
 class Server {
 public:
-    Server(Options opts):
+    Server(Options opts) :
             opts_(opts) {
     }
-    void run() {std::cout<<"running\n";};
+
+    void run() { std::cout << "running\n"; };
     void stop();
     void restart();
     bool is_running();
@@ -46,6 +47,5 @@ private:
     // boost::asio::io_service service_;
     Net net_;
 };
-
 
 #endif //CHECKMATES_SERVER_H

@@ -11,7 +11,7 @@ set(PROGRAM_NAME server)
 set(SOURCE_DIR source)
 #set(Boost_COMPILER -gcc49)
 set(LIB_DIR lib)
-include_directories(source/)
+include_directories(source/ tests/)
 
 #set(BOOST_USE_STATIC_LIBS ON)
 #find_package(Boost REQUIRED COMPONENTS system thread)
@@ -31,6 +31,7 @@ add_executable(${PROGRAM_NAME}
         source/user.cpp
         source/community.cpp
         source/ServerDB.cpp
+        source/GameSession.cpp
         )
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES})
 
@@ -39,14 +40,11 @@ target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES})
 #target_link_libraries(${PROGRAM_NAME} )
 #add_executable(program-mt ${MULTITHREAD_PROJ_DIR}/program-MT.c)
 
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GTEST_LIBRARIES})
 
-#тесты
-#enable_testing()
-#find_package(GTest REQUIRED)
+add_executable(test1 tests/tests.cpp tests/test1.cpp)
 
-#include_directories(${GTEST_INCLUDE_DIRS})
-#message(${GTEST_LIBRARIES})
-#message(${GTEST_INCLUDE_DIRS})
-
-#add_executable(tests testing/tests.cpp)
-#target_link_libraries(tests ${GTEST_LIBRARIES} -lpthread)
+add_test(test1 ./test1)
