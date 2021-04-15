@@ -5,9 +5,8 @@
 class Player {
 private:
     ChessBoard& board:
-             - user: &User
-
-    - chess_piece[16]
+    User & user;
+    chess_piece pieces[16]
 
     +
 
