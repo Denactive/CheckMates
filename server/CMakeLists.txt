@@ -9,16 +9,13 @@ set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 
 set(PROGRAM_NAME server)
 set(SOURCE_DIR source)
-#set(Boost_COMPILER -gcc49)
 set(LIB_DIR lib)
 include_directories(source/ tests/)
 
-#set(BOOST_USE_STATIC_LIBS ON)
-#find_package(Boost REQUIRED COMPONENTS system thread)
-find_package(Boost)
+find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost)
 IF (Boost_FOUND)
     message("Boost version: ${Boost_VERSION}")
-
     include_directories(${Boost_INCLUDE_DIR})
     ADD_DEFINITIONS("-DHAS_BOOST")
 ENDIF()
