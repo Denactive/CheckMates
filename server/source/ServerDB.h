@@ -18,7 +18,7 @@ public:
     std::string query(std::string q) override;
 
 private:
-    std::string filepath;
+    std::string filepath_;
 };
 
 

@@ -13,13 +13,11 @@ set(SOURCE_DIR source)
 set(LIB_DIR lib)
 include_directories(source/)
 
-#set(BOOST_ROOT /usr/include/boost)
 #set(BOOST_USE_STATIC_LIBS ON)
 #find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(Boost)
 IF (Boost_FOUND)
     message("Boost version: ${Boost_VERSION}")
-    message("Boost compiler version: ${Boost_COMPILER}")
 
     include_directories(${Boost_INCLUDE_DIR})
     ADD_DEFINITIONS("-DHAS_BOOST")
