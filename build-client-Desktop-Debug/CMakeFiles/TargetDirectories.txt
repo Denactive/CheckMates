@@ -1,0 +1,4 @@
+/home/svetlana/tp/Chess/CheckMates/build-client-Desktop-Debug/CMakeFiles/rebuild_cache.dir
+/home/svetlana/tp/Chess/CheckMates/build-client-Desktop-Debug/CMakeFiles/edit_cache.dir
+/home/svetlana/tp/Chess/CheckMates/build-client-Desktop-Debug/CMakeFiles/client.dir
+/home/svetlana/tp/Chess/CheckMates/build-client-Desktop-Debug/CMakeFiles/client_autogen.dir

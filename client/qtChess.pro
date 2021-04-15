@@ -1,8 +1,16 @@
+include(gtest_dependency.pri)
+
+TEMPLATE = app
+CONFIG += console c++11
+CONFIG -= app_bundle
+CONFIG += thread
+#CONFIG -= qt
+
 QT += quick
 QT += quickwidgets
 QT += core gui
 
-CONFIG += c++11
+#CONFIG += c++11
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -41,7 +49,8 @@ HEADERS += \
     include/figures.h \
     include/gamewindowswork.h \
     include/graphics.h \
-    include/mainwindow.h
+    include/mainwindow.h \
+    my_tests/tests.h
 
 FORMS += \
     ui/mainwindow.ui

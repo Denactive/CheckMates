@@ -1,0 +1,2 @@
+/usr/bin/ar qc libLibWidget.a  CMakeFiles/LibWidget.dir/LibWidget_autogen/mocs_compilation.cpp.o
+/usr/bin/ranlib libLibWidget.a
