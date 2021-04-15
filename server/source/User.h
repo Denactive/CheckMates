@@ -43,6 +43,9 @@ public:
     Community create_community();
     Chat create_chat();
     Chat create_chat(const User&);
+    bool operator== (User& ) {
+        return false;
+    }
 };
 
 

@@ -10,7 +10,7 @@ set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 set(PROGRAM_NAME checkMatesProto)
 set(SOURCE_DIR source)
 set(LIB_DIR lib)
-include_directories(source/)
+include_directories(source/ tests/)
 
 add_executable(${PROGRAM_NAME} source/main.cpp  source/GameSession.cpp)
 #target_link_libraries(${PROGRAM_NAME} word_finder_shared)
@@ -20,14 +20,11 @@ add_executable(${PROGRAM_NAME} source/main.cpp  source/GameSession.cpp)
 #target_link_libraries(${PROGRAM_NAME} )
 #add_executable(program-mt ${MULTITHREAD_PROJ_DIR}/program-MT.c)
 
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GTEST_LIBRARIES})
 
-#тесты
-#enable_testing()
-#find_package(GTest REQUIRED)
+add_executable(test1 tests/tests.cpp tests/test1.cpp)
 
-#include_directories(${GTEST_INCLUDE_DIRS})
-#message(${GTEST_LIBRARIES})
-#message(${GTEST_INCLUDE_DIRS})
-
-#add_executable(tests testing/tests.cpp)
-#target_link_libraries(tests ${GTEST_LIBRARIES} -lpthread)
+add_test(test1 ./test1)

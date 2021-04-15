@@ -1,17 +1,18 @@
 #ifndef CHECKMATES_AUTHORIZER_H
 #define CHECKMATES_AUTHORIZER_H
 #include "GameSession.h"
+#include "Stub.h"
 
 class iAuthorizer {
 public:
-    virtual User authorize(Connection& connection) = 0;
-    virtual User register(Connection& connection) = 0;
+    virtual User authorize() = 0;
+    virtual User registration() = 0;
 };
 
 class Authorizer: public iAuthorizer {
 public:
-    User authorize(Connection& connection);
-    User register(Connection& connection);
+    User authorize();
+    User registration();
 private :
 };
 

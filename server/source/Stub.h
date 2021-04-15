@@ -25,6 +25,7 @@ class Chat {
 
 class Connection {
     int a();
+    int b;
 };
 
 #endif //CHECKMATES_STUB_H
