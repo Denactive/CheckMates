@@ -5,19 +5,24 @@
 #ifndef CHECKMATES_NET_H
 #define CHECKMATES_NET_H
 
-#include <boost/regex.hpp>
-#include <boost/date_time.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/utility/result_of.hpp>
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/websocket.hpp>
-#include <boost/beast/websocket/ssl.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio.hpp>
-#include <boost/asio/dispatch.hpp>
+//#include <boost/beast.hpp>
+//#include <boost/asio.hpp>
+//#include <boost/regex.hpp>
+//#include <boost/date_time.hpp>
+//#include <boost/bind.hpp>
+//#include <boost/thread.hpp>
+//#include <boost/beast/core.hpp>
+//#include <boost/shared_ptr.hpp>
+//#include <boost/utility/result_of.hpp>
+//#include <boost/beast/ssl.hpp>
+//#include <boost/beast/websocket.hpp>
+//#include <boost/beast/websocket/ssl.hpp>
+//#include <boost/asio/strand.hpp>
+//#include <boost/asio/ip/tcp.hpp>
+//#include <boost/asio/dispatch.hpp>
+
+#include <string>
+#include <vector>
 
 typedef struct {
     std::string ip;
@@ -66,8 +71,8 @@ public:
     void write(std::string);
 
 private:
-    void on_read(boost::system::error_code err, size_t bytes);
-    void on_write(boost::system::error_code err, size_t bytes);
+    //void on_read(boost::system::error_code err, size_t bytes);
+    //void on_write(boost::system::error_code err, size_t bytes);
     static const int max_msg = 1024;
     char read_buffer_ [max_msg];
     char write_buffer_ [max_msg];
