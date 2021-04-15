@@ -1,6 +1,6 @@
 #ifndef COMMUNITY_H
 #define COMMUNITY_H
-#include "graphics.h"
+#include "../include/graphics.h"
 
 class User;
 class Message;
@@ -14,23 +14,25 @@ public:
     virtual std::string gameTime() const = 0;
     virtual std::pair<int, int> getUserStep() const = 0;
     virtual int changeRating() const = 0;
-    virtual void setPassowrd(int password) = 0;
-    virtual void setLogin(int login) = 0;
+    virtual void setPassowrd(std::string password) = 0;
+    virtual void setLogin(std::string login) = 0;
 };
 
 class User : public IUser {
 public:
+    User(int nrating = 0, std::string npassword = "", std::string nlogin = "", int ntime = 0) 
+    	:rating(nrating), password(npassword), login(nlogin), time(ntime) {};
     int getUserRating() const override;
-    std::string getUserPassword() const override;
-    std::string getLogin() const override;
+    std::string getUserPassword() const override;// { return password; };
+    std::string getLogin() const override;// { return login; };
     std::string gameTime() const override;
     std::pair<int, int> getUserStep() const override;
     int changeRating() const override;
-    void setPassowrd(int password) override;
-    void setLogin(int login) override;
+    void setPassowrd(std::string password) override; //{};
+    void setLogin(std::string login) override; // {};
 private:
     int rating;
-    int password;
+    std::string password;
     std::string login;
     int time;
     std::pair<int, int> step;

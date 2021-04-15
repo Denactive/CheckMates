@@ -1,6 +1,6 @@
 #ifndef DATABASE_H
 #define DATABASE_H
-#include "include/graphics.h"
+#include "../include/graphics.h"
 
 /*in develop*/
 struct Stats {

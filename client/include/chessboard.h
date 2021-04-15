@@ -1,6 +1,7 @@
 #ifndef CHESSBOARD_H
 #define CHESSBOARD_H
-#include "graphics.h"
+#include <QAbstractListModel>
+#include "../include/graphics.h"
 
 class Cell;
 class Figure;
@@ -14,6 +15,7 @@ private:
     bool hasFigure;
     Figure *figure;
 public:
+    Cell(int nx = 0, int ny = 0, std::string ncolor = "white", bool nhasFigure = false, Figure * nfigure = nullptr): x(nx), y(ny), color(ncolor), hasFigure(nhasFigure), figure(nfigure) {}
     size_t value {};
     Cell& operator=(const size_t newValue) {
         value = newValue;
@@ -23,10 +25,11 @@ public:
         return other == value;
     }
 
-    void setFigure(Figure *);
+    void setFigure(Figure *) { hasFigure = true; };
     Figure * getFigure();
-    bool isHasFigure();
-    void setColor(std::string color);
+    bool isHasFigure() { return hasFigure == true; }
+    void setColor(std::string ncolor) { color = ncolor; }
+    std::string getColor() { return color; }
 };
 
 class IChessBoard {

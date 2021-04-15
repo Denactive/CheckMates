@@ -1,10 +1,11 @@
-include(gtest_dependency.pri)
-
-TEMPLATE = app
+#include(gtest_dependency.pri)
+#TEMPLATE = app
 CONFIG += console c++11
-CONFIG -= app_bundle
-CONFIG += thread
+#CONFIG -= app_bundle
+#CONFIG += thread
 #CONFIG -= qt
+#CONFIG += ordered
+#QMAKE_CXXFLAGS += -fprofile-arcs -ftest-coverage -O0
 
 QT += quick
 QT += quickwidgets
@@ -24,7 +25,7 @@ SOURCES += \
         src/gamewindowswork.cpp \
         src/graphics.cpp \
         src/main.cpp \
-        src/mainwindow.cpp
+        src/mainwindow.cpp \
 
 RESOURCES += qml.qrc \
 
@@ -50,7 +51,7 @@ HEADERS += \
     include/gamewindowswork.h \
     include/graphics.h \
     include/mainwindow.h \
-    my_tests/tests.h
+    tests/tests.h
 
 FORMS += \
     ui/mainwindow.ui

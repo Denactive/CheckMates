@@ -4,19 +4,13 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <QPixmap>
-#include <QMainWindow>
-#include <QDialog>
-#include <QMessageBox>
-#include <QDebug>
-#include <QAbstractListModel>
 
-#include "community.h"
-#include "chessboard.h"
-#include "figures.h"
-#include "gamewindowswork.h"
-#include "mainwindow.h"
-#include "database.h"
+#include "../include/community.h"
+#include "../include/chessboard.h"
+#include "../include/figures.h"
+#include "../include/gamewindowswork.h"
+#include "../include/mainwindow.h"
+#include "../include/database.h"
 #include "ui_mainwindow.h"
 
 class IGraphics

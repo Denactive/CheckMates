@@ -1,6 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-#include "graphics.h"
+#include <QMainWindow>
+#include <QDialog>
+#include <QMessageBox>
+#include <QDebug>
+#include "../include/graphics.h"
 
 namespace Ui {
     class MainWindow;

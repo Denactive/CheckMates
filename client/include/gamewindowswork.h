@@ -1,6 +1,6 @@
 #ifndef GAMEWINDOWSWORK_H
 #define GAMEWINDOWSWORK_H
-#include "graphics.h"
+#include "../include/graphics.h"
 
 namespace Ui {
     class MainWindow;

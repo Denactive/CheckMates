@@ -1,4 +1,4 @@
-#include "include/graphics.h"
+#include "../include/graphics.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
