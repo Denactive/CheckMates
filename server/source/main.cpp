@@ -1,7 +1,7 @@
+#include "server.h"
 
 int main() {
-    Options opts("SaberLion-Devs");
-    Server s(opts);
-    s.run();
+    Options opts;
+    Server s;
     return 0;
 }

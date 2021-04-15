@@ -12,7 +12,7 @@ set(SOURCE_DIR source)
 set(LIB_DIR lib)
 include_directories(source/)
 
-add_executable(${PROGRAM_NAME} source/server.cpp source/GameSession.cpp)
+add_executable(${PROGRAM_NAME} source/main.cpp  source/GameSession.cpp)
 #target_link_libraries(${PROGRAM_NAME} word_finder_shared)
 
 #делайте либами
