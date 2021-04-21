@@ -1,7 +1,7 @@
 #ifndef FIGURES_H
 #define FIGURES_H
 #include <QPixmap>
-#include "../include/graphics.h"
+//#include "../include/figures.h"
 
 class Figure {
 private:
@@ -12,6 +12,15 @@ public:
     void setColor(std::string color);
     std::string getColor();
     void setImage(std::string);
+    bool move();
+};
+
+class King {
+private:
+    QPixmap image;
+    bool isUnderMat;
+public:
+    void setImage(QPixmap image);
     bool move();
 };
 
@@ -37,15 +46,6 @@ private:
 public:
     void setImage(QPixmap image);
     bool move();
-};
-
-class King : public Figure {
-private:
-    QPixmap image;
-public:
-    void setImage(QPixmap image);
-    bool move();
-    bool underMat();
 };
 
 class Horse : public Figure {

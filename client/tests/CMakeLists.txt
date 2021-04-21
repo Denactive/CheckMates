@@ -1,0 +1,46 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(tst LANGUAGES CXX)
+
+find_package(Threads REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
+
+if ($ENV{GOOGLETEST_DIR})
+    set(GOOGLETEST_DIR $ENV{GOOGLETEST_DIR})
+else ()
+    if (NOT "/${PROJECT_SOURCE_DIR}/googletest-release-1.10.0" STREQUAL "")
+        message(WARNING "Using googletest src dir specified at Qt Creator wizard")
+    endif ()
+    set(GOOGLETEST_DIR "/${PROJECT_SOURCE_DIR}/googletest-release-1.10.0")
+endif ()
+if (EXISTS ${GOOGLETEST_DIR})
+    set(GTestSrc ${GOOGLETEST_DIR}/googletest)
+    set(GMockSrc ${GOOGLETEST_DIR}/googlemock)
+elseif (UNIX AND EXISTS /usr/src/gtest)
+    set(GTestSrc /usr/src/gtest)
+    message(WARNING "Using gtest from system")
+    if (EXISTS /usr/src/gmock)
+        set(GMockSrc /usr/src/gmock)
+    endif ()
+else ()
+    message( FATAL_ERROR "No googletest src dir found - set GOOGLETEST_DIR to enable!")
+endif ()
+
+message("project src dir: ")
+message(${PROJECT_SOURCE_DIR})
+
+set(GTestFiles ${GTestSrc}/src/gtest-all.cc)
+set(GTestIncludes ${GTestSrc} ${GTestSrc}/include)
+if (NOT ${GMockSrc} STREQUAL "")
+    list(APPEND GTestFiles ${GMockSrc}/src/gmock-all.cc)
+    list(APPEND GTestIncludes ${GMockSrc} ${GMockSrc}/include)
+endif ()
+
+include_directories(${GTestIncludes})
+include_directories(${GTestSrc} ${GTestSrc}/include ${GMockSrc} ${GMockSrc}/include)
+
+add_executable(${PROJECT_NAME} main.cpp tst_community.cpp tst_database.cpp ${GTestSrc}/src/gtest-all.cc ${GMockSrc}/src/gmock-all.cc)
+add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+

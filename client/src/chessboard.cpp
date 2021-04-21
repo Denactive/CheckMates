@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <random>
-#include  "../include/graphics.h"
+#include <QAbstractListModel>
+
+#include  "../include/chessboard.h"
 
 ChessBoard::ChessBoard(const size_t newSize, QObject *parrent)
     :QAbstractListModel{parrent}, size{newSize} {

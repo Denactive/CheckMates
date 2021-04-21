@@ -1,11 +1,13 @@
 #ifndef CHESSBOARD_H
 #define CHESSBOARD_H
 #include <QAbstractListModel>
-#include "../include/graphics.h"
+#include <string>
+//#include "../graphics.h"
 
 class Cell;
 class Figure;
 class ChessBoard;
+class King;
 
 class Cell {
 private:
@@ -58,11 +60,12 @@ public:
     Position getPosition(size_t index);
     bool isBorderOfBoard(const size_t index) override;
     size_t getSize() const override;
-
+    bool isKingUnderMat();
 
 private:
     std::vector<Cell> cells;
     const size_t size;
+    King *king;
 };
 
 #endif // CHESSBOARD_H

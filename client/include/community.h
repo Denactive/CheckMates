@@ -1,6 +1,8 @@
 #ifndef COMMUNITY_H
 #define COMMUNITY_H
-#include "../include/graphics.h"
+//#include "../graphics.h"
+#include <string>
+#include <vector>
 
 class User;
 class Message;
@@ -8,13 +10,14 @@ class Chat;
 
 class IUser {
 public:
+    virtual ~IUser() = default;
     virtual int getUserRating() const = 0;
     virtual std::string getUserPassword() const = 0;
     virtual std::string getLogin() const = 0;
     virtual std::string gameTime() const = 0;
     virtual std::pair<int, int> getUserStep() const = 0;
-    virtual int changeRating() const = 0;
-    virtual void setPassowrd(std::string password) = 0;
+    virtual int changeRating(int newRating) const = 0;
+    virtual void setPassword(std::string password) = 0;
     virtual void setLogin(std::string login) = 0;
 };
 
@@ -27,8 +30,8 @@ public:
     std::string getLogin() const override;// { return login; };
     std::string gameTime() const override;
     std::pair<int, int> getUserStep() const override;
-    int changeRating() const override;
-    void setPassowrd(std::string password) override; //{};
+    int changeRating(int newRating) const override;
+    void setPassword(std::string password) override; //{};
     void setLogin(std::string login) override; // {};
 private:
     int rating;
@@ -39,7 +42,7 @@ private:
 };
 
 
-class Message {
+class MyMessage {
 public:
     bool changeMessage(std::string new_message);
     std::string getMessage() const;
@@ -54,7 +57,7 @@ public:
     bool deleteMessage(int index);
     bool cleanAllMessages();
 private:
-    Message * messages;
+    std::vector<MyMessage*> messages;
     User * user;
 };
 

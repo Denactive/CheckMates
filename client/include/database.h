@@ -1,6 +1,8 @@
 #ifndef DATABASE_H
 #define DATABASE_H
-#include "../include/graphics.h"
+#include <string>
+#include "../include/community.h"
+//#include "../graphics.h"
 
 /*in develop*/
 struct Stats {
@@ -12,20 +14,23 @@ struct Stats {
 };
 
 class IStatistics {
-    virtual Stats getStats(User& user) const = 0;
-    virtual Stats getfullStats(User& user) const = 0;
+    virtual Stats getStats(User * user) = 0;
+    virtual int getAverageGameLen() = 0;
+    virtual int getAverageMovesToWinQuantity()= 0;
+    virtual int getStaleMatePercentage() = 0;
+    virtual int getGameLeavingPercentage() = 0;
+    virtual int giveUpsPercentage() = 0;
 };
 
 
 class Statistics : public IStatistics {
 public:
-    Stats getStats(User& user) const override;
-    Stats getfullStats(User& user) const override;
-    int getAverageGameLen() const;
-    int getAverageMovesToWinQuantity() const;
-    int getStaleMatePercentage() const;
-    int getGameLeavingPercentage() const;
-    int giveUpsPercentage() const;
+    Stats getStats(User * user) override;
+    int getAverageGameLen() override;
+    int getAverageMovesToWinQuantity() override;
+    int getStaleMatePercentage() override;
+    int getGameLeavingPercentage() override;
+    int giveUpsPercentage() override;
 };
 
 class IDatabase {
