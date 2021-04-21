@@ -19,25 +19,27 @@ public:
     virtual void GiveUpHandler() = 0;
     virtual void StalemateHandler() = 0;
     virtual void CreateLog() = 0;
+    iTurnControl* control;
 };
 
 class GameSession: public iGameSession {
 public:
-    GameSession(iTurnControl& l):control(l){}
+    GameSession(iTurnControl* l):control(l){}
     void run();
     std::string GetStatus();
     void DrawHandler();
     void GiveUpHandler();
     void StalemateHandler();
     void CreateLog();
-    iTurnControl& control;
+    iTurnControl* control;
 private:
-    BDServer log;
-    ChessBoard board;
-    Player wPlayer;
-    Player bPlayer;
-    std::string status;
-    TurnHistory history;
+
+   // BDServer log;
+   // ChessBoard board;
+   // Player wPlayer;
+   // Player bPlayer;
+    //std::string status;
+    //TurnHistory history;
 
 };
 
