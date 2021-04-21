@@ -23,7 +23,8 @@ TEST(gamesession, TurnControl) {
               .WillByDefault(Return(true));
     EXPECT_EQ(control.GetTurn(), true);
     EXPECT_EQ(control.GetTime(true), 100);
-
+    GameSession session(&control);
+    EXPECT_EQ(session.GetTime(), 100);
 
 }
 
