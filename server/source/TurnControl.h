@@ -25,7 +25,7 @@ private:
     void EnableTimer();
     virtual void StopTimer();
 public:
-    time_t GetTime(bool Turn);
+    time_t GetTime(const bool Turn);
     bool GetTurn(void);
 };
 
