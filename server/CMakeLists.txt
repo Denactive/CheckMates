@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD 11)
 #set(CMAKE_CXX_FLAGS "-g -coverage -O0 -Wall -Werror -fprofile-arcs -ftest-coverage -fPIC")
 set(CMAKE_CXX_FLAGS "-g -Wall -Werror")
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
-
+set(GMock_DIR "~/CheckMates/server")
 set(PROGRAM_NAME server)
 set(SOURCE_DIR source)
 set(LIB_DIR lib)
@@ -37,10 +37,12 @@ enable_testing()
 find_package(GTest REQUIRED)
 include_directories(${INCLUDE_DIRECTORIES})
 message(${GTEST_LIBRARIES})
-enable_testing()
+find_package(GMock REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GMOCK_LIBRARIES})
 
 
 add_executable(test1 test/test1.cpp test/tests.cpp)
-target_link_libraries(test1 ${GTEST_LIBRARIES})
+target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 
 add_test(test1 ./test1)
