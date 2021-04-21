@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.11)
 project(CheckMates)
 set(CMAKE_C_STANDARD 11)
 
@@ -10,7 +10,7 @@ set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 set(PROGRAM_NAME server)
 set(SOURCE_DIR source)
 set(LIB_DIR lib)
-include_directories(source/ tests/)
+include_directories(source/ test/)
 
 find_package(Boost REQUIRED COMPONENTS system)
 #find_package(Boost)
@@ -32,16 +32,15 @@ add_executable(${PROGRAM_NAME}
         )
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
 
-#делайте либами
-#add_library(<some lib name> SHARED ${MULTITHREAD_PROJ_DIR}/_.cpp)
-#target_link_libraries(${PROGRAM_NAME} )
-#add_executable(program-mt ${MULTITHREAD_PROJ_DIR}/program-MT.c)
 
-#enable_testing()
-#find_package(GTest REQUIRED)
-#include_directories(${INCLUDE_DIRECTORIES})
-#message(${GTEST_LIBRARIES})
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GTEST_LIBRARIES})
+enable_testing()
 
-#add_executable(test1 tests/tests.cpp)
+
+add_executable(test1 test/test1.cpp test/tests.cpp)
+target_link_libraries(test1 ${GTEST_LIBRARIES})
 
 add_test(test1 ./test1)

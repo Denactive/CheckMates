@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(CheckMates)
 set(CMAKE_C_STANDARD 11)
 
-# крутая компиляция для взрослых
-#set(CMAKE_CXX_FLAGS "-g -coverage -O0 -Wall -Werror -fprofile-arcs -ftest-coverage -fPIC")
+
 set(CMAKE_CXX_FLAGS "-g -Wall -Werror")
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 
@@ -12,7 +11,7 @@ set(SOURCE_DIR source)
 set(LIB_DIR lib)
 include_directories(source/)
 
-add_executable(${PROGRAM_NAME} ${SOURCE_DIR}/main.cpp source/main.cpp source/server.cpp source/server.h)
+add_executable(${PROGRAM_NAME} source/main.cpp source/server.cpp source/server.h)
 find_package(Boost REQUIRED COMPONENTS system)
 #message(${BOOST_LIBRARIES})
 #message(${BOOST_INCLUDE_DIRS})
