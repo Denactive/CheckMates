@@ -23,7 +23,17 @@ public:
     void printTopUsers(User * users);
     void GameInfo();
 
+protected:
+    bool eventListener(QObject *watched, QEvent *event);
+
+private slots:
+    void on_playButton_clicked();
+    void on_pushButton_clicked();
+    void on_QuitButton_clicked();
+    void on_searchChatButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
+
 #endif // MAINWINDOW_H

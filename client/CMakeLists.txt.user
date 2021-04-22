@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.14.2, 2021-04-21T13:06:55. -->
+<!-- Written by QtCreator 4.14.2, 2021-04-22T10:18:54. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -65,11 +65,23 @@
     <value type="bool" key="AutoTest.Framework.QtTest">true</value>
    </valuemap>
    <valuemap type="QVariantMap" key="AutoTest.CheckStates">
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMatesCmake/client/tests/tst_test.cpp:test">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMatesCmake/client/tests/tst_test.cpp:tests">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:Rating">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:correctLogin">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:correctPassword">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:correctRating">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:correctStep">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:getLogin">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:getRating">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:getUserPassword">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:getUserStep">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_database.cpp:Stats">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_database.cpp:correctStats">Checked</value>
    </valuemap>
    <value type="int" key="AutoTest.RunAfterBuild">0</value>
    <value type="bool" key="AutoTest.UseGlobal">true</value>
+   <valuelist type="QVariantList" key="ClangCodeModel.CustomCommandLineKey"/>
+   <value type="bool" key="ClangCodeModel.UseGlobalConfig">true</value>
+   <value type="QString" key="ClangCodeModel.WarningConfigId">Builtin.Questionable</value>
    <valuemap type="QVariantMap" key="ClangTools">
     <value type="bool" key="ClangTools.AnalyzeOpenFiles">true</value>
     <value type="bool" key="ClangTools.BuildBeforeAnalysis">true</value>
