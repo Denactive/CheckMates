@@ -44,12 +44,14 @@ public:
     void GiveUpHandler(){};
     void StalemateHandler(){};
     ~GameSession(){};
+// BDServer log;
+// ChessBoard board;
+iTurnControl* control;
+iPlayer* wPlayer;
+iPlayer* bPlayer;
 private:
-    iTurnControl* control;
-   // BDServer log;
-   // ChessBoard board;
-    iPlayer* wPlayer;
-    iPlayer* bPlayer;
+
+
     //std::string status;
     //TurnHistory history;
 
