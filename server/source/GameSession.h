@@ -16,7 +16,7 @@ public:
     virtual ~iGameSession() {};
     virtual void CreateLog() = 0;
     virtual void SetBoard() = 0;
-    virtual void MakeMove() = 0;
+    virtual bool MakeMove() = 0;
     virtual std::vector<std::string> all_available_Moves() = 0;
     virtual void DrawHandler() = 0;
     virtual std::string GetStatus() = 0;
@@ -29,10 +29,10 @@ public:
 
 class GameSession: public iGameSession {
 public:
-    GameSession(iTurnControl* l);
+    GameSession(iTurnControl* control, iPlayer* player);
     std::vector<std::string> all_available_Moves();
     void SetBoard(){};
-    void MakeMove(){};
+    bool MakeMove();
     void CreateLog(){};
     void DrawHandler(){};
     std::string GetStatus() {
@@ -48,8 +48,8 @@ private:
     iTurnControl* control;
    // BDServer log;
    // ChessBoard board;
-   // Player wPlayer;
-   // Player bPlayer;
+    iPlayer* wPlayer;
+    iPlayer* bPlayer;
     //std::string status;
     //TurnHistory history;
 
