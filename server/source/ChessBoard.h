@@ -12,8 +12,12 @@ class ChessBoard {
 private:
     std::vector<char> board;
 public:
-    void get_board();
-    void chess_board();
+    std::vector<char> get_board() {
+        return board;
+    };
+    void set_board( ){
+        board.push_back('P');
+    }
 };
 
 
