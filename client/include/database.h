@@ -14,7 +14,7 @@ struct Stats {
 };
 
 class IStatistics {
-    virtual Stats getStats(User * user) = 0;
+    virtual Stats * getStats(User * user) = 0;
     virtual int getAverageGameLen() = 0;
     virtual int getAverageMovesToWinQuantity()= 0;
     virtual int getStaleMatePercentage() = 0;
@@ -25,7 +25,7 @@ class IStatistics {
 
 class Statistics : public IStatistics {
 public:
-    Stats getStats(User * user) override;
+    Stats * getStats(User * user) override { return nullptr; }
     int getAverageGameLen() override;
     int getAverageMovesToWinQuantity() override;
     int getStaleMatePercentage() override;

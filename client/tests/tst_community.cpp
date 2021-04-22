@@ -16,7 +16,7 @@ public:
     MOCK_CONST_METHOD0(getUserRating, int());
     MOCK_CONST_METHOD0(getUserPassword, std::string());
     MOCK_CONST_METHOD0(getLogin, std::string());
-    MOCK_CONST_METHOD0(gameTime, std::string());
+    MOCK_CONST_METHOD0(gameTime, int());
     MOCK_CONST_METHOD0(getUserStep, std::pair<int, int>());
     MOCK_CONST_METHOD1(changeRating, int(int newRating));
     MOCK_METHOD1(setPassword, void(std::string password));
@@ -28,7 +28,7 @@ TEST(Rating, correctRating) {
     MockUser mock;
     EXPECT_CALL(mock,changeRating(int(1))).WillOnce(Return(1));
     EXPECT_EQ(mock.changeRating(1), 1);
- }
+}
 
 TEST(getRating, correctRating) {
     MockUser mock;

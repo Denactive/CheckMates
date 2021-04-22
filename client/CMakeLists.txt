@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(client LANGUAGES CXX)
+set(GMock_DIR "./")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -14,6 +15,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
+message(${GTEST_LIBRARIES})
+find_package(GMock REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GMOCK_LIBRARIES})
 
 #configure_file(CMakeLists.txt.in
 #        googletest-download/CMakeLists.txt)
@@ -57,7 +62,7 @@ set(PROJECT_SOURCES
 )
 
 add_library(clientlib SHARED ${PROJECT_SOURCES})
-target_link_libraries(clientlib Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(clientlib Qt${QT_VERSION_MAJOR}::Widgets GTest::GTest GTest::Main)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(client ${PROJECT_SOURCES})

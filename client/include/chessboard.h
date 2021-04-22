@@ -1,13 +1,14 @@
-#ifndef CHESSBOARD_H
+﻿#ifndef CHESSBOARD_H
 #define CHESSBOARD_H
 #include <QAbstractListModel>
 #include <string>
 //#include "../graphics.h"
+#include "../include/figures.h"
 
-class Cell;
-class Figure;
-class ChessBoard;
-class King;
+//class Cell;
+//class Figure;
+//class ChessBoard;
+//class King;
 
 class Cell {
 private:
@@ -39,6 +40,7 @@ class IChessBoard {
     virtual bool move(int index) = 0;
     virtual bool isBorderOfBoard(const size_t index) = 0;
     virtual size_t getSize() const = 0;
+    virtual bool isKingUnderMat(King * king) = 0;
 };
 
 class ChessBoard : public QAbstractListModel, public IChessBoard
@@ -60,7 +62,7 @@ public:
     Position getPosition(size_t index);
     bool isBorderOfBoard(const size_t index) override;
     size_t getSize() const override;
-    bool isKingUnderMat();
+    bool isKingUnderMat(King * king) override;
 
 private:
     std::vector<Cell> cells;

@@ -45,6 +45,12 @@ bool ChessBoard::move(int index)
     return true;
 }
 
+bool ChessBoard::isKingUnderMat(King * king)
+{
+    if (king != nullptr) return true;
+    return false;
+}
+
 ChessBoard::Position ChessBoard::getPosition(size_t index)
 {
     return std::make_pair(index / size, index % size);
