@@ -31,6 +31,7 @@ TEST(gamesession, Mock) {
     std::vector<char> B;
     B.push_back('P');
     EXPECT_EQ(session.board.get_board(), B);
+    EXPECT_EQ(session.history.PrepareLog(), vec);
 }
 
 

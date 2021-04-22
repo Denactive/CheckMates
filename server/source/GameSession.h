@@ -49,9 +49,9 @@ public:
     iTurnControl* control;
     iPlayer* wPlayer;
     iPlayer* bPlayer;
-
+    TurnHistory history;
 private:
     std::string status;
-    TurnHistory history;
+
 };
 
