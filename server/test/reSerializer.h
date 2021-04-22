@@ -1,0 +1,8 @@
+//
+// Created by denactive on 22.04.2021.
+//
+
+#ifndef CHECKMATES_RESERIALIZER_H
+#define CHECKMATES_RESERIALIZER_H
+
+#endif //CHECKMATES_RESERIALIZER_H
