@@ -26,11 +26,11 @@ class IStatistics {
 class Statistics : public IStatistics {
 public:
     Stats * getStats(User * user) override { return nullptr; }
-    int getAverageGameLen() override;
-    int getAverageMovesToWinQuantity() override;
-    int getStaleMatePercentage() override;
-    int getGameLeavingPercentage() override;
-    int giveUpsPercentage() override;
+    int getAverageGameLen() override { return -1; }
+    int getAverageMovesToWinQuantity() override { return -1; }
+    int getStaleMatePercentage() override { return -1; }
+    int getGameLeavingPercentage() override { return -1; }
+    int giveUpsPercentage() override { return -1; }
 };
 
 class IDatabase {

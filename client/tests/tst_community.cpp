@@ -29,25 +29,3 @@ TEST(Rating, correctRating) {
     EXPECT_CALL(mock,changeRating(int(1))).WillOnce(Return(1));
     EXPECT_EQ(mock.changeRating(1), 1);
 }
-
-TEST(getRating, correctRating) {
-    MockUser mock;
-    EXPECT_CALL(mock, getUserRating()).WillOnce(Return(0));
-}
-
-TEST(getUserStep, correctStep) {
-    MockUser mock;
-    EXPECT_CALL(mock,getUserStep()).WillOnce(Return(std::pair<int,int>(1,1)));
-}
-
-TEST(getUserPassword, correctPassword) {
-    MockUser mock;
-    mock.setPassword("1");
-    EXPECT_CALL(mock, getUserPassword()).WillOnce(Return("1"));
-}
-
-TEST(getLogin, correctLogin) {
-    MockUser mock;
-    mock.setLogin("1");
-    EXPECT_CALL(mock, getLogin()).WillOnce(Return("1"));
-}

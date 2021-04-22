@@ -22,14 +22,32 @@ public:
 };
 
 using ::testing::AtLeast;
-//TEST(Stats, correctStats) {
-//    MockStats mock;
-//    Stats stats;
-//    stats.avgGameLen = 0;
-//    stats.gameLeavingPercentage = 0;
-//    stats.giveUpsPercentage = 0;
-//    stats.movesToWinQuantity = 0;
-//    stats.staleMatePercentage = 0;
-//    User * user = nullptr;
-//    EXPECT_CALL(mock, getStats(user)).WillOnce(Return(stats));
-//}
+TEST(Stats, correctStats) {
+    // arrange
+    MockStats mock;
+    Stats stats;
+    Statistics st;
+    stats.avgGameLen = 0;
+    stats.gameLeavingPercentage = 0;
+    stats.giveUpsPercentage = 0;
+    stats.movesToWinQuantity = 0;
+    stats.staleMatePercentage = 0;
+    User * user = nullptr;
+
+    ON_CALL(mock, getStats(user)).WillByDefault(Return(&stats));
+    ON_CALL(mock, getAverageGameLen()).WillByDefault(Return(0));
+    ON_CALL(mock, getAverageMovesToWinQuantity()).WillByDefault(Return(0));
+    ON_CALL(mock, getStaleMatePercentage()).WillByDefault(Return(0));
+    ON_CALL(mock, getGameLeavingPercentage()).WillByDefault(Return(0));
+    ON_CALL(mock, giveUpsPercentage()).WillByDefault(Return(0));
+
+    // a...
+
+    st.getAverageGameLen();
+    st.getAverageMovesToWinQuantity();
+    st.getStaleMatePercentage();
+    st.getGameLeavingPercentage();
+    st.giveUpsPercentage();
+    // assert
+    // ... expect_eq
+}
