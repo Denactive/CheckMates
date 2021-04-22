@@ -1,5 +1,5 @@
-#ifndef CHECKMATES_PLAYER_H
-#define CHECKMATES_PLAYER_H
+#pragma once
+
 #include "User.h"
 #include "GameSession.h"
 
@@ -7,29 +7,27 @@ class iPlayer {
 
 public:
     virtual std::vector<std::string> all_available_Moves() = 0;
-    virtual void try_move() = 0;
-    virtual void is_check() = 0;
-    virtual void is_mate() = 0;
-    virtual void is_statemate() = 0;
-    virtual User get_user() = 0;
+    virtual bool try_move() = 0;
+    virtual bool is_check() = 0;
+    virtual bool is_mate() = 0;
+    virtual bool is_stalemate() = 0;
+    virtual size_t GetUserId() = 0;
     virtual void set_pieces() = 0;
 };
 
 class Player: public iPlayer {
 private:
     ChessBoard& board;
-    User& user;
+    User user;
     ChessPiece pieces[16];
 public:
     Player();
     std::vector<std::string> all_available_Moves();
-    void try_move();
-    void is_check();
-    void is_mate();
-    void is_statemate();
-    User get_user();
+    bool try_move();
+    bool is_check();
+    bool is_mate();
+    bool is_stalemate();
+    size_t GetUserId();
     void set_pieces();
 };
 
-
-#endif //CHECKMATES_PLAYER_H

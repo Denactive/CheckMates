@@ -24,8 +24,6 @@ add_executable(${PROGRAM_NAME}
         ${SOURCE_DIR}/main.cpp
         source/server.cpp
         source/net.cpp
-        source/matcher.cpp
-        source/user.cpp
         source/community.cpp
         source/ServerDB.cpp
         source/GameSession.cpp
@@ -42,7 +40,7 @@ include_directories(${INCLUDE_DIRECTORIES})
 message(${GMOCK_LIBRARIES})
 
 
-add_executable(test1 test/test1.cpp test/tests.cpp)
+add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp)
 target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 
 add_test(test1 ./test1)

@@ -1,11 +1,6 @@
-//
-// Created by denactive on 15.04.2021.
-//
-
-#ifndef CHECKMATES_MATCHER_H
-#define CHECKMATES_MATCHER_H
-
-//#include "user.h"
+#pragma once
+#include "GameSession.h"
+//#include "User.h"
 class IUser;
 
 // todo: посмотреть про аррей
@@ -15,10 +10,7 @@ class IUser;
 // Todo: #include <singleton>
 // Todo: #include <GameSession>
 
-// затычка
-class GameSession {
-    bool t = 1;
-};
+
 
 class IMatcherQueue {
 public:
@@ -37,4 +29,4 @@ private:
 };
 
 
-#endif //CHECKMATES_MATCHER_H
+
