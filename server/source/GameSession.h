@@ -29,7 +29,7 @@ public:
 
 class GameSession: public iGameSession {
 public:
-    GameSession(iTurnControl* control, iPlayer* player);
+    GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
     std::vector<std::string> all_available_Moves();
     void SetBoard(){};
     bool MakeMove();
@@ -44,11 +44,12 @@ public:
     void GiveUpHandler(){};
     void StalemateHandler(){};
     ~GameSession(){};
- BDServer log;
- ChessBoard board;
-iTurnControl* control;
-iPlayer* wPlayer;
-iPlayer* bPlayer;
+    iBDServer* log;
+    ChessBoard board;
+    iTurnControl* control;
+    iPlayer* wPlayer;
+    iPlayer* bPlayer;
+
 private:
     std::string status;
     TurnHistory history;
