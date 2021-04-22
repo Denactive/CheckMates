@@ -10,8 +10,8 @@ TEST(NetMock, HTTP_format) {
     std::cout << "NetMock | HTTP-format" << std::endl;
 
     // Arrange
-    HTTP_format http;
     reSerializer ms;
+    HTTP_format http(ms);
     EXPECT_CALL(ms, serialize("hi, http")).Times(AtLeast(3));
 
     // Act
@@ -29,16 +29,16 @@ TEST(NetMock, HTTP_format) {
 
 TEST(NetMock, WS_format) {
     std::cout << "NetMock | WS-format" << std::endl;
-
     // Arrange
-    //WS_format ws;
     reSerializer ms;
+    WS_format ws(ms);
     EXPECT_CALL(ms, serialize("hello, ws")).Times(AtLeast(3));
 
     // Act
-//    ws.authorize_handler();
-//    ws.register_handler();
-//    ws.request_handler();
+
+    ws.chat_handler();
+    ws.game_request_handler();
+    ws.game_response_handler();
 
     // TODO: Denactive check parsing correction
     // Event res;

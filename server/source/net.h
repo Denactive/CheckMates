@@ -51,22 +51,42 @@ private:
     short code_ = 0;
 };
 
+class ISerializer {
+public:
+    virtual std::string serialize(std::string) = 0;
+    virtual std::string deserialize(std::string) = 0;
+};
+
+class JSON_serializer: ISerializer {
+public:
+    std::string serialize(std::string) override;
+    std::string deserialize(std::string) override;
+};
+
 class WS_format {
 public:
+    WS_format(ISerializer& s): serializer(s) {}
+    WS_format() = delete;
+
     void run();
     void game_request_handler();
     void game_response_handler();
     void chat_handler();
 private:
+    ISerializer& serializer;
 };
 
 class HTTP_format {
 public:
+    HTTP_format(ISerializer& s): serializer(s) {}
+    HTTP_format() = delete;
+
     void run();
     void request_handler();
     void authorize_handler();
     void register_handler();
 private:
+    ISerializer& serializer;
 };
 
 class Net {
@@ -82,18 +102,6 @@ private:
     char read_buffer_ [max_msg];
     char write_buffer_ [max_msg];
 
-};
-
-class ISerializer {
-public:
-    virtual std::string serialize(std::string) = 0;
-    virtual std::string deserialaize(std::string) = 0;
-};
-
-class JSON_serializer: ISerializer {
-public:
-    std::string serialize(std::string) override;
-    std::string deserialaize(std::string) override;
 };
 
 class ILogger {
