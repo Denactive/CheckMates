@@ -8,8 +8,8 @@
 #include "Player.h"
 #include "TurnHistory.h"
 //#include "Stub.h"
-//#include "Stats.h"
 #include "TurnControl.h"
+#include "Stats.h"
 
 class iGameSession {
 public:
@@ -44,16 +44,13 @@ public:
     void GiveUpHandler(){};
     void StalemateHandler(){};
     ~GameSession(){};
-// BDServer log;
-// ChessBoard board;
+ BDServer log;
+ ChessBoard board;
 iTurnControl* control;
 iPlayer* wPlayer;
 iPlayer* bPlayer;
 private:
-
-
-    //std::string status;
-    //TurnHistory history;
-
+    std::string status;
+    TurnHistory history;
 };
 

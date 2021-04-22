@@ -27,9 +27,9 @@ public:
 
 class BDServer: public iBDServer {
 public:
-    std::string query(std::string q);
+    std::string query(std::string q) {return 0;};
 private :
-    std::string fileDB();
+    std::string fileDB() {return 0;};
 };
 
 
