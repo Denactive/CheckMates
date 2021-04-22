@@ -5,6 +5,7 @@
 #include "ChessBoard.h"
 #include "ChessPiece.h"
 //#include "User.h"
+#include "Player.h"
 #include "TurnHistory.h"
 //#include "Stub.h"
 //#include "Stats.h"

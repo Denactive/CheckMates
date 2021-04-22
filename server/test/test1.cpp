@@ -1,7 +1,6 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "GameSession.h"
-#include "Player.h"
 #include "reTurnControl.h"
 
 using ::testing::Return;

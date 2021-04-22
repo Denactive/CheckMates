@@ -1,6 +1,5 @@
 #pragma once
 
-#include "User.h"
 #include "GameSession.h"
 
 class iPlayer {
@@ -18,7 +17,7 @@ public:
 class Player: public iPlayer {
 private:
     ChessBoard& board;
-    User user;
+   // User user;
     ChessPiece pieces[16];
 public:
     Player();
