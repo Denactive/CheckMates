@@ -29,12 +29,8 @@ public:
 
 class GameSession: public iGameSession {
 public:
-    GameSession(iTurnControl* l):control(l){};
-    std::vector<std::string> all_available_Moves(){
-        std::vector<std::string> vec;
-        vec.push_back("new");
-        return vec;
-    };
+    GameSession(iTurnControl* l);
+    std::vector<std::string> all_available_Moves();
     void SetBoard(){};
     void MakeMove(){};
     void CreateLog(){};
