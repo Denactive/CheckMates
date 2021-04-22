@@ -25,6 +25,12 @@ TEST(gamesession, Mock) {
     EXPECT_TRUE(session.MakeMove());
     EXPECT_EQ(session.wPlayer->GetUserId(), 0);
     EXPECT_EQ(session.log->query("new"), "new");
+    ChessBoard newboard;
+    EXPECT_EQ(session.board.get_board(), newboard.get_board());
+    session.board.set_board();
+    std::vector<char> B;
+    B.push_back('P');
+    EXPECT_EQ(session.board.get_board(), B);
 }
 
 
