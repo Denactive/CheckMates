@@ -20,17 +20,6 @@ private:
     Stats& stats;
 };
 
-class iBDServer {
-public:
-    virtual std::string query(std::string q) = 0;
-};
-
-class BDServer: public iBDServer {
-public:
-    std::string query(std::string q) {return 0;};
-private :
-    std::string fileDB() {return 0;};
-};
 
 
 #endif //CHECKMATES_STATS_H
