@@ -85,11 +85,13 @@ private:
 };
 
 class ISerializer {
+public:
     virtual std::string serialize(std::string) = 0;
     virtual std::string deserialaize(std::string) = 0;
 };
 
 class JSON_serializer: ISerializer {
+public:
     std::string serialize(std::string) override;
     std::string deserialaize(std::string) override;
 };
