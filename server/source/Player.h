@@ -18,15 +18,20 @@ class Player: public iPlayer {
 private:
     ChessBoard& board;
    // User user;
-    ChessPiece pieces[16];
+
 public:
-    Player();
-    std::vector<std::string> all_available_Moves();
-    bool try_move();
-    bool is_check();
-    bool is_mate();
-    bool is_stalemate();
-    size_t GetUserId();
-    void set_pieces();
+    Player(ChessBoard& board, ChessPiece* pieces):board(board), pieces(pieces) {};
+    ChessPiece* pieces;
+    std::vector<std::string> all_available_Moves() {
+        std::vector<std::string> vec;
+        return vec;
+    };
+
+    bool try_move() {return true;};
+    bool is_check(){return true;};
+    bool is_mate(){return true;};
+    bool is_stalemate(){return true;};
+    size_t GetUserId(){return 0;};
+    void set_pieces(){};
 };
 

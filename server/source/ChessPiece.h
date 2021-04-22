@@ -8,9 +8,9 @@
 
 class ChessPiece {
 public:
-void move();
-std::vector<std::string> available_moves();
-void capture_piece();
+virtual void move() = 0;
+virtual std::vector<std::string> available_moves() = 0;
+virtual void capture_piece() = 0;
 };
 
 class King :public ChessPiece {
