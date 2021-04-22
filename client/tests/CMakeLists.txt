@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(tst LANGUAGES CXX)
-
-find_package(Threads REQUIRED)
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
+#project(tst LANGUAGES CXX)
+#find_package(Threads REQUIRED)
+#find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
+#find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
 
 if ($ENV{GOOGLETEST_DIR})
     set(GOOGLETEST_DIR $ENV{GOOGLETEST_DIR})
@@ -40,7 +39,21 @@ endif ()
 include_directories(${GTestIncludes})
 include_directories(${GTestSrc} ${GTestSrc}/include ${GMockSrc} ${GMockSrc}/include)
 
-add_executable(${PROJECT_NAME} main.cpp tst_community.cpp tst_database.cpp ${GTestSrc}/src/gtest-all.cc ${GMockSrc}/src/gmock-all.cc)
-add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+#add_executable(${PROJECT_NAME} main.cpp tst_community.cpp tst_database.cpp ${GTestSrc}/src/gtest-all.cc ${GMockSrc}/src/gmock-all.cc)
+#add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 
+include_directories("${PROJECT_SOURCE_DIR}/")
+include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_SOURCE_DIR}/src")
+
+file(GLOB tests "{PROJECT_SOURCE_DIR}/tests/tst_community.cpp" "{PROJECT_SOURCE_DIR}/tests/tst_database.cpp")
+#list(REMOVE_ITEM tests ${PROJECT_SOURCE_DIR}/tests/main.cp")
+
+foreach(file ${tests})
+  set(name)
+  get_filename_component(name ${file} NAME_WE)
+  add_executable("${name}_tests" ${file} "${PROJECT_SOURCE_DIR}/tests/main.cpp" ${GTestSrc}/src/gtest-all.cc ${GMockSrc}/src/gmock-all.cc)
+  target_link_libraries("${name}_tests" clientlib gtest_main)
+  add_test(NAME ${name} COMMAND "${name}_tests")
+  target_link_libraries(${name} PRIVATE Threads::Threads)
+endforeach()
