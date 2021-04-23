@@ -2,6 +2,9 @@
 #include "gtest/gtest.h"
 #include "net.h"
 #include "reSerializer.h"
+#include "server.h"
+#include "reNet.h"
+#include "reOptions.h"
 
 using ::testing::Return;
 using ::testing::AtLeast;
@@ -12,7 +15,7 @@ TEST(NetMock, HTTP_format) {
     // Arrange
     reSerializer ms;
     HTTP_format http(ms);
-    EXPECT_CALL(ms, serialize("hi, http")).Times(AtLeast(3));
+    EXPECT_CALL(ms, serialize("smtg")).Times(AtLeast(3));
 
     // Act
     http.authorize_handler();
@@ -32,7 +35,7 @@ TEST(NetMock, WS_format) {
     // Arrange
     reSerializer ms;
     WS_format ws(ms);
-    EXPECT_CALL(ms, serialize("hello, ws")).Times(AtLeast(3));
+    EXPECT_CALL(ms, serialize("smtg")).Times(AtLeast(3));
 
     // Act
 
@@ -46,4 +49,26 @@ TEST(NetMock, WS_format) {
 
     // Assert
     // EXPECT_EQ();
+}
+
+TEST(NetMock, Server) {
+    std::cout << "NetMock | Server" << std::endl;
+    // Arrange
+    reNet mn;
+    reOptions mo;
+    Server s(mo);
+
+    EXPECT_CALL(mo, get_info).Times(AtLeast(1)).WillOnce(Return("owner: TestOwner | ip: 000.000.000.000:0"));
+    ON_CALL(mo, get_port).WillByDefault(Return(0));
+    ON_CALL(mo, get_ip).WillByDefault(Return("000.000.000.000"));
+    ON_CALL(mo, get_owner).WillByDefault(Return("TestOwner"));
+
+    EXPECT_CALL(mn, accept).Times(AtLeast(1)).WillOnce(Return((Connection){ "000.000.000.000" }));
+
+    // Act & Assert
+    EXPECT_EQ(s.is_running(), false);
+    s.run();
+    EXPECT_EQ(s.is_running(), true);
+    s.stop();
+    EXPECT_EQ(s.is_running(), false);
 }

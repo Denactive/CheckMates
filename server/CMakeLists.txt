@@ -48,11 +48,10 @@ add_executable(test2 test/test2.cpp test/tests.cpp source/GameSession.cpp)
 target_link_libraries(test2 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (test2 ${Boost_LIBRARIES} -lpthread)
 
-add_executable(net_mock_test test/NetMock.cpp test/tests.cpp source/net.cpp)
+add_executable(net_mock_test test/NetMock.cpp test/tests.cpp source/net.cpp source/server.cpp)
 target_link_libraries(net_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (net_mock_test ${Boost_LIBRARIES} -lpthread)
 
 add_test(test1 ./test1)
 add_test(test2 ./test2)
 add_test(NetMockTest ./net_mock_test)
-

@@ -38,3 +38,23 @@ void WS_format::chat_handler() {
     std::cout<<"ws::chat" << std::endl;
     std::string serialized_data = serializer.serialize("smtg");
 }
+
+Connection Net::accept() {
+    std::cout<<"net::accept" << std::endl;
+    std::string ip_str = "000.000.000.000";
+    Connection con = {ip_str};
+    //boost::asio::ip:: ... ("000.000.000.000");
+    return con;
+}
+
+std::string Net::read() {
+    std::cout<<"net::read" << std::endl;
+    std::string str;
+    return str;
+}
+
+void Net::write(std::string) {
+    std::cout<<"net::write" << std::endl;
+}
+
+
