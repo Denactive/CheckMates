@@ -41,8 +41,6 @@ TEST(Stats, correctStats) {
     ON_CALL(mock, getGameLeavingPercentage()).WillByDefault(Return(0));
     ON_CALL(mock, giveUpsPercentage()).WillByDefault(Return(0));
 
-    // a...
-
     st.getAverageGameLen();
     st.getAverageMovesToWinQuantity();
     st.getStaleMatePercentage();

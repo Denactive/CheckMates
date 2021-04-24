@@ -17,9 +17,9 @@ class User;
 class IGame {
 public:
     virtual void drawChessBoard() = 0;
-    virtual void moveFigure(std::pair<int, int> pair, Figure &) = 0;
+    virtual void moveFigure(Figure & figure) = 0;
     virtual void drawChat(Chat &) = 0;
-    virtual void sendMessage(Message & message)= 0;
+    virtual void sendMessage(MyMessage & message)= 0;
     virtual bool offerDraw() = 0;
     virtual bool surrender() = 0;
 };
@@ -27,9 +27,9 @@ public:
 class Game : public IGame {
 public:
     void drawChessBoard() override;
-    void moveFigure(std::pair<int, int> pair, Figure &) override;
+    void moveFigure(Figure & figure) override;
     void drawChat(Chat &) override;
-    void sendMessage(Message & message) override;
+    void sendMessage(MyMessage & message) override;
     bool offerDraw() override;
     bool surrender() override;
 private:
@@ -86,14 +86,14 @@ private:
 class IAuthorizer {
 public:
     virtual void drawForm() = 0;
-    virtual void sendMessage(Message & message) = 0;
+    virtual void sendMessage(MyMessage & message) = 0;
     virtual bool checkFromOnValid(User & user) = 0;
 };
 
 class Authorizer : public IAuthorizer {
 public:
     void drawForm() override;
-    void sendMessage(Message & message) override;
+    void sendMessage(MyMessage & message) override;
     bool checkFromOnValid(User & user) override;
 private:
     bool isValid;

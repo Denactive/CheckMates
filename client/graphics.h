@@ -16,12 +16,12 @@
 class IGraphics
 {
 public:
-    void StartDraw();
-    void cleanAll();
-    bool getData(char ** figures, User* user, Chat * chat);
+    virtual void StartDraw() = 0;
+    virtual void cleanAll() = 0;
+    virtual bool getData(char ** figures, User* user, Chat * chat) = 0;
 };
 
-class Graphics
+class Graphics : public IGraphics
 {
 private:
     User * user;
@@ -29,9 +29,9 @@ private:
     Chat *chats;
 public:
     Graphics();
-    void StartDraw();
-    void cleanAll();
-    bool getData(char ** figures, User* user, Chat * chat);
+    void StartDraw() override;
+    void cleanAll() override;
+    bool getData(char ** figures, User* user, Chat * chat) override;
 };
 
 #endif // GRAPHICS_H

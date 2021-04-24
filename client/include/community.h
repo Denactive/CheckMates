@@ -4,10 +4,6 @@
 #include <string>
 #include <vector>
 
-class User;
-class Message;
-class Chat;
-
 class IUser {
 public:
     virtual ~IUser() = default;
@@ -44,6 +40,7 @@ private:
 
 class MyMessage {
 public:
+    MyMessage(std::string nmessage = ""): message(nmessage) {}
     bool changeMessage(std::string new_message) { return false; }
     std::string getMessage() const { return ""; };
 private:
@@ -53,11 +50,12 @@ private:
 
 class Chat {
 public:
+    Chat(User * nuser = nullptr) :user(nuser) {}
     bool addMessage() { return false; };
     bool deleteMessage(int index) { return false; }
     bool cleanAllMessages() { return false; }
 private:
-    std::vector<MyMessage*> messages;
+    std::vector<MyMessage> messages;
     User * user;
 };
 
