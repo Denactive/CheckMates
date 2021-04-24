@@ -50,35 +50,21 @@ public:
 
 class User: public IUser {
 public:
-    User(Connection& connection, size_t id, std::string nickname, std::vector<IChat*> chat_list, UserStatus status):
-            connection_(connection), id_(id), nickname_(nickname), chat_list_(chat_list), status_(status) {
-
-    }
-    User(Connection& connection= *(new Connection)): connection_(connection)
-    {};
+    User(Connection& connection, size_t id, std::string nickname, std::vector<IChat*> chat_list, UserStatus status);
+    User(Connection& connection  = *(new Connection));
     ~User() {};
-    std::string get_info() override {return "new";};
-    size_t get_id() override { return id_; }
-    std::string get_nickname() override { return nickname_; }
-    int get_raiting() override { return raiting_; }
-    void set_raiting(int new_raiting) override { raiting_ = new_raiting; }
+    std::string get_info() override;
+    size_t get_id() override;
+    std::string get_nickname() override;
+    int get_raiting() override;
+    void set_raiting(int new_raiting) override;
     //void enter_mq(IMatcherQueue) override;
     //void leave_mq(IMatcherQueue) override;
-    Stats get_full_stats() override {
-        Stats stats;
-        return stats;
-    };
-
+    Stats get_full_stats() override;
     //virtual void enter_mq(IMatcherQueue&) = 0;
     //virtual void leave_mq(IMatcherQueue&) = 0;
-    ICommunity& create_community() override {
-        Community& community = *(new Community);
-        return community;
-    };
-    IChat& create_chat() override {
-        Chat& chat = *(new Chat);
-        return chat;
-    };
+    ICommunity& create_community() override;
+    IChat& create_chat() override;
 
 protected:
     Connection& connection_;
