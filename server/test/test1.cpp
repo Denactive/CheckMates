@@ -32,6 +32,9 @@ TEST(gamesession, Mock) {
     B.push_back('P');
     EXPECT_EQ(session.board.get_board(), B);
     EXPECT_EQ(session.history.PrepareLog(), vec);
+    EXPECT_EQ(session.history.PrepareLog(), vec);
+    session.log->write("Hello, world!");
+    EXPECT_EQ(session.log->read(), "Hello, world!");
 }
 
 

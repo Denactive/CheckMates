@@ -4,6 +4,7 @@
 #ifndef CHECKMATES_COMMUNITY_H
 #define CHECKMATES_COMMUNITY_H
 
+#include <iostream>
 #include <set>
 #include <string>
 
@@ -18,16 +19,23 @@ typedef enum {
 class IChat {
 public:
     virtual std::string get_history() = 0;
-    virtual void add_message(uid id, std::string msg) = 0;
-    virtual void modify_history(std::string s) = 0;
     virtual std::set<uid> get_user_list() = 0;
+    virtual void modify_history(std::string s) = 0;
+    virtual void add_message(uid id, std::string msg) = 0;
+//    virtual ~IChat() { std::cout << "Chat virtual d-tor\n"; }
+    virtual ~IChat() {};
 };
 
-class Chat: IChat {
+class Chat: public IChat {
 public:
-    Chat(std::set<uid> users):
-            list_members_(users) {
+    Chat(int i) {
+//        Chat(std::set<uid> users): list_members_(users) {
+            std::cout << "Chat user list c-tor\n";
+//            history_ = "hist";
     }
+    Chat() { std::cout << "Chat default c-tor\n"; }
+    ~Chat() { std::cout << "Chat default des-tor\n"; }
+
     std::string get_history() override { return history_; }
     std::set<uid> get_user_list() override { return list_members_; }
     void modify_history(std::string s) override;
@@ -53,27 +61,50 @@ public:
     virtual void add_moderator(uid) = 0;
 };
 
-class Community: ICommunity {
+class Community: public ICommunity {
 public:
-    Community();
-    void modify() override;
-    void accept_user(uid uid) override;
-    std::set<uid> get_user_list() override;
-    std::set<uid> get_moderators_list() override;
-    uid get_admin() override;
-    std::set<Rewards> get_rewards() override;
-    IChat& get_group_chat() override;
+    Community(std::set<uid> list_members): group_chat_(/*Chat(list_members)*/ 1) {
+        std::cout << "Community list_members c-tor\n";
+    };
 
-    void set_admin(uid) override;
-    void add_reward(Rewards r) override;
-    void add_moderator(uid) override;
+    void modify() override {};
+    void accept_user(size_t uid) override {};
+
+    std::set<size_t> get_user_list() override{
+        std::set<size_t> set;
+        return set;
+    }
+
+    std::set<size_t> get_moderators_list() override{
+        std::set<size_t> set;
+        return set;
+    }
+
+    size_t get_admin() override{
+        return 0;
+    }
+
+    std::set<Rewards> get_rewards() override{
+        std::set<Rewards> set;
+        return set;
+    }
+
+    IChat& get_group_chat() override{
+        Chat& chat = *(new Chat);
+        return chat;
+    }
+
+    // TODO: check user for rights to be admin / moderator/ to be in the Community
+    void set_admin(uid id) override { admin_ = id; };
+    void add_reward(Rewards r) override { rewards_.insert(r); };
+    void add_moderator(uid id) override { list_moderators_.insert(id); };
 
 private:
     std::set<uid> list_members_;
     std::set<uid> list_moderators_;
     uid admin_;
     std::set<Rewards> rewards_;
-    IChat& group_chat_;
+    Chat group_chat_;
 };
 
 #endif //CHECKMATES_COMMUNITY_H

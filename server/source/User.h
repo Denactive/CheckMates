@@ -1,10 +1,15 @@
 #ifndef SERVER_USER_H
 #define SERVER_USER_H
 
-#include "GameSession.h"
-#include "net.h"
+#include <vector>
+
 #include "community.h"
-#include "matcher.h"
+
+// defined in Net.h
+typedef struct {
+    std::string ip;
+    // sock
+} Connection;
 
 typedef enum {
     unqualified,
@@ -33,7 +38,6 @@ typedef struct {
     int rating;
 } UserInfo;
 
-
 class IStats {
 public:
     virtual Stats get_user_info(uid id) = 0;
@@ -54,8 +58,8 @@ public:
     virtual std::string get_nickname() = 0;
     virtual int get_rating() = 0;
     virtual void set_rating(int) = 0;
-    virtual void enter_mq(IMatcherQueue&) = 0;
-    virtual void leave_mq(IMatcherQueue&) = 0;
+    //virtual void enter_mq(IMatcherQueue&) = 0;
+    //virtual void leave_mq(IMatcherQueue&) = 0;
     virtual Stats get_full_stats() = 0;
     virtual ICommunity& create_community() = 0;
     virtual IChat& create_chat(std::set<uid> members) = 0;
@@ -63,19 +67,21 @@ public:
 
 class User: public IUser {
 public:
-    User(Connection& connection, uid id, std::string nickname, std::vector<IChat*> chat_list, UserStatus status):
-        connection_(connection), id_(id), nickname_(nickname), chat_list_(chat_list), status_(status) {
-        // todo: сходить в базу, взять userinfo | сохранить конекшн
-    }
+    explicit User(Connection& connection, uid id, std::string nickname, std::vector<IChat*> chat_list, UserStatus status);
+    // TODO: remove test c-tor
+    explicit User(Connection& connection);
+    ~User() {};
+
     UserInfo get_info() override;
     uid get_id() override { return id_; }
     std::string get_nickname() override { return nickname_; }
     int get_rating() override { return rating_; }
-    void set_rating(int new_raiting) override { rating_ = new_raiting; }
     // TODO: разобраться с этим. Перенести в net ?
-    void enter_mq(IMatcherQueue& mq) override { mq.push_user(this); }
-    void leave_mq(IMatcherQueue& mq) override { mq.pop_user(this); }
+    //void enter_mq(IMatcherQueue& mq) override { mq.push_user(this); }
+    //void leave_mq(IMatcherQueue& mq) override { mq.pop_user(this); }
     Stats get_full_stats() override;
+
+    void set_rating(int new_raiting) override { rating_ = new_raiting; }
 
     ICommunity& create_community() override;
     IChat& create_chat(std::set<uid> members) override;
@@ -102,3 +108,4 @@ class Authorizer: IAuthorizer {
 };
 
 #endif //SERVER_USER_H
+

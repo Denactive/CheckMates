@@ -6,6 +6,7 @@
 #define CHECKMATES_SERVER_H
 
 #include "net.h"
+#include "matcher.h"
 #include <string>
 #include <iostream>
 

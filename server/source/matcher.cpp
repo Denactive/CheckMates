@@ -3,15 +3,17 @@
 //
 #include "matcher.h"
 
-GameSession& Matcher::start_game() override {
+GameSession& MatcherQueue::start_game() {
     std::cout << "Matcher: starting a game\n";
-    GameSession gs = new GameSession();
-    return gs;
+    // TODO fill the constructor correctly
+//    GameSession gs = new GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
+    GameSession* gs = new GameSession(nullptr, nullptr, nullptr);
+    return *gs;
 }
-void Matcher::push_user(IUser* u) override {
-    std::cout << "Matcher: pushing user " << u->get_id() << ' ' << u->get_nickname << "\n";
+void MatcherQueue::push_user(IUser* u) {
+    std::cout << "Matcher: pushing user " << u->get_id() << ' ' << u->get_nickname() << "\n";
 }
 
-void Matcher::pop_user(IUser* u) override {
-    std::cout << "Matcher: popping user " << u->get_id() << ' ' << u->get_nickname << "\n";
+void MatcherQueue::pop_user(IUser* u) {
+    std::cout << "Matcher: popping user " << u->get_id() << ' ' << u->get_nickname() << "\n";
 }

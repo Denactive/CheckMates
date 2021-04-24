@@ -20,3 +20,5 @@ client/cmake-build-debug/*
 /server/test/Testing/
 /community/test/Testing/
 /client/test/Testing/
+
+/server/tmp_code/

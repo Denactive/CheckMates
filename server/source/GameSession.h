@@ -2,11 +2,12 @@
 
 #include <vector>
 #include <string>
-#include "User.h"
+
+//#include "User.h"
 #include "ChessBoard.h"
 #include "ChessPiece.h"
-#include "ServerDB.h"
 #include "Player.h"
+#include "ServerDB.h"
 #include "TurnHistory.h"
 #include "TurnControl.h"
 
@@ -29,6 +30,7 @@ public:
 class GameSession: public IGameSession {
 public:
     GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
+
     std::vector<std::string> all_available_Moves();
     void SetBoard(){};
     bool MakeMove();

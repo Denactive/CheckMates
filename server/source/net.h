@@ -26,13 +26,10 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/ts/internet.hpp>
 
+#include "matcher.h"
+
 #include <string>
 #include <vector>
-
-typedef struct {
-    std::string ip;
-    // sock
-} Connection;
 
 class HTTP_document {
 public:
