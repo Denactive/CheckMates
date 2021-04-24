@@ -46,6 +46,10 @@ TEST(Stats, correctStats) {
     st.getStaleMatePercentage();
     st.getGameLeavingPercentage();
     st.giveUpsPercentage();
-    // assert
-    // ... expect_eq
+
+    EXPECT_EQ(st.getAverageGameLen(), -1);
+    EXPECT_EQ(st.getAverageMovesToWinQuantity(), -1);
+    EXPECT_EQ(st.getStaleMatePercentage(), -1);
+    EXPECT_EQ(st.getGameLeavingPercentage(), -1);
+    EXPECT_EQ(st.giveUpsPercentage(), -1);
 }
