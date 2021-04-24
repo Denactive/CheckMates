@@ -22,16 +22,13 @@ public:
     virtual std::set<uid> get_user_list() = 0;
     virtual void modify_history(std::string s) = 0;
     virtual void add_message(uid id, std::string msg) = 0;
-//    virtual ~IChat() { std::cout << "Chat virtual d-tor\n"; }
-    virtual ~IChat() {};
 };
 
 class Chat: public IChat {
 public:
-    Chat(int i) {
-//        Chat(std::set<uid> users): list_members_(users) {
+    Chat(std::set<uid> users): list_members_(users) {
             std::cout << "Chat user list c-tor\n";
-//            history_ = "hist";
+            history_ = "hist";
     }
     Chat() { std::cout << "Chat default c-tor\n"; }
     ~Chat() { std::cout << "Chat default des-tor\n"; }
@@ -63,7 +60,7 @@ public:
 
 class Community: public ICommunity {
 public:
-    Community(std::set<uid> list_members): group_chat_(/*Chat(list_members)*/ 1) {
+    Community(std::set<uid> list_members): group_chat_(Chat(list_members)) {
         std::cout << "Community list_members c-tor\n";
     };
 
