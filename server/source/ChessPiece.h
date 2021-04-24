@@ -4,13 +4,17 @@
 
 #ifndef CHECKMATES_CHESSPIECE_H
 #define CHECKMATES_CHESSPIECE_H
-
+#include "GameSession.h"
 
 class ChessPiece {
 public:
-virtual void move() = 0;
-virtual std::vector<std::string> available_moves() = 0;
-virtual void capture_piece() = 0;
+    virtual ~ChessPiece() {}
+    virtual void move() = 0;
+    virtual bool is_check() = 0;
+    virtual bool is_mate() = 0;
+    virtual bool is_stalemate() = 0;
+    virtual std::vector<std::string> available_moves() = 0;
+    virtual void capture_piece() = 0;
 };
 
 class King :public ChessPiece {
@@ -19,7 +23,9 @@ private:
     std::vector<std::string> avail_moves;
 public:
     void move();
-    void is_check();
+    bool is_check();
+    bool is_mate();
+    bool is_stalemate();
     void castling();
     std::vector<std::string> available_moves();
     void capture_piece();
@@ -31,8 +37,9 @@ private:
     std::vector<std::string> avail_moves;
 public:
     void move();
-    void is_check();
-    void is_captured();
+    bool is_check();
+    bool is_stalemate();
+    bool is_captured();
     std::vector<std::string> available_moves();
     void capture_piece();
 };
@@ -43,8 +50,9 @@ private:
     std::vector<std::string> avail_moves;
 public:
     void move();
-    void is_check();
-    void is_captured();
+    bool is_check();
+    bool is_stalemate();
+    bool is_captured();
     std::vector<std::string> available_moves();
     void capture_piece();
 };
@@ -55,8 +63,9 @@ private:
     std::vector<std::string> avail_moves;
 public:
     void move();
-    void is_check();
-    void is_captured();
+    bool is_check();
+    bool is_stalemate();
+    bool is_captured();
     std::vector<std::string> available_moves();
     void capture_piece();
 };
@@ -67,8 +76,9 @@ private:
     std::vector<std::string> avail_moves;
 public:
     void move();
-    void is_check();
-    void is_captured();
+    bool is_check();
+    bool is_stalemate();
+    bool is_captured();
     std::vector<std::string> available_moves();
     void capture_piece();
 };
@@ -79,8 +89,9 @@ private:
     std::vector<std::string> avail_moves;
 public:
     void move();
-    void is_check();
-    void is_captured();
+    bool is_check();
+    bool is_stalemate();
+    bool is_captured();
     std::vector<std::string> available_moves();
     void capture_piece();
     void is_promoted();

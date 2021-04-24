@@ -40,11 +40,11 @@ include_directories(${INCLUDE_DIRECTORIES})
 message(${GMOCK_LIBRARIES})
 
 
-add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp test/reNet.h)
+add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp source/Player.cpp)
 target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (test1 ${Boost_LIBRARIES} -lpthread)
 
-add_executable(test2 test/test2.cpp test/tests.cpp source/GameSession.cpp)
+add_executable(test2 test/test2.cpp test/tests.cpp source/GameSession.cpp source/Player.cpp)
 target_link_libraries(test2 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (test2 ${Boost_LIBRARIES} -lpthread)
 
