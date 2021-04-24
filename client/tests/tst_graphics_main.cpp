@@ -10,48 +10,95 @@ using namespace testing;
 using ::testing::Return;
 
 #include "../graphics.h"
+#include "reGraphics.h"
+#include "reAuthorizer.h"
+#include "reChatMenu.h"
+#include "reGame.h"
+#include "reMenu.h"
+#include "reSettings.h"
 
-class MockGraphics : public IGraphics {
-public:
-    MOCK_METHOD((void), StartDraw, (), (override));
-    MOCK_METHOD((void), cleanAll, (), (override));
-    MOCK_METHOD((bool), getData, (char **, User*, Chat *), (override));
-};
+TEST(Graphics, startDraw) {
+    using ::testing::AtLeast;
+    MockGraphics mock;
+    User * user = nullptr;
+    Chat * chats = nullptr;
+    char ** chess = nullptr;
 
-class MockWGame : public IGame {
-public:
-    MOCK_METHOD((void), drawChessBoard, (), (override));
-    MOCK_METHOD((void), moveFigure, (Figure &), (override));
-    MOCK_METHOD((void), drawChat, (Chat &), (override));
-    MOCK_METHOD((void), sendMessage, (MyMessage &), (override));
-    MOCK_METHOD((bool), offerDraw, (), (override));
-    MOCK_METHOD((bool), surrender, (), (override));
-};
+    Graphics ui;
 
-class MockWMenu : public IMenu {
-    MOCK_METHOD((void), drawMessages, (), (override));
-    MOCK_METHOD((bool), drawFriends, (), (override));
-    MOCK_METHOD((void), tapPlay, (), (override));
-    MOCK_METHOD((void), turnOnMatching, (), (override));
-    MOCK_METHOD((User*), chooseFriend, (), (override));
-    MOCK_METHOD((Chat *), chooseChat, (), (override));
-};
+    ON_CALL(mock, getData(chess, user, chats)).WillByDefault(Return(true));
 
-class MockWUserSettings : public IUserSettings {
-    MOCK_METHOD((void), drawUserSettings, (), (override));
-    MOCK_METHOD((bool), changeSettings, (), (override));
-    MOCK_METHOD((void), saveSettings, (), (override));
-    MOCK_METHOD((void), chooseUserPhoto, (), (override));
-};
+    EXPECT_TRUE(ui.getData(chess, user, chats));
+}
 
-class MockWAuthorizer : public IAuthorizer {
-    MOCK_METHOD((void), drawForm, (), (override));
-    MOCK_METHOD((void), sendMessage, (MyMessage &), (override));
-    MOCK_METHOD((bool), checkFromOnValid, (User &), (override));
-};
+TEST(GameWindow, ok) {
+    Figure *figure = nullptr;
+    MyMessage *msg = nullptr;
+    MockWGame mock;
+    Game wgame;
 
-class MockWChatMenu : public IChatMenu {
-    MOCK_METHOD((void), drawMessages, (), (override));
-    MOCK_METHOD((bool), sendMessage, (), (override));
-    MOCK_METHOD((void), backToMenu, (), (override));
-};
+    ON_CALL(mock, moveFigure(figure)).WillByDefault(Return(true));
+    ON_CALL(mock, sendMessage(msg)).WillByDefault(Return(true));
+    ON_CALL(mock, offerDraw()).WillByDefault(Return(true));
+    ON_CALL(mock, surrender()).WillByDefault(Return(true));
+
+    EXPECT_TRUE(wgame.moveFigure(figure));
+    EXPECT_TRUE(wgame.sendMessage(msg));
+    EXPECT_TRUE(wgame.offerDraw());
+    EXPECT_TRUE(wgame.surrender());
+}
+
+TEST(MenuWindow, ok) {
+    User * user = nullptr;
+    Chat * chat = nullptr;
+    MockWMenu mock;
+    Menu menu;
+
+    ON_CALL(mock, turnOnMatching()).WillByDefault(Return(true));
+    ON_CALL(mock, tapPlay()).WillByDefault(Return(true));
+    ON_CALL(mock, chooseFriend()).WillByDefault(Return(nullptr));
+    ON_CALL(mock, chooseChat()).WillByDefault(Return(nullptr));
+
+    EXPECT_TRUE(menu.turnOnMatching());
+    EXPECT_TRUE(menu.tapPlay());
+    EXPECT_EQ(menu.chooseChat(), chat);
+    EXPECT_EQ(menu.chooseFriend(), user);
+}
+
+TEST(SettingsWindow, ok) {
+    MockWUserSettings mock;
+    UserSettings usrStgs;
+
+    ON_CALL(mock, changeSettings()).WillByDefault(Return(true));
+    ON_CALL(mock, saveSettings()).WillByDefault(Return(true));
+    ON_CALL(mock, chooseUserPhoto()).WillByDefault(Return(true));
+
+    EXPECT_TRUE(usrStgs.changeSettings());
+    EXPECT_TRUE(usrStgs.saveSettings());
+    EXPECT_TRUE(usrStgs.chooseUserPhoto());
+}
+
+TEST(AuthorizerWindow, ok) {
+    MockWAuthorizer mock;
+    MyMessage * msg = nullptr;
+    User * user = nullptr;
+    Authorizer authorizer;
+
+    ON_CALL(mock, sendMessage(msg)).WillByDefault(Return(true));
+    ON_CALL(mock, checkFromOnValid(user)).WillByDefault(Return(true));
+
+    EXPECT_TRUE(authorizer.sendMessage(msg));
+    EXPECT_TRUE(authorizer.checkFromOnValid(user));
+}
+
+TEST(ChatMenu, ok) {
+    MockWChatMenu mock;
+    ChatMenu menu;
+
+    ON_CALL(mock, sendMessage()).WillByDefault(Return(true));
+    ON_CALL(mock, backToMenu()).WillByDefault(Return(true));
+
+    EXPECT_TRUE(menu.sendMessage());
+    EXPECT_TRUE(menu.backToMenu());
+}
+

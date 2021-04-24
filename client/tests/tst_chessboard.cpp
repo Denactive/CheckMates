@@ -11,15 +11,7 @@
 //using namespace testing;
 //#include "../include/figures.h"
 #include "../include/chessboard.h"
-
-class MockChessBoard : public IChessBoard {
-public:
-    MOCK_METHOD((bool), move, (int), (override));
-    MOCK_CONST_METHOD0(getSize, size_t());
-    MOCK_METHOD((bool), isBorderOfBoard, (const size_t), (override));
-    MOCK_METHOD((bool), isKingUnderMat, (King *), (override));
-    MOCK_METHOD((void), displayOnScreen, (), (override));
-};
+#include "reChessboard.h"
 
 using ::testing::AtLeast;
 
