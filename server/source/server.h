@@ -14,7 +14,7 @@ public:
     Options(std::string owner, std::string ip, unsigned short port):
         owner_(owner), ip_(ip), port_(port) {
     }
-    std::string get_info() { return "owner: " + owner_ + "\nip: " + ip_ + ":" + std::to_string(port_); }
+    std::string get_info() { return "owner: " + owner_ + " | ip: " + ip_ + ":" + std::to_string(port_); }
 
     void set_port(unsigned short port) { port_ = port; }
     void set_ip(std::string ip) { ip_ = ip; }
@@ -33,17 +33,19 @@ private:
 class Server {
 public:
     Server(Options opts) :
-            opts_(opts) {
+        opts_(opts) {
+        net_ = Net();
     }
 
-    void run() { std::cout << "running\n"; };
+    void run();
     void stop();
     void restart();
-    bool is_running();
+
+    bool is_running() { return started_; }
 
 private:
     Options opts_;
-    bool started_ = 0;
+    bool started_ = false;
     boost::asio::io_service service_;
     Net net_;
 };

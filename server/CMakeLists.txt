@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD 11)
 #set(CMAKE_CXX_FLAGS "-g -coverage -O0 -Wall -Werror -fprofile-arcs -ftest-coverage -fPIC")
 set(CMAKE_CXX_FLAGS "-g -Wall -Werror")
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
-set(GMock_DIR "~/CheckMates/server")
+set(GMock_DIR ./)
 set(PROGRAM_NAME server)
 set(SOURCE_DIR source)
 set(LIB_DIR lib)
@@ -27,7 +27,7 @@ add_executable(${PROGRAM_NAME}
         source/community.cpp
         source/ServerDB.cpp
         source/GameSession.cpp
-        )
+        test/reSerializer.h)
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
 
 
@@ -40,7 +40,7 @@ include_directories(${INCLUDE_DIRECTORIES})
 message(${GMOCK_LIBRARIES})
 
 
-add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp)
+add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp test/reNet.h)
 target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (test1 ${Boost_LIBRARIES} -lpthread)
 
@@ -48,5 +48,10 @@ add_executable(test2 test/test2.cpp test/tests.cpp source/GameSession.cpp)
 target_link_libraries(test2 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (test2 ${Boost_LIBRARIES} -lpthread)
 
+add_executable(net_mock_test test/NetMock.cpp test/tests.cpp source/net.cpp source/server.cpp)
+target_link_libraries(net_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+target_link_libraries (net_mock_test ${Boost_LIBRARIES} -lpthread)
+
 add_test(test1 ./test1)
 add_test(test2 ./test2)
+add_test(NetMockTest ./net_mock_test)
