@@ -2,18 +2,17 @@
 
 #include <vector>
 #include <string>
+#include "User.h"
 #include "ChessBoard.h"
 #include "ChessPiece.h"
 #include "ServerDB.h"
 #include "Player.h"
 #include "TurnHistory.h"
-//#include "Stub.h"
 #include "TurnControl.h"
-#include "Stats.h"
 
-class iGameSession {
+class IGameSession {
 public:
-    virtual ~iGameSession() {};
+    virtual ~IGameSession() {};
     virtual void CreateLog() = 0;
     virtual void SetBoard() = 0;
     virtual bool MakeMove() = 0;
@@ -27,7 +26,7 @@ public:
 
 };
 
-class GameSession: public iGameSession {
+class GameSession: public IGameSession {
 public:
     GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
     std::vector<std::string> all_available_Moves();

@@ -1,10 +1,18 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "net.h"
-#include "reSerializer.h"
 #include "server.h"
+#include "User.h"
+
+#include "reSerializer.h"
+
 #include "reNet.h"
 #include "reOptions.h"
+
+#include "reLogger.h"
+#include "reStats.h"
+#include "reAuthorizer.h"
+#include "reUser.h"
 
 using ::testing::Return;
 using ::testing::AtLeast;
@@ -71,4 +79,16 @@ TEST(NetMock, Server) {
     EXPECT_EQ(s.is_running(), true);
     s.stop();
     EXPECT_EQ(s.is_running(), false);
+}
+
+TEST(NetMock, Serializer) {
+    std::cout << "NetMock | Serializer" << std::endl;
+    // Arrange
+    //reUser mu;
+    reAuthorizer ma;
+    reLogger ml;
+    //reStats rs;
+
+    // Act
+    // Assert
 }
