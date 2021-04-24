@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameSession.h"
+#include "User.h"
 
 class iPlayer {
 
@@ -17,10 +18,10 @@ public:
 class Player: public iPlayer {
 private:
     ChessBoard& board;
-   // User user;
+    User user;
 
 public:
-    Player(ChessBoard& board, ChessPiece* pieces):board(board), pieces(pieces) {};
+    Player(ChessBoard& board, ChessPiece* pieces):  board(board),  pieces(pieces) {};
     ChessPiece* pieces;
     std::vector<std::string> all_available_Moves() {
         std::vector<std::string> vec;

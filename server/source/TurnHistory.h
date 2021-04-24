@@ -4,7 +4,6 @@
 
 #ifndef CHECKMATES_TURNHISTORY_H
 #define CHECKMATES_TURNHISTORY_H
-#include <GameSession.h>
 
 class TurnHistory {
 public:

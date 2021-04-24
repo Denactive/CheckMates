@@ -4,7 +4,7 @@
 
 #ifndef CHECKMATES_CHESSPIECE_H
 #define CHECKMATES_CHESSPIECE_H
-#include "GameSession.h"
+
 
 class ChessPiece {
 public:

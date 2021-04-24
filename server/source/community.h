@@ -21,15 +21,16 @@ public:
     virtual std::set<size_t> get_user_list() = 0;
 };
 
-class Chat: IChat {
+class Chat: public IChat {
 public:
     Chat(std::set<size_t> users):
             list_members_(users) {
     }
+    Chat() {};
     std::string get_history() override { return history_; }
     std::set<size_t> get_user_list() override { return list_members_; }
-    void modify_history(std::string s) override;
-    void add_message(size_t uid, std::string msg) override;
+    void modify_history(std::string s) override {};
+    void add_message(size_t uid, std::string msg) override {};
 
 private:
     std::set<size_t> list_members_;
@@ -51,20 +52,34 @@ public:
     virtual void add_moderator(size_t) = 0;
 };
 
-class Community: ICommunity {
+class Community: public ICommunity {
 public:
-    Community();
-    void modify() override;
-    void accept_user(size_t uid) override;
-    std::set<size_t> get_user_list() override;
-    std::set<size_t> get_moderators_list() override;
-    size_t get_admin() override;
-    std::set<Rewards> get_rewards() override;
-    IChat& get_group_chat() override;
+    Community(Chat& group_chat = *(new Chat)): group_chat_(group_chat){};
+    void modify() override {};
+    void accept_user(size_t uid) override {};
+    std::set<size_t> get_user_list() override{
+        std::set<size_t> set;
+        return set;
+    };
+    std::set<size_t> get_moderators_list() override{
+        std::set<size_t> set;
+        return set;
+    };
+    size_t get_admin() override{
+        return 0;
+    };
+    std::set<Rewards> get_rewards() override{
+        std::set<Rewards> set;
+        return set;
+    };
+    IChat& get_group_chat() override{
+        Chat& chat = *(new Chat);
+        return chat;
+    };
 
-    void set_admin(size_t) override;
-    void add_reward(Rewards r) override;
-    void add_moderator(size_t) override;
+    void set_admin(size_t) override{};
+    void add_reward(Rewards r) override{};
+    void add_moderator(size_t) override{};
 
 private:
     std::set<size_t> list_members_;

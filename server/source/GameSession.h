@@ -9,7 +9,7 @@
 #include "TurnHistory.h"
 //#include "Stub.h"
 #include "TurnControl.h"
-#include "Stats.h"
+
 
 class iGameSession {
 public:

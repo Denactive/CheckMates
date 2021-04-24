@@ -4,7 +4,7 @@
 
 #ifndef CHECKMATES_TURNCONTROL_H
 #define CHECKMATES_TURNCONTROL_H
-#include "GameSession.h"
+
 
 class iTurnControl {
 private:

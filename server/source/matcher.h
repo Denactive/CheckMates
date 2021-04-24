@@ -1,16 +1,6 @@
-#pragma once
+#pragma  once
 #include "GameSession.h"
-//#include "User.h"
-class IUser;
-
-// todo: посмотреть про аррей
-//#include <array>
-#include <vector>
-#include <queue>
-// Todo: #include <singleton>
-// Todo: #include <GameSession>
-
-
+#include "User.h"
 
 class IMatcherQueue {
 public:
@@ -27,6 +17,7 @@ private:
     // todo: learn more about std::queue
     std::vector< std::queue<const IUser*> > q_;
 };
+
 
 
 
