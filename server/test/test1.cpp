@@ -7,7 +7,6 @@
 using ::testing::Return;
 using ::testing::AtLeast;
 
-
 TEST(gamesession, Mock) {
     #include "OnCallPlayer.h"
     #include "OnCallTurn.h"

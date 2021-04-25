@@ -38,6 +38,11 @@ public:
     void modify_history(std::string s) override;
     void add_message(uid id, std::string msg) override;
 
+//    friend bool operator == (const Chat & a, const Chat & b) {
+//        if (a.history_ == b.history_) return true;
+//        else return false;
+//    }
+
 private:
     std::set<uid> list_members_;
     std::string history_;
@@ -95,6 +100,11 @@ public:
     void set_admin(uid id) override { admin_ = id; };
     void add_reward(Rewards r) override { rewards_.insert(r); };
     void add_moderator(uid id) override { list_moderators_.insert(id); };
+
+//    friend bool operator == (const Community & a, const Community & b) {
+//        if (a.admin_ == b.admin_) return true;
+//        else return false;
+//    }
 
 private:
     std::set<uid> list_members_;

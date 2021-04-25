@@ -34,9 +34,6 @@ Stats User::get_full_stats(IDBServer& db) {
     return stats_getter_.get_user_stats(this->id_, db);
 }
 
-//void enter_mq(IMatcherQueue) override;
-//void leave_mq(IMatcherQueue) override;
-
 // this function allocates memory!
 ICommunity* User::create_community() {
     std::set<uid> member_list;

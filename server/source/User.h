@@ -81,7 +81,7 @@ public:
     ICommunity* create_community() override;
     IChat* create_chat(std::set<uid> members) override;
 
-protected:
+private:
     Connection& connection_;
     uid id_;
     StatsAgregator stats_getter_;
@@ -90,7 +90,6 @@ protected:
     std::vector<IChat*> chat_list_;
     UserStatus status_;
 };
-
 
 class IAuthorizer {
 public:
