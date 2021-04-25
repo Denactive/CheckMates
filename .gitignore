@@ -20,6 +20,10 @@ client/googlemock/
 
 /server/test/Testing/
 /community/test/Testing/
-/client/test/Testing/
+/client/tests/Testing/
+/client/tests/build_test/
+/client/tests/googletest-release-1.10.0/
+/client/Testing/
+/client/googlemock
 
 /server/tmp_code/
