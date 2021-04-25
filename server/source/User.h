@@ -69,7 +69,7 @@ class User: public IUser {
 public:
     explicit User(Connection& connection, uid id, std::string nickname, std::vector<IChat*> chat_list, UserStatus status);
     // TODO: remove test c-tor
-    explicit User(Connection& connection);
+    explicit User(Connection& connection = *(new Connection));
     ~User() {};
 
     UserInfo get_info() override;

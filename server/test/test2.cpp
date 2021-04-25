@@ -6,9 +6,6 @@
 using ::testing::Return;
 using ::testing::AtLeast;
 
-
-
-
 TEST(Player, Mock) {
     ChessBoard board;
     reChessPiece piece;

@@ -1,7 +1,7 @@
 #include "GameSession.h"
 #include "Player.h"
 
-Player::Player(ChessBoard& board, std::vector<ChessPiece*> pieces, User user):board(board), pieces(pieces) {};
+Player::Player(ChessBoard& board, std::vector<ChessPiece*> pieces):board(board), pieces(pieces) {};
 
 std::vector<std::string> Player::all_available_Moves() {
     std::vector<std::string> vec;
