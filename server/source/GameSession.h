@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 
-//#include "User.h"
 #include "ChessBoard.h"
 #include "ChessPiece.h"
 #include "Player.h"

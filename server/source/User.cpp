@@ -52,7 +52,40 @@ ICommunity &User::create_community() {
     return community;
 };
 
-IChat& User::create_chat(std::set<uid> members) {
+IChat* User::create_chat(std::set<uid> members) {
     Chat &chat = *(new Chat);
     return chat;
 };
+
+//
+//  Authorizer
+//
+
+
+// this function allocates memory!
+IUser* Authorizer::authorize(Connection& con, IDBServer& db) {
+    // TODO: tuples
+    std::string user_data = db.query("SELECT username... FROM db.users");
+    User* res = nullptr; //new User();;
+    return res;
+}
+
+// this function allocates memory!
+IUser& Authorizer::registrate(Connection& con, IDBServer& db) {
+    std::string user_data = db.query("SELECT username... FROM db.users");
+    User* res = nullptr; //new User();;
+    return res;
+}
+
+
+//
+// stats agregator
+//
+
+Stats StatsAgregator::get_user_info(uid id, IDBServer& db) {
+    return {0};
+}
+
+Stats StatsAgregator::get_user_stats(uid id, IDBServer& db) {
+    return {0};
+}

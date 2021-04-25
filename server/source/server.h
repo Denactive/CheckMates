@@ -7,6 +7,10 @@
 
 #include "net.h"
 #include "matcher.h"
+// matcher contains GameSession (starts games)
+// GameSession contains Player, which contains User
+// User contains Community
+// Community is independent
 #include <string>
 #include <iostream>
 
@@ -46,9 +50,10 @@ public:
 
 private:
     Options opts_;
+    Net net_;
+    MatcherQueue mq_;
     bool started_ = false;
     boost::asio::io_service service_;
-    Net net_;
 };
 
 #endif //CHECKMATES_SERVER_H

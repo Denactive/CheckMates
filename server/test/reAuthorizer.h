@@ -7,8 +7,8 @@
 
 class reAuthorizer: public IAuthorizer {
 public:
-    MOCK_METHOD(User&, authorize, (Connection&), (override));
-    MOCK_METHOD(User&, registrate, (Connection&), (override));
+    MOCK_METHOD(User*, authorize, (Connection&, IDBServer&), (override));
+    MOCK_METHOD(User*, registrate, (Connection&, IDBServer&), (override));
 };
 
 #endif //SERVER_REAUTHORIZER_H

@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "community.h"
+#include "ServerDB.h"
 
-// defined in Net.h
 typedef struct {
     std::string ip;
     // sock
@@ -40,14 +40,14 @@ typedef struct {
 
 class IStats {
 public:
-    virtual Stats get_user_info(uid id) = 0;
-    virtual Stats get_user_stats(uid id) = 0;
+    virtual Stats get_user_info(uid id, IDBServer& db) = 0;
+    virtual Stats get_user_stats(uid id, IDBServer& db) = 0;
 };
 
 class StatsAgregator: IStats {
 public:
-    Stats get_user_info(uid id) override;
-    Stats get_user_stats(uid id) override;
+    Stats get_user_info(uid id, IDBServer& db) override;
+    Stats get_user_stats(uid id, IDBServer& db) override;
 };
 
 
@@ -58,8 +58,6 @@ public:
     virtual std::string get_nickname() = 0;
     virtual int get_rating() = 0;
     virtual void set_rating(int) = 0;
-    //virtual void enter_mq(IMatcherQueue&) = 0;
-    //virtual void leave_mq(IMatcherQueue&) = 0;
     virtual Stats get_full_stats() = 0;
     virtual ICommunity& create_community() = 0;
     virtual IChat& create_chat(std::set<uid> members) = 0;
@@ -76,12 +74,9 @@ public:
     uid get_id() override { return id_; }
     std::string get_nickname() override { return nickname_; }
     int get_rating() override { return rating_; }
-    // TODO: разобраться с этим. Перенести в net ?
-    //void enter_mq(IMatcherQueue& mq) override { mq.push_user(this); }
-    //void leave_mq(IMatcherQueue& mq) override { mq.pop_user(this); }
     Stats get_full_stats() override;
 
-    void set_rating(int new_raiting) override { rating_ = new_raiting; }
+    void set_rating(int new_rating) override { rating_ = new_rating; }
 
     ICommunity& create_community() override;
     IChat& create_chat(std::set<uid> members) override;
@@ -98,13 +93,15 @@ protected:
 
 
 class IAuthorizer {
-    virtual IUser& authorize(Connection& con) = 0;
-    virtual IUser& registrate(Connection& con) = 0;
+public:
+    virtual IUser* authorize(Connection& con, IDBServer& db) = 0;
+    virtual IUser* registrate(Connection& con, IDBServer& db) = 0;
 };
 
 class Authorizer: IAuthorizer {
-    IUser& authorize(Connection& con) override;
-    IUser& registrate(Connection& con) override;
+public:
+    IUser* authorize(Connection& con, IDBServer& db) override;
+    IUser* registrate(Connection& con, IDBServer& db) override;
 };
 
 #endif //SERVER_USER_H
