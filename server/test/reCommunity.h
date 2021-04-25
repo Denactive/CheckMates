@@ -9,7 +9,7 @@
 #include "gmock/gmock.h"
 #include "../source/community.h"
 
-class MockChat: public IChat  {
+class reChat: public IChat  {
 public:
     MOCK_METHOD(std::string, get_history, (), (override));
     MOCK_METHOD(std::set<uid>, get_user_list, ());
@@ -17,7 +17,7 @@ public:
     MOCK_METHOD(void, add_message, (uid, std::string));
 };
 
-class MockCommunity: public ICommunity  {
+class reCommunity: public ICommunity  {
 public:
     MOCK_METHOD(void, modify, ());
     MOCK_METHOD(void, accept_user, (uid));
