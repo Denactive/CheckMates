@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/svetlana/tp/Chess/CheckMates/client/include/community.h
+string
+-
+vector
+-
+
+/home/svetlana/tp/Chess/CheckMates/client/include/database.h
+string
+-
+../include/community.h
+/home/svetlana/tp/Chess/CheckMates/client/include/community.h
+
+/home/svetlana/tp/Chess/CheckMates/client/src/database.cpp
+../include/database.h
+/home/svetlana/tp/Chess/CheckMates/client/include/database.h
+
+/home/svetlana/tp/Chess/CheckMates/client/tests/main.cpp
+gtest/gtest.h
+/home/svetlana/tp/Chess/CheckMates/client/tests/gtest/gtest.h
+gmock/gmock.h
+/home/svetlana/tp/Chess/CheckMates/client/tests/gmock/gmock.h
+
+/home/svetlana/tp/Chess/CheckMates/client/tests/tst_database.cpp
+gtest/gtest.h
+/home/svetlana/tp/Chess/CheckMates/client/tests/gtest/gtest.h
+gmock/gmock.h
+/home/svetlana/tp/Chess/CheckMates/client/tests/gmock/gmock.h
+iostream
+-
+string
+-
+vector
+-
+../include/database.h
+/home/svetlana/tp/Chess/CheckMates/client/include/database.h
+

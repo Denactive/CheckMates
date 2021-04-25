@@ -1,43 +1,78 @@
-cmake_minimum_required(VERSION 3.16)
-project(CheckMates)
-set(CMAKE_C_STANDARD 11)
+cmake_minimum_required(VERSION 3.5)
+
+project(client LANGUAGES CXX)
+set(GMock_DIR "./")
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "--coverage -Wall")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+message(${GTEST_LIBRARIES})
+find_package(GMock REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GMOCK_LIBRARIES})
+
+#configure_file(CMakeLists.txt.in
+#        googletest-download/CMakeLists.txt)
+#execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+#        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+#execute_process(COMMAND ${CMAKE_COMMAND} --build .
+#        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+
+#add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
+#        ${CMAKE_BINARY_DIR}/googletest-build)
+
+enable_testing()
+add_subdirectory(tests)
+
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
+
+set(PROJECT_SOURCES
+        main.cpp
+
+        mainwindow.cpp
+        mainwindow.ui
+        mainwindow.h
+        graphics.h
+
+        src/chessboard.cpp
+        src/community.cpp
+        src/database.cpp
+        src/figures.cpp
+        src/gamewindowswork.cpp
+        src/graphics.cpp
+
+        include/chessboard.h
+        include/community.h
+        include/database.h
+        include/figures.h
+        include/gamewindowswork.h
 
 
-set(CMAKE_CXX_FLAGS "-g -Wall -Werror")
-set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
-
-set(PROGRAM_NAME client)
-set(SOURCE_DIR source)
-set(LIB_DIR lib)
-include_directories(source/)
-
-add_executable(${PROGRAM_NAME} source/main.cpp source/server.cpp source/server.h)
-find_package(Boost REQUIRED COMPONENTS system)
-#message(${BOOST_LIBRARIES})
-#message(${BOOST_INCLUDE_DIRS})
-target_link_libraries (${PROGRAM_NAME}
-        #OpenSSL::SSL OpenSSL::Crypto
-        lib-system
-        lib-regex
-        lib-asio
-        #lib-asio-ssl
-        lib-beast
+        ${TS_FILES}
 )
-#target_link_libraries(${PROGRAM_NAME} word_finder_shared)
 
-#делайте либами
-#add_library(<some lib name> SHARED ${MULTITHREAD_PROJ_DIR}/_.cpp)
-#target_link_libraries(${PROGRAM_NAME} )
-#add_executable(program-mt ${MULTITHREAD_PROJ_DIR}/program-MT.c)
+add_library(clientlib SHARED ${PROJECT_SOURCES})
+target_link_libraries(clientlib Qt${QT_VERSION_MAJOR}::Widgets GTest::GTest GTest::Main)
+
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    qt_add_executable(client ${PROJECT_SOURCES})
+    qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+else()
+    add_executable(client ${PROJECT_SOURCES})
+    qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+endif()
+
+target_link_libraries(client PRIVATE clientlib)
 
 
-#тесты
-#enable_testing()
-#find_package(GTest REQUIRED)
 
-#include_directories(${GTEST_INCLUDE_DIRS})
-#message(${GTEST_LIBRARIES})
-#message(${GTEST_INCLUDE_DIRS})
-
-#add_executable(tests testing/tests.cpp)
-#target_link_libraries(tests ${GTEST_LIBRARIES} -lpthread)
