@@ -51,7 +51,7 @@ public:
     virtual std::set<uid> get_moderators_list() = 0;
     virtual uid get_admin() = 0;
     virtual std::set<Rewards> get_rewards() = 0;
-    virtual IChat& get_group_chat() = 0;
+    virtual Chat* get_group_chat() = 0;
 
     virtual void set_admin(uid) = 0;
     virtual void add_reward(Rewards r) = 0;
@@ -86,8 +86,8 @@ public:
         return set;
     }
 
-    IChat& get_group_chat() override{
-        Chat& chat = *(new Chat);
+    Chat* get_group_chat() override{
+        Chat* chat = nullptr;
         return chat;
     }
 
