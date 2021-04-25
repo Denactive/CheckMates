@@ -45,14 +45,14 @@ Stats User::get_full_stats() {
 //void enter_mq(IMatcherQueue) override;
 //void leave_mq(IMatcherQueue) override;
 
-ICommunity &User::create_community() {
+Community &User::create_community() {
     std::set<uid> member_list;
     // add somebody
     Community &community = *(new Community(member_list));
     return community;
 };
 
-IChat& User::create_chat(std::set<uid> members) {
+Chat& User::create_chat(std::set<uid> members) {
     Chat &chat = *(new Chat);
     return chat;
 };

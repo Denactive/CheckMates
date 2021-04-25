@@ -52,7 +52,7 @@ add_executable(net_mock_test test/NetMock.cpp test/tests.cpp source/net.cpp sour
 target_link_libraries(net_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (net_mock_test ${Boost_LIBRARIES} -lpthread)
 
-add_executable(testCommunity test/testCommunity.cpp test/tests.cpp source/community.cpp test/reCommunity.h source/community.h)
+add_executable(testCommunity test/testCommunity.cpp test/tests.cpp source/community.cpp test/reCommunity.h source/community.h test/reUser.h source/User.cpp)
 target_link_libraries(testCommunity ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (testCommunity ${Boost_LIBRARIES} -lpthread)
 

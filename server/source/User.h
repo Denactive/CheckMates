@@ -61,8 +61,8 @@ public:
     //virtual void enter_mq(IMatcherQueue&) = 0;
     //virtual void leave_mq(IMatcherQueue&) = 0;
     virtual Stats get_full_stats() = 0;
-    virtual ICommunity& create_community() = 0;
-    virtual IChat& create_chat(std::set<uid> members) = 0;
+    virtual Community& create_community() = 0;
+    virtual Chat& create_chat(std::set<uid> members) = 0;
 };
 
 class User: public IUser {
@@ -83,8 +83,12 @@ public:
 
     void set_rating(int new_raiting) override { rating_ = new_raiting; }
 
-    ICommunity& create_community() override;
-    IChat& create_chat(std::set<uid> members) override;
+    Community& create_community() override;
+    Chat& create_chat(std::set<uid> members) override;
+//    friend bool operator == (const User &a, const User &b) {
+//        if (a.rating_ == b.rating_) return true;
+//        else return false;
+//    }
 
 protected:
     Connection& connection_;
