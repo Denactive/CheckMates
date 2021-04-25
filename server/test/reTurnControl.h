@@ -1,4 +1,4 @@
-class reTurnControl: public iTurnControl {
+class reTurnControl: public ITurnControl {
 public:
     MOCK_METHOD(void, StopTimer, ());
     MOCK_METHOD(void, EnableTimer, ());

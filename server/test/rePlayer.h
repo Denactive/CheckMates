@@ -1,4 +1,4 @@
-class rePlayer: public iPlayer {
+class rePlayer: public IPlayer {
 public:
     MOCK_METHOD(std::vector<std::string>, all_available_Moves, ());
     MOCK_METHOD(bool, try_move, ());

@@ -2,7 +2,7 @@
 #include "User.h"
 #include "GameSession.h"
 
-class iPlayer {
+class IPlayer {
 public:
     virtual std::vector<std::string> all_available_Moves() = 0;
     virtual bool try_move() = 0;
@@ -13,7 +13,7 @@ public:
     virtual void set_pieces() = 0;
 };
 
-class Player: public iPlayer {
+class Player: public IPlayer {
 private:
     ChessBoard& board;
     User user;

@@ -23,32 +23,29 @@ public:
     virtual void GiveUpHandler() = 0;
     virtual void run() = 0;
     virtual void StalemateHandler() = 0;
-
 };
 
 class GameSession: public IGameSession {
 public:
-    GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
+    explicit GameSession(IDBServer* log, ITurnControl* control, IPlayer* player);
 
     std::vector<std::string> all_available_Moves();
-    void SetBoard(){};
+    void SetBoard();
     bool MakeMove();
-    void CreateLog(){};
-    void DrawHandler(){};
-    std::string GetStatus() {
-        return 0;
-    };
-    void run(){};
+    void CreateLog();
+    void DrawHandler();
+    std::string GetStatus();
+    void run();
     time_t GetTime();
+    void GiveUpHandler();
+    void StalemateHandler();
+    ~GameSession() = default;
 
-    void GiveUpHandler(){};
-    void StalemateHandler(){};
-    ~GameSession(){};
-    iBDServer* log;
+    IDBServer* log;
     ChessBoard board;
-    iTurnControl* control;
-    iPlayer* wPlayer;
-    iPlayer* bPlayer;
+    ITurnControl* control;
+    IPlayer* wPlayer;
+    IPlayer* bPlayer;
     TurnHistory history;
 private:
     std::string status;

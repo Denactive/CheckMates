@@ -11,7 +11,7 @@ using ::testing::AtLeast;
 TEST(gamesession, Mock) {
     #include "OnCallPlayer.h"
     #include "OnCallTurn.h"
-    BDServer log;
+    DBServer log;
     GameSession session(&log, &control, &player);
     EXPECT_TRUE(session.wPlayer->try_move());
     EXPECT_FALSE(session.wPlayer->is_check());

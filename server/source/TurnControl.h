@@ -6,19 +6,19 @@
 #define CHECKMATES_TURNCONTROL_H
 
 
-class iTurnControl {
+class ITurnControl {
 private:
     virtual void SwitchTurn() = 0;
     virtual void StopTimer() = 0;
     virtual void EnableTimer() = 0;
 public:
-    virtual ~iTurnControl() { };
+    virtual ~ITurnControl() { };
     virtual time_t GetTime(bool Turn) = 0;
     virtual bool GetTurn(void) = 0;
 
 };
 
-class TurnControl: public iTurnControl {
+class TurnControl: public ITurnControl {
 private:
     bool Turn;
     time_t Timer1;

@@ -22,6 +22,7 @@ ENDIF()
 
 add_executable(${PROGRAM_NAME}
         ${SOURCE_DIR}/main.cpp
+        source/matcher.cpp
         source/server.cpp
         source/net.cpp
         source/community.cpp
@@ -52,11 +53,16 @@ add_executable(net_mock_test test/NetMock.cpp test/tests.cpp source/net.cpp sour
 target_link_libraries(net_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (net_mock_test ${Boost_LIBRARIES} -lpthread)
 
-add_executable(testCommunity test/testCommunity.cpp test/tests.cpp source/community.cpp test/reCommunity.h source/community.h)
-target_link_libraries(testCommunity ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
-target_link_libraries (testCommunity ${Boost_LIBRARIES} -lpthread)
+add_executable(community_mock_test test/testCommunity.cpp test/tests.cpp source/matcher.cpp source/GameSession.cpp source/community.cpp)
+target_link_libraries(community_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+target_link_libraries (community_mock_test ${Boost_LIBRARIES} -lpthread)
+
+add_executable(game_mock_test test/GameMock.cpp test/tests.cpp source/net.cpp source/community.cpp source/GameSession.cpp source/User.cpp source/matcher.cpp)
+target_link_libraries(game_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+target_link_libraries (game_mock_test ${Boost_LIBRARIES} -lpthread)
 
 add_test(test1 ./test1)
 add_test(test2 ./test2)
 add_test(NetMockTest ./net_mock_test)
-add_test(CommunityTest ./community_test)
+add_test(CommunityMockTest ./community_mock_test)
+add_test(GameMockTest ./game_mock_test)

@@ -58,9 +58,9 @@ public:
     virtual std::string get_nickname() = 0;
     virtual int get_rating() = 0;
     virtual void set_rating(int) = 0;
-    virtual Stats get_full_stats() = 0;
-    virtual ICommunity& create_community() = 0;
-    virtual IChat& create_chat(std::set<uid> members) = 0;
+    virtual Stats get_full_stats(IDBServer&) = 0;
+    virtual ICommunity* create_community() = 0;
+    virtual IChat* create_chat(std::set<uid> members) = 0;
 };
 
 class User: public IUser {
@@ -74,12 +74,12 @@ public:
     uid get_id() override { return id_; }
     std::string get_nickname() override { return nickname_; }
     int get_rating() override { return rating_; }
-    Stats get_full_stats() override;
+    Stats get_full_stats(IDBServer& db) override;
 
     void set_rating(int new_rating) override { rating_ = new_rating; }
 
-    ICommunity& create_community() override;
-    IChat& create_chat(std::set<uid> members) override;
+    ICommunity* create_community() override;
+    IChat* create_chat(std::set<uid> members) override;
 
 protected:
     Connection& connection_;

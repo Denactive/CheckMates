@@ -57,4 +57,11 @@ void Net::write(std::string) {
     std::cout<<"net::write" << std::endl;
 }
 
+std::string JSON_serializer::serialize(std::string s) {
+    return std::string("{" + s + "}");
+}
+std::string JSON_serializer::deserialize(std::string s) {
+    return s;
+}
+
 

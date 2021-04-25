@@ -4,6 +4,9 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#include "matcher.h"
+#include "GameSession.h"
 #include "community.h"
 #include "reCommunity.h"
 

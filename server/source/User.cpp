@@ -14,14 +14,6 @@
 //    return *c;
 //}
 
-Stats StatsAgregator::get_user_info(uid id) {
-    return {0};
-}
-
-Stats StatsAgregator::get_user_stats(uid id) {
-    return {0};
-}
-
 User::User(Connection &connection, uid id, std::string nickname, std::vector<IChat *> chat_list, UserStatus status) :
         connection_(connection), id_(id), nickname_(nickname), chat_list_(chat_list), status_(status) {
 
@@ -38,22 +30,24 @@ UserInfo User::get_info() {
     return res;
 }
 
-Stats User::get_full_stats() {
-    return stats_getter_.get_user_info(this->id_);
+Stats User::get_full_stats(IDBServer& db) {
+    return stats_getter_.get_user_stats(this->id_, db);
 }
 
 //void enter_mq(IMatcherQueue) override;
 //void leave_mq(IMatcherQueue) override;
 
-ICommunity &User::create_community() {
+// this function allocates memory!
+ICommunity* User::create_community() {
     std::set<uid> member_list;
     // add somebody
-    Community &community = *(new Community(member_list));
+    Community* community = new Community(member_list);
     return community;
 };
 
+// this function allocates memory!
 IChat* User::create_chat(std::set<uid> members) {
-    Chat &chat = *(new Chat);
+    Chat* chat = new Chat;
     return chat;
 };
 
@@ -71,7 +65,7 @@ IUser* Authorizer::authorize(Connection& con, IDBServer& db) {
 }
 
 // this function allocates memory!
-IUser& Authorizer::registrate(Connection& con, IDBServer& db) {
+IUser* Authorizer::registrate(Connection& con, IDBServer& db) {
     std::string user_data = db.query("SELECT username... FROM db.users");
     User* res = nullptr; //new User();;
     return res;

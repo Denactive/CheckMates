@@ -15,6 +15,7 @@ public:
     DBServer(std::string filepath): filepath_(filepath) {
 
     }
+    DBServer() = default;
 
     std::string query(std::string q) {return q;};
     std::string read() {return filepath_;};
