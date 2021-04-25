@@ -26,4 +26,4 @@ client/googlemock/
 /client/Testing/
 /client/googlemock
 
-/server/tmp_code/
+/server/CMakeLists.txt.user
