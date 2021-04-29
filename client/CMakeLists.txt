@@ -50,12 +50,14 @@ set(PROJECT_SOURCES
         src/figures.cpp
         src/gamewindowswork.cpp
         src/graphics.cpp
+        src/gameobjects.cpp
 
         include/chessboard.h
         include/community.h
         include/database.h
         include/figures.h
         include/gamewindowswork.h
+        include/gameobjects.h
 
 
         ${TS_FILES}

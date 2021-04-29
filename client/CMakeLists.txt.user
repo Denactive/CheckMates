@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.14.2, 2021-04-24T17:35:09. -->
+<!-- Written by QtCreator 4.14.2, 2021-04-26T10:05:32. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -71,8 +71,12 @@
     <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:correctRating">Checked</value>
     <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_database.cpp:Stats">Checked</value>
     <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_database.cpp:correctStats">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:AuthorizerWindow">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:ChatMenu">Checked</value>
     <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:GameWindow">Checked</value>
     <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:Graphics">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:MenuWindow">Checked</value>
+    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:SettingsWindow">Checked</value>
     <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:ok">Checked</value>
     <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:startDraw">Checked</value>
    </valuemap>

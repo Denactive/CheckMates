@@ -58,6 +58,7 @@ public:
     bool turnOnMatching() override { return true; }
     User * chooseFriend() override { return nullptr; }
     Chat * chooseChat() override { return nullptr; }
+
 private:
     bool isMatching;
     QList<Chat*> chats;

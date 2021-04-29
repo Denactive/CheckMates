@@ -2,6 +2,10 @@
 #define CHESSBOARD_H
 #include <QAbstractListModel>
 #include <string>
+#include <QToolButton>
+#include <QSize>
+#include <QGridLayout>
+#include <QWidget>
 //#include "../graphics.h"
 #include "../include/figures.h"
 
@@ -10,15 +14,17 @@
 //class ChessBoard;
 //class King;
 
-class Cell {
+class Cell : public QToolButton {
+    Q_OBJECT
 private:
     int x;
     int y;
-    std::string color;
+    QString color;
     bool hasFigure;
     Figure *figure;
 public:
-    Cell(int nx = 0, int ny = 0, std::string ncolor = "white", bool nhasFigure = false, Figure * nfigure = nullptr): x(nx), y(ny), color(ncolor), hasFigure(nhasFigure), figure(nfigure) {}
+    Cell(int nx = 0, int ny = 0, const QString & ncolor = "white", bool nhasFigure = false, Figure * nfigure = nullptr,
+         QWidget *parent = nullptr);
     size_t value {};
     Cell& operator=(const size_t newValue) {
         value = newValue;
@@ -31,8 +37,9 @@ public:
     void setFigure(Figure *) { hasFigure = true; };
     Figure * getFigure();
     bool isHasFigure() { return hasFigure == true; }
-    void setColor(std::string ncolor) { color = ncolor; }
-    std::string getColor() { return color; }
+    void setColor(QString ncolor) { color = ncolor; }
+    QString getColor() { return color; }
+    QSize sizeHint() const;
 };
 
 class IChessBoard {
@@ -43,7 +50,7 @@ class IChessBoard {
     virtual bool isKingUnderMat(King * king) = 0;
 };
 
-class ChessBoard : public QAbstractListModel, public IChessBoard
+class ChessBoard : public QGridLayout,  public IChessBoard
 {
     Q_OBJECT
     Q_PROPERTY(int size READ getSize CONSTANT)
@@ -51,12 +58,11 @@ public:
     static constexpr size_t defaultSize = {8};
     using Position = std::pair<size_t, size_t> const;
 
-    ChessBoard(const size_t newSize = defaultSize, QObject * parrent = nullptr);
+    ChessBoard(const size_t newSize = defaultSize, QWidget * parent = nullptr);
     void displayOnScreen() override;
 
-    int rowCount(const QModelIndex& parent = QModelIndex{}) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-
+//    int rowCount(const QModelIndex& parent = QModelIndex{}) const override;
+//    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
     Q_INVOKABLE bool move(int index) override;
     Position getPosition(size_t index);
@@ -64,8 +70,13 @@ public:
     size_t getSize() const override;
     bool isKingUnderMat(King * king) override;
 
+private slots:
+    void cellClicked();
+
 private:
-    std::vector<Cell> cells;
+    Cell* createCell(const QString &text, const char * member);
+
+    Cell* m_cells[64];
     const size_t size;
     King *king;
 };
