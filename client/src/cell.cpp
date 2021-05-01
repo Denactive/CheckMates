@@ -15,7 +15,7 @@ Cell::Cell(int nx, int ny, const QString &ncolor, bool nhasFigure, Figure *nfigu
                     border: 1px solid black;\
                     ";
 
-     setStyleSheet(style);
+                    setStyleSheet(style);
 }
 
 void Cell::setFigure(Figure * nfigure)

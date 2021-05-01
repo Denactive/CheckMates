@@ -24,7 +24,6 @@ class ChessBoard : public QFrame,  public IChessBoard
     Q_OBJECT
 public:
     static constexpr size_t defaultSize = {8};
-    //using Position = std::pair<size_t, size_t> const;
     ChessBoard(const size_t newSize = defaultSize, QWidget * parent = nullptr);
     void arrangeFigures() override;;
     bool move(int index) override;
@@ -43,7 +42,8 @@ private:
     QGridLayout *mainLayout;
     Cell* m_cells[64];
     const size_t size;
-    King *king;
+    King *wking;
+    King *bking;
 };
 
 #endif // CHESSBOARD_H

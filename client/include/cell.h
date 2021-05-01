@@ -23,13 +23,6 @@ public:
     Cell(int nx = 0, int ny = 0, const QString & ncolor = "white", bool nhasFigure = false, Figure * nfigure = nullptr, King * king = nullptr,
          QWidget *parent = nullptr);
     size_t value {};
-    Cell& operator=(const size_t newValue) {
-        value = newValue;
-        return *this;
-    }
-    bool operator ==(const size_t other) {
-        return other == value;
-    }
 
     void setFigure(Figure * figure);
     Figure * getFigure();

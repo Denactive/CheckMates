@@ -10,9 +10,6 @@
 
 ChessBoard::ChessBoard(const size_t newSize, QWidget *parent)
     :QFrame(parent), size(newSize) {
-//    cells.resize(size * size);
-//    std::iota(cells.begin(), cells.end(), 1);
-
     setStyleSheet("background-color: white;");
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     mainLayout = new QGridLayout();
@@ -57,11 +54,6 @@ void ChessBoard::cellClicked()
     QString cell = btn->text();
     qDebug() << "In cell: " << cell;
 }
-
-//ChessBoard::Position ChessBoard::getPosition(size_t index)
-//{
-//    return std::make_pair(index / size, index % size);
-//}
 
 size_t ChessBoard::getSize() const
 {

@@ -33,14 +33,14 @@ public:
 };
 
 class IDatabase {
-     virtual std::string query(std::string) const = 0;
+     virtual std::string query(std::string) = 0;
 };
 
 class Database : public IDatabase
 {
 public:
     Database();
-    std::string query(std::string) const override;
+    std::string query(std::string) override;
 private:
     std::string fileDB;
 };
