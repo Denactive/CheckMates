@@ -1,4 +1,4 @@
-﻿#ifndef CHESSBOARD_H
+#ifndef CHESSBOARD_H
 #define CHESSBOARD_H
 #include <QAbstractListModel>
 #include <string>
@@ -6,6 +6,7 @@
 #include <QSize>
 #include <QGridLayout>
 #include <QWidget>
+#include <QFrame>
 //#include "../graphics.h"
 #include "../include/figures.h"
 
@@ -50,7 +51,7 @@ class IChessBoard {
     virtual bool isKingUnderMat(King * king) = 0;
 };
 
-class ChessBoard : public QGridLayout,  public IChessBoard
+class ChessBoard : public QFrame,  public IChessBoard
 {
     Q_OBJECT
     Q_PROPERTY(int size READ getSize CONSTANT)

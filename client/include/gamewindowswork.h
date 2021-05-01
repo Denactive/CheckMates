@@ -1,13 +1,21 @@
-#ifndef GAMEWINDOWSWORK_H
+﻿#ifndef GAMEWINDOWSWORK_H
 #define GAMEWINDOWSWORK_H
 //#include "../graphics.h"
 #include "../include/community.h"
 #include "../include/chessboard.h"
 #include "../include/figures.h"
+#include "../include/gameobjects.h"
+#include "../mainwindow.h"
+#include <QWidget>
+#include <QTextEdit>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QAbstractListModel>
+#include <QStackedWidget>
 
-namespace Ui {
-    class MainWindow;
-}
+//namespace Ui {
+//    class MainWindow;
+//}
 
 class Figure;
 class Chat;
@@ -24,19 +32,24 @@ public:
     virtual bool surrender() = 0;
 };
 
-class Game : public IGame {
+class Game :  public IGame, public QWidget {
 public:
+    Game(QWidget * parent = nullptr);
     void drawChessBoard() override {};
     bool moveFigure(Figure *figure) override { return true; };
     void drawChat(Chat *chat) override {};
     bool sendMessage(MyMessage * message) override { return true; }
     bool offerDraw() override { return true; }
     bool surrender() override { return true; }
+
+private slots:
+    void sendClicked();
 private:
     bool isMatching;
     QList<Chat*> chats;
     QList<User*> users;
-    Ui::MainWindow *ui;
+
+    MyButton* createButton(const QString &text ="", const char * member = nullptr);
 };
 
 class IMenu {
@@ -51,7 +64,7 @@ public:
 
 class Menu : public IMenu {
 public:
-    Menu(bool isMatching = false, Ui::MainWindow *ui = nullptr): isMatching(isMatching), ui(ui) {}
+    Menu(bool isMatching = false): isMatching(isMatching) {}
     void drawMessages() override {};
     void drawFriends() override {};
     bool tapPlay() override { return true; }
@@ -63,7 +76,6 @@ private:
     bool isMatching;
     QList<Chat*> chats;
     QList<User*> users;
-    Ui::MainWindow *ui;
 };
 
 class IUserSettings {
@@ -76,14 +88,13 @@ public:
 
 class UserSettings : public IUserSettings {
 public:
-    UserSettings(User * user = nullptr, Ui::MainWindow *ui = nullptr): user(user), ui(ui) {}
+    UserSettings(User * user = nullptr): user(user) {}
     void drawUserSettings() override {}
     bool changeSettings() override { return true; }
     bool saveSettings() override { return true; }
     bool chooseUserPhoto() override { return true; }
 private:
     User * user;
-    Ui::MainWindow *ui;
 };
 
 class IAuthorizer {
@@ -95,13 +106,12 @@ public:
 
 class Authorizer : public IAuthorizer {
 public:
-    Authorizer(bool isValid = false, Ui::MainWindow *ui = nullptr): isValid(isValid), ui(ui) {}
+    Authorizer(bool isValid = false): isValid(isValid) {}
     void drawForm() override {}
     bool sendMessage(MyMessage *message) override { return true; }
     bool checkFromOnValid(User *user) override { return true; }
 private:
     bool isValid;
-    Ui::MainWindow *ui;
 };
 
 class IChatMenu {
@@ -114,14 +124,13 @@ public:
 
 class ChatMenu : public IChatMenu {
 public:
-    ChatMenu(Chat * chat = nullptr, Ui::MainWindow *ui = nullptr): chat(chat), ui(ui) {}
+    ChatMenu(Chat * chat = nullptr): chat(chat) {}
     void drawUserSettings() override {}
     void drawMessages() override {}
     bool sendMessage() override { return true; }
     bool backToMenu() override { return true; }
 private:
     Chat * chat;
-    Ui::MainWindow *ui;
 };
 
 #endif // GAMEWINDOWSWORK_H

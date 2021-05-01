@@ -5,15 +5,14 @@
 #include <QWidget>
 #include <QGridLayout>
 #include <QToolButton>
+#include <QMessageBox>
 
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "include/chessboard.h"
+#include "include/gamewindowswork.h"
 
-MainWindow::MainWindow()/*(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)*/
-{
+MainWindow::MainWindow() {
 //    ui->setupUi(this);
 
 //    ui->gameWindowWidget->hide();
@@ -30,7 +29,7 @@ MainWindow::MainWindow()/*(QWidget *parent)
     QVBoxLayout *mainLayout = new QVBoxLayout();
     QHBoxLayout *topLayout = new QHBoxLayout();
     QHBoxLayout *bottomLayout = new QHBoxLayout();
-    QGridLayout *gameLayout = new QGridLayout(); // to class Game
+    Game *gameLayout = new Game(); // to class Game
 //   //mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 
 //    QFont font = m_lineup->font();
@@ -46,7 +45,6 @@ MainWindow::MainWindow()/*(QWidget *parent)
 //    m_linedown->setReadOnly(true);
 //    m_linedown->setAlignment(Qt::AlignRight);
 //    m_linedown->setMaxLength(15);
-
 //    //    MyButton* m_cells[64];
     MyButton* topPlayers = createButton("TOP PLAYERS", SLOT(topPlayersClicked()));
     MyButton* community = createButton("Community", SLOT(communityClicked()));
@@ -66,12 +64,9 @@ MainWindow::MainWindow()/*(QWidget *parent)
     bottomLayout->addWidget(contacts);
     bottomLayout->addWidget(exit);
 
-    ChessBoard * board = new ChessBoard();
-    gameLayout->addLayout(board, 0, 0);
-
     mainLayout->addLayout(topLayout);
     mainLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
-    mainLayout->addLayout(gameLayout);
+    mainLayout->addWidget(gameLayout);
     mainLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
     mainLayout->addLayout(bottomLayout);
     setLayout(mainLayout);
@@ -81,41 +76,41 @@ MainWindow::MainWindow()/*(QWidget *parent)
 
 bool MainWindow::eventListener(QObject *watched, QEvent *event)
 {
-    if (event->type() == QEvent::KeyPress) {
-        if (watched == ui->playButton) {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-            if (keyEvent->key() == Qt::Key_Escape) {
-//                ui->gameGroup->show();
-            }
-        }
-     }
+//    if (event->type() == QEvent::KeyPress) {
+//        if (watched == ui->playButton) {
+//            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+//            if (keyEvent->key() == Qt::Key_Escape) {
+////                ui->gameGroup->show();
+//            }
+//        }
+//     }
 
-    QObject::eventFilter(watched, event);
+//    QObject::eventFilter(watched, event);
     return true;
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+   // delete ui;
 }
 
 
 void MainWindow::on_playButton_clicked()
 {
-    ui->gameWindowWidget->show();
-    ui->centerWidget->hide();
+//    ui->gameWindowWidget->show();
+//    ui->centerWidget->hide();
 }
 
 void MainWindow::on_pushButton_clicked()
 {
-    QMessageBox::StandardButton reply =
-            QMessageBox::question(this, "Окончание игры", "Вы действительно хотите сдаться и покинуть игру?", QMessageBox::Yes | QMessageBox::No);
-    if (reply == QMessageBox::Yes) {
-        ui->gameWindowWidget->hide();
-        ui->centerWidget->show();
-    } else {
-        qDebug() << "Была совершена попытка сдаться";
-    }
+//    QMessageBox::StandardButton reply =
+//            QMessageBox::question(this, "Окончание игры", "Вы действительно хотите сдаться и покинуть игру?", QMessageBox::Yes | QMessageBox::No);
+//    if (reply == QMessageBox::Yes) {
+//        ui->gameWindowWidget->hide();
+//        ui->centerWidget->show();
+//    } else {
+//        qDebug() << "Была совершена попытка сдаться";
+//    }
 }
 
 void MainWindow::on_QuitButton_clicked()
@@ -125,13 +120,13 @@ void MainWindow::on_QuitButton_clicked()
 
 void MainWindow::on_searchChatButton_clicked()
 {
-    QString message = ui->searchChatLine->text();
+//    QString message = ui->searchChatLine->text();
 
-    if (message == "hello") {
-        QMessageBox::information(this, "Hello from friend", "Привет!");
-    }
+//    if (message == "hello") {
+//        QMessageBox::information(this, "Hello from friend", "Привет!");
+//    }
 
-    ui->searchChatLine->setText("Message send");
+//    ui->searchChatLine->setText("Message send");
 }
 
 void MainWindow::topPlayersClicked()
@@ -166,15 +161,26 @@ void MainWindow::donateClicked()
 
 void MainWindow::contactsClicked()
 {
-
+    QMessageBox::information(this, "Contacts", "Developers: \n"\
+                                                "Турчин Денис \n"\
+                                                "Очеретная Светлана \n"\
+                                                "Любский Юрий \n"\
+                                                "Овчинникова Ксения");
 }
 
 void MainWindow::exitClicked()
 {
-
+    QApplication::quit();
 }
 
 MyButton *MainWindow::createButton(const QString &text, const char *member)
+{
+    MyButton *btn = new MyButton(text);
+    connect(btn, SIGNAL(clicked()), this, member);
+    return btn;
+}
+
+MyButton *App::createButton(const QString &text, const char *member)
 {
     MyButton *btn = new MyButton(text);
     connect(btn, SIGNAL(clicked()), this, member);
