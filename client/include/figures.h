@@ -1,7 +1,6 @@
 #ifndef FIGURES_H
 #define FIGURES_H
 #include <QPixmap>
-//#include "../include/figures.h"
 
 class Figure {
 private:

@@ -1,1 +1,1 @@
-#include "../include/figures.h"
+#include "include/figures.h"

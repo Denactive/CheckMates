@@ -6,46 +6,28 @@
 #include <QGridLayout>
 #include <QToolButton>
 #include <QMessageBox>
+#include <QApplication>
 
-#include "mainwindow.h"
-#include "./ui_mainwindow.h"
+#include "include/windows/mainwindow.h"
+#include "include/windows/gamewindow.h"
+#include "include/windows/menuwindow.h"
 #include "include/chessboard.h"
-#include "include/gamewindowswork.h"
+#include "include/gameobjects.h"
 
 MainWindow::MainWindow() {
-//    ui->setupUi(this);
+    main = new QStackedWidget();
 
-//    ui->gameWindowWidget->hide();
-
-//    QPixmap pix(":/img/userPhoto.png");
-//    int width = ui->userPhoto->width() / 2;
-//    int height = ui->userPhoto->height() / 2;
-//    ui->userPhoto->setPixmap(pix.scaled(width, height, Qt::KeepAspectRatio));
-
-    // practice
-//    m_lineup = new QLineEdit();
-//    m_linedown = new QLineEdit();
-//    m_sign = new QLabel();
     QVBoxLayout *mainLayout = new QVBoxLayout();
+
     QHBoxLayout *topLayout = new QHBoxLayout();
     QHBoxLayout *bottomLayout = new QHBoxLayout();
-    Game *gameLayout = new Game(); // to class Game
-//   //mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 
-//    QFont font = m_lineup->font();
-//    font.setPointSize(font.pointSize() + 8);
+    GameWindow *game = new GameWindow(this, main);
+    MenuWindow *mainWindow = new MenuWindow(this, main);
 
-//    m_lineup->setFont(font);
-//    m_lineup->setReadOnly(true);
-//    m_lineup->setAlignment(Qt::AlignRight);
-//    m_lineup->setMaxLength(15);
-//    m_lineup->setText("Not pressed");
+    main->insertWidget(0, mainWindow);
+    main->insertWidget(1, game);
 
-//    m_linedown->setFont(font);
-//    m_linedown->setReadOnly(true);
-//    m_linedown->setAlignment(Qt::AlignRight);
-//    m_linedown->setMaxLength(15);
-//    //    MyButton* m_cells[64];
     MyButton* topPlayers = createButton("TOP PLAYERS", SLOT(topPlayersClicked()));
     MyButton* community = createButton("Community", SLOT(communityClicked()));
     MyButton* settings = createButton("Settings", SLOT(settingsClicked()));
@@ -66,12 +48,12 @@ MainWindow::MainWindow() {
 
     mainLayout->addLayout(topLayout);
     mainLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
-    mainLayout->addWidget(gameLayout);
+    mainLayout->addWidget(main);
     mainLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
     mainLayout->addLayout(bottomLayout);
     setLayout(mainLayout);
     setWindowTitle("Main");
-    // qApp->installEventFilter(this);
+    setStyleSheet("background-color: lightblue;");
 }
 
 bool MainWindow::eventListener(QObject *watched, QEvent *event)
@@ -91,42 +73,11 @@ bool MainWindow::eventListener(QObject *watched, QEvent *event)
 
 MainWindow::~MainWindow()
 {
-   // delete ui;
 }
 
-
-void MainWindow::on_playButton_clicked()
+void MainWindow::onSearchChatClicked()
 {
-//    ui->gameWindowWidget->show();
-//    ui->centerWidget->hide();
-}
-
-void MainWindow::on_pushButton_clicked()
-{
-//    QMessageBox::StandardButton reply =
-//            QMessageBox::question(this, "Окончание игры", "Вы действительно хотите сдаться и покинуть игру?", QMessageBox::Yes | QMessageBox::No);
-//    if (reply == QMessageBox::Yes) {
-//        ui->gameWindowWidget->hide();
-//        ui->centerWidget->show();
-//    } else {
-//        qDebug() << "Была совершена попытка сдаться";
-//    }
-}
-
-void MainWindow::on_QuitButton_clicked()
-{
-    QApplication::quit();
-}
-
-void MainWindow::on_searchChatButton_clicked()
-{
-//    QString message = ui->searchChatLine->text();
-
-//    if (message == "hello") {
-//        QMessageBox::information(this, "Hello from friend", "Привет!");
-//    }
-
-//    ui->searchChatLine->setText("Message send");
+    QMessageBox::information(this, "Hello from friend", "Привет!");
 }
 
 void MainWindow::topPlayersClicked()

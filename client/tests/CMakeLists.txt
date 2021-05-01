@@ -28,13 +28,13 @@ target_link_libraries(test3 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} Qt${QT_VERSION
 target_link_libraries (test3 ${Boost_LIBRARIES} -lpthread)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(test4 tst_graphics_main.cpp ../graphics.h main.cpp ../src/graphics.cpp
-        ../include/gamewindowswork.h ../src/gamewindowswork.cpp ../include/community.h main.cpp ../src/community.cpp
+    qt_add_executable(test4 tst_graphics_main.cpp ../include/graphics.h main.cpp ../src/graphics.cpp
+        ../include/windows/mainwindow.h ../src/windows/mainwindow.cpp ../include/community.h main.cpp ../src/community.cpp
         reGraphics.h reGame.h reMenu.h reSettings.h reAuthorizer.h reChatMenu.h)
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
-    add_executable(test4 tst_graphics_main.cpp ../graphics.h main.cpp ../src/graphics.cpp
-        ../include/gamewindowswork.h ../src/gamewindowswork.cpp ../include/community.h main.cpp ../src/community.cpp
+    add_executable(test4 tst_graphics_main.cpp ../include/graphics.h main.cpp ../src/graphics.cpp
+        ../include/windows/mainwindow.h ../src/windows/mainwindow.cpp ../include/community.h main.cpp ../src/community.cpp
         reGraphics.h reGame.h reMenu.h reSettings.h reAuthorizer.h reChatMenu.h)
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()

@@ -7,7 +7,7 @@
 #include <QGridLayout>
 #include <QWidget>
 #include <QFrame>
-//#include "../graphics.h"
+
 #include "../include/figures.h"
 
 //class Cell;

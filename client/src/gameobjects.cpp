@@ -1,4 +1,4 @@
-#include "../include/gameobjects.h"
+#include "include/gameobjects.h"
 
 MyButton::MyButton(const QString &text, QWidget *parent) :QToolButton(parent)
 {

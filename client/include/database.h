@@ -2,7 +2,6 @@
 #define DATABASE_H
 #include <string>
 #include "../include/community.h"
-//#include "../graphics.h"
 
 /*in develop*/
 struct Stats {

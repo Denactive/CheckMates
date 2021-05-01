@@ -1,6 +1,6 @@
 #ifndef COMMUNITY_H
 #define COMMUNITY_H
-//#include "../graphics.h"
+
 #include <string>
 #include <vector>
 

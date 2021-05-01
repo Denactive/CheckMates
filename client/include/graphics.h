@@ -5,13 +5,11 @@
 #include <vector>
 #include <iostream>
 
-#include "include/community.h"
-#include "include/chessboard.h"
-#include "include/figures.h"
-#include "include/gamewindowswork.h"
-#include "mainwindow.h"
-#include "include/database.h"
-#include "ui_mainwindow.h"
+#include "../include/community.h"
+#include "../include/chessboard.h"
+#include "../include/figures.h"
+#include "../include/windows/mainwindow.h"
+#include "../include/database.h"
 
 class IGraphics
 {

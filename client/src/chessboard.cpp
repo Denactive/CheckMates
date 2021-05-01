@@ -6,7 +6,7 @@
 #include <QLabel>
 #include <QFrame>
 
-#include  "../include/chessboard.h"
+#include  "include/chessboard.h"
 
 ChessBoard::ChessBoard(const size_t newSize, QWidget *parent)
     :QFrame(parent), size(newSize) {

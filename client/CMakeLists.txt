@@ -38,27 +38,35 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
-
-        mainwindow.cpp
         mainwindow.ui
-        mainwindow.h
-        graphics.h
 
+        src/graphics.cpp
         src/chessboard.cpp
         src/community.cpp
         src/database.cpp
         src/figures.cpp
-        src/gamewindowswork.cpp
-        src/graphics.cpp
         src/gameobjects.cpp
 
+        src/windows/mainwindow.cpp
+        src/windows/chatwindow.cpp
+        src/windows/gamewindow.cpp
+        src/windows/menuwindow.cpp
+        src/windows/settingswindow.cpp
+        src/windows/authorizerwindow.cpp
+
+        include/graphics.h
         include/chessboard.h
         include/community.h
         include/database.h
         include/figures.h
-        include/gamewindowswork.h
         include/gameobjects.h
 
+        include/windows/mainwindow.h
+        include/windows/chatwindow.h
+        include/windows/gamewindow.h
+        include/windows/menuwindow.h
+        include/windows/settingswindow.h
+        include/windows/authorizerwindow.h
 
         ${TS_FILES}
 )
