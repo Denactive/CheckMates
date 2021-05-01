@@ -1,11 +1,5 @@
 ﻿#ifndef MENUWINDOW_H
 #define MENUWINDOW_H
-#include "../include/community.h"
-#include "../include/chessboard.h"
-#include "../include/figures.h"
-#include "../include/gameobjects.h"
-#include "../include/windows/mainwindow.h"
-#include "../include/gameobjects.h"
 #include <QWidget>
 #include <QTextEdit>
 #include <QLineEdit>

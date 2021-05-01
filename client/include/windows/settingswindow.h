@@ -1,10 +1,5 @@
 ﻿#ifndef SETTINGSWINDOW_H
 #define SETTINGSWINDOW_H
-#include "../include/community.h"
-#include "../include/chessboard.h"
-#include "../include/figures.h"
-#include "../include/gameobjects.h"
-#include "../include/windows/mainwindow.h"
 #include <QWidget>
 #include <QTextEdit>
 #include <QLineEdit>
@@ -12,10 +7,7 @@
 #include <QAbstractListModel>
 #include <QStackedWidget>
 
-class Figure;
-class Chat;
-class Message;
-class User;
+#include "include/community.h"
 
 class ISettingsWindow {
 public:

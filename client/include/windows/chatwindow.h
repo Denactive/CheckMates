@@ -1,17 +1,14 @@
 ﻿#ifndef CHATWINDOW_H
 #define CHATWINDOW_H
 
-#include "../include/community.h"
-#include "../include/chessboard.h"
-#include "../include/figures.h"
-#include "../include/gameobjects.h"
-#include "../include/windows/mainwindow.h"
 #include <QWidget>
 #include <QTextEdit>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QAbstractListModel>
 #include <QStackedWidget>
+
+#include "include/community.h"
 
 class Figure;
 class Chat;

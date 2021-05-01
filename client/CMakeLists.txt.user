@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.14.2, 2021-05-01T14:00:36. -->
+<!-- Written by QtCreator 4.14.2, 2021-05-01T17:28:15. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -64,22 +64,7 @@
     <value type="bool" key="AutoTest.Framework.QtQuickTest">true</value>
     <value type="bool" key="AutoTest.Framework.QtTest">true</value>
    </valuemap>
-   <valuemap type="QVariantMap" key="AutoTest.CheckStates">
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_chessboard.cpp:chessboard">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_chessboard.cpp:ok">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:Rating">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_community.cpp:correctRating">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_database.cpp:Stats">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_database.cpp:correctStats">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:AuthorizerWindow">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:ChatMenu">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:GameWindow">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:Graphics">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:MenuWindow">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:SettingsWindow">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:ok">Checked</value>
-    <value type="Qt::CheckState" key="/home/svetlana/tp/Chess/CheckMates/client/tests/tst_graphics_main.cpp:startDraw">Checked</value>
-   </valuemap>
+   <valuemap type="QVariantMap" key="AutoTest.CheckStates"/>
    <value type="int" key="AutoTest.RunAfterBuild">0</value>
    <value type="bool" key="AutoTest.UseGlobal">true</value>
    <valuelist type="QVariantList" key="ClangCodeModel.CustomCommandLineKey"/>
@@ -497,7 +482,6 @@
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/svetlana/tp/Chess/CheckMates с Cmake/build-client-Desktop-Debug/tests</value>
    </valuemap>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.RunConfiguration.3">
     <value type="QString" key="Analyzer.Perf.CallgraphMode">dwarf</value>
@@ -568,7 +552,6 @@
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/svetlana/tp/Chess/CheckMates с Cmake/build-client-Desktop-Debug/tests</value>
    </valuemap>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.RunConfiguration.4">
     <value type="QString" key="Analyzer.Perf.CallgraphMode">dwarf</value>
@@ -639,7 +622,6 @@
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/svetlana/tp/Chess/CheckMates с Cmake/build-client-Desktop-Debug/tests</value>
    </valuemap>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.RunConfiguration.5">
     <value type="QString" key="Analyzer.Perf.CallgraphMode">dwarf</value>
@@ -710,7 +692,6 @@
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/svetlana/tp/Chess/CheckMates с Cmake/build-client-Desktop-Debug/tests</value>
    </valuemap>
    <value type="int" key="ProjectExplorer.Target.RunConfigurationCount">6</value>
   </valuemap>

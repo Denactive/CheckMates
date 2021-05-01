@@ -1,6 +1,7 @@
 #ifndef FIGURES_H
 #define FIGURES_H
 #include <QPixmap>
+#include <QWidget>
 
 class Figure {
 private:
@@ -14,16 +15,25 @@ public:
     bool move();
 };
 
-class King {
+class King : public QWidget {
 private:
     QPixmap image;
     bool isUnderMat;
 public:
+    King(QPixmap pixmap, QWidget * parent = nullptr);
     void setImage(QPixmap image);
     bool move();
 };
 
-class Bishop : public Figure {
+class Bishop : public QWidget, public Figure {
+private:
+    QPixmap image;
+public:
+    void setImage(QPixmap image, QWidget * parent = nullptr);
+    bool move();
+};
+
+class Rook : public QWidget, public Figure {
 private:
     QPixmap image;
 public:
@@ -31,7 +41,7 @@ public:
     bool move();
 };
 
-class Rook : public Figure {
+class Queen : public QWidget, public Figure {
 private:
     QPixmap image;
 public:
@@ -39,7 +49,7 @@ public:
     bool move();
 };
 
-class Queen : public Figure {
+class Horse : public QWidget, public Figure {
 private:
     QPixmap image;
 public:
@@ -47,15 +57,7 @@ public:
     bool move();
 };
 
-class Horse : public Figure {
-private:
-    QPixmap image;
-public:
-    void setImage(QPixmap image);
-    bool move();
-};
-
-class Pawn : public Figure {
+class Pawn : public QWidget, public Figure {
 private:
     QPixmap image;
 public:

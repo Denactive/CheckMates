@@ -10,29 +10,12 @@
 
 GameWindow::GameWindow(QWidget *parent, QStackedWidget * main) : QWidget(parent), main(main)
 {
-    QGridLayout *game = new QGridLayout();
-    ChessBoard * board = new ChessBoard();
-    QHBoxLayout *boardLayout = new QHBoxLayout();
-    boardLayout->setAlignment(Qt::AlignCenter);
-    boardLayout->addWidget(board);
-    game->addLayout(boardLayout, 0, 0, 1, 10);
+    game = new QGridLayout();
 
+    drawChessBoard();
+    drawChat();
+    drawSendButton();
 
-    QListWidget * gameChat = new QListWidget();
-//    gameChat->addItem("message 1");
-//    gameChat->addItem("message 2");
-//    gameChat->addItem("message 3");
-
-//    gameChat->item(2)->setTextAlignment(Qt::AlignRight);
-    game->addWidget(gameChat, 1, 0, 1, 10);
-
-    QLineEdit * writeMessage = new QLineEdit;
-    writeMessage->setVisible(true);
-    game->addWidget(writeMessage, 2, 0, 1, 9);
-
-    //MyButton *btnSend = createButton("Отправить", SLOT(sendClicked()));
-
-    //game->addWidget(btnSend, 2, 9, 1, 1);
     MyButton * surrenderButton = new MyButton("Surrender");
     connect(surrenderButton, SIGNAL(clicked()), this, SLOT(surrender()));
     game->addWidget(surrenderButton);
@@ -44,9 +27,44 @@ GameWindow::GameWindow(QWidget *parent, QStackedWidget * main) : QWidget(parent)
     setLayout(game);
 }
 
+void GameWindow::drawChessBoard() {
+    ChessBoard *board = new ChessBoard();
+    QHBoxLayout *boardLayout = new QHBoxLayout();
+    boardLayout->setAlignment(Qt::AlignCenter);
+    boardLayout->addWidget(board);
+
+    game->addLayout(boardLayout, 0, 0, 1, 10);
+}
+
+void GameWindow::drawChat(Chat *chat)  {
+    gameChat = new QListWidget();
+    game->addWidget(gameChat, 1, 0, 1, 10);
+
+    writeMessage = new QLineEdit;
+    writeMessage->setVisible(true);
+    game->addWidget(writeMessage, 2, 0, 1, 9);
+
+    //    gameChat->addItem("message 1");
+    //    gameChat->addItem("message 2");
+    //    gameChat->addItem("message 3");
+    //    gameChat->item(2)->setTextAlignment(Qt::AlignRight);
+}
+
+void GameWindow::drawSendButton(MyMessage *message)
+{
+    MyButton * btnSend = new MyButton("Send");
+    connect(btnSend, SIGNAL(clicked()), this, SLOT(sendClicked()));
+    game->addWidget(btnSend, 2, 9, 1, 1);
+}
+
 void GameWindow::sendClicked()
 {
-    qDebug() << "send\n";
+    qDebug() << "send: " << writeMessage->text();
+    gameChat->addItem(writeMessage->text());
+    gameChat->item(gameChat->count() - 1)->setTextAlignment(Qt::AlignRight);
+
+    writeMessage->clear();
+    connect(gameChat->model(), SIGNAL(rowsInserted(const QModelIndex &, int, int)), gameChat, SLOT(scrollToBottom()));
 }
 
 void GameWindow::surrender()

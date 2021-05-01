@@ -31,7 +31,7 @@ message(${GMOCK_LIBRARIES})
 #        ${CMAKE_BINARY_DIR}/googletest-build)
 
 enable_testing()
-add_subdirectory(tests)
+#add_subdirectory(tests)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
@@ -42,6 +42,7 @@ set(PROJECT_SOURCES
 
         src/graphics.cpp
         src/chessboard.cpp
+        src/cell.cpp
         src/community.cpp
         src/database.cpp
         src/figures.cpp
@@ -56,6 +57,7 @@ set(PROJECT_SOURCES
 
         include/graphics.h
         include/chessboard.h
+        include/cell.h
         include/community.h
         include/database.h
         include/figures.h
