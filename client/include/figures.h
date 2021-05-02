@@ -3,67 +3,74 @@
 #include <QPixmap>
 #include <QWidget>
 
-class Figure {
+class Figure : public QWidget {
 private:
-    std::string color;
-    bool isDead;
+    QString color;
+    bool isClick;
 public:
-    Figure(std::string n_color = "white", bool n_isDead = false) :color(n_color), isDead(n_isDead) {};
-    void setColor(std::string color);
-    std::string getColor();
-    void setImage(std::string);
-    bool move();
+    const QString initialPath = "../img/figures/tournament_metal/";
+
+    Figure(QString ncolor = "", bool nisClick = false, QWidget * parent = nullptr)
+        :QWidget(parent), color(ncolor), isClick(nisClick) {};
+
+    QString getColor() { return color; }
+    virtual void setImage(QString path) = 0;
+    virtual QPixmap getImage() const = 0;
 };
 
-class King : public QWidget {
+class King : public Figure {
 private:
     QPixmap image;
     bool isUnderMat;
 public:
-    King(QPixmap pixmap, QWidget * parent = nullptr);
-    void setImage(QPixmap image);
-    bool move();
+    King(QString color = "", QString path = "");
+    void setImage(QString path = "");
+    QPixmap getImage() const { return image; }
 };
 
-class Bishop : public QWidget, public Figure {
+class Bishop : public Figure {
 private:
     QPixmap image;
 public:
-    void setImage(QPixmap image, QWidget * parent = nullptr);
-    bool move();
+    Bishop(QString color = "", QString path = "");
+    void setImage(QString path = "");
+    QPixmap getImage() const { return image; }
 };
 
-class Rook : public QWidget, public Figure {
+class Rook : public Figure {
 private:
     QPixmap image;
 public:
-    void setImage(QPixmap image);
-    bool move();
+    Rook(QString color = "", QString path = "");
+    void setImage(QString path = "");
+    QPixmap getImage() const { return image; }
 };
 
-class Queen : public QWidget, public Figure {
+class Queen : public Figure {
 private:
     QPixmap image;
 public:
-    void setImage(QPixmap image);
-    bool move();
+    Queen(QString color = "", QString path = "");
+    void setImage(QString path = "");
+    QPixmap getImage() const { return image; }
 };
 
-class Horse : public QWidget, public Figure {
+class Horse : public Figure {
 private:
     QPixmap image;
 public:
-    void setImage(QPixmap image);
-    bool move();
+    Horse(QString color = "", QString path = "");
+    void setImage(QString path = "");
+    QPixmap getImage() const { return image; }
 };
 
-class Pawn : public QWidget, public Figure {
+class Pawn : public Figure {
 private:
     QPixmap image;
 public:
-    void setImage(QPixmap image);
-    bool move();
-    bool endWay();
+    Pawn(QString color = "", QString path = "");
+    void setImage(QString path = "");
+    QPixmap getImage() const { return image; }
 };
 
 #endif // FIGURES_H

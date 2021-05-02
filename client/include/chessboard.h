@@ -1,5 +1,6 @@
 #ifndef CHESSBOARD_H
 #define CHESSBOARD_H
+
 #include <QAbstractListModel>
 #include <string>
 #include <QToolButton>
@@ -35,15 +36,15 @@ private slots:
     void cellClicked();
 
 private:
-    Cell* createCell(const QString &text, const char * member);
-    void drawBoardLabels();
-    void initBoard();
-
     QGridLayout *mainLayout;
     Cell* m_cells[64];
+    Cell *clickCell;
     const size_t size;
-    King *wking;
-    King *bking;
+
+    Cell* createCell(const QString &color, int x, int y, const char *member);
+    void drawBoardLabels();
+    void initBoard();
+    int makeIndex(int i, int j) { return i*8 + j; }
 };
 
 #endif // CHESSBOARD_H

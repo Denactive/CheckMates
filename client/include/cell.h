@@ -15,25 +15,24 @@ class Cell : public QToolButton {
 private:
     int x;
     int y;
+    QString style;
     QString color;
-    bool hasFigure;
     Figure *figure;
-    King * king;
 public:
-    Cell(int nx = 0, int ny = 0, const QString & ncolor = "white", bool nhasFigure = false, Figure * nfigure = nullptr, King * king = nullptr,
+    Cell(int nx = 0, int ny = 0, const QString & ncolor = "white", Figure * figure = nullptr,
          QWidget *parent = nullptr);
     size_t value {};
 
-    void setFigure(Figure * figure);
-    Figure * getFigure();
+    void setFigure(Figure * figure = nullptr);
+    Figure * getFigure() { return figure; }
     bool isHasFigure();
+    void cellClick(bool click);
 
-    void setKing(King * king);
-    King * getKing();
-    bool isHasKing();
-
-    void setColor(QString ncolor);
-    QString getColor();
+    void setStyle(QString clr = "white", int px = 0, int py = 0);
+    QString getStyle();
     QSize sizeHint() const;
+    void resizeEvent(QResizeEvent * event) {}
+
+    QPair<int, int> getPosition() { return qMakePair(x, y); }
 };
 #endif // CELL_H

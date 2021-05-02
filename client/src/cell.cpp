@@ -1,66 +1,71 @@
-#include "include/cell.h"
+﻿#include "include/cell.h"
+#include <QDebug>
 
-Cell::Cell(int nx, int ny, const QString &ncolor, bool nhasFigure, Figure *nfigure, King * king, QWidget *parent)
-    :QToolButton(parent), x(nx), y(ny), color(ncolor), hasFigure(nhasFigure), figure(nfigure), king(king) {
+Cell::Cell(int nx, int ny, const QString &ncolor, Figure * figure, QWidget *parent)
+    :QToolButton(parent), x(nx), y(ny), color(ncolor), figure(figure) {
     setText(ncolor);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    QString style = "";
-    if (ncolor == "white") style += "background-color: #ffb972;";
-    if (ncolor == "black") style += "background: #58310C;";
-
-    style += "border-image: url(../img/figures/tournament_metal/wN.png) 2 no-repeat; \
-                    color: transparent; \
-                    background-position: center; \
-                    border: 1px solid black;\
-                    ";
-
-                    setStyleSheet(style);
+    style = "";
+    setStyle(ncolor, nx, ny);
+    if (figure) setFigure(figure);
+    this->setIconSize(this->sizeHint());
 }
 
 void Cell::setFigure(Figure * nfigure)
 {
-    figure = nfigure;
-    hasFigure = true;
+    if (nfigure != nullptr) {
+        figure = nfigure;
+        this->setIcon(nfigure->getImage());
+    } else {
+        figure = nullptr;
+        this->setIcon(QIcon());
+    }
 }
 
 bool Cell::isHasFigure()
 {
-    return hasFigure == true;
+    return figure != nullptr;
 }
 
-void Cell::setKing(King *king)
+void Cell::cellClick(bool click)
 {
-    this->king = king;
+    style = "";
+    if (click) setStyle("red", x, y);
+    else setStyle(color, x, y);
 }
 
-King *Cell::getKing()
+
+void Cell::setStyle(QString clr, int px, int py)
 {
-    if (isHasKing()) return king;
-    else return nullptr;
+    if (clr == "white") style += "background-color: #ffb972; ";
+    else if (clr == "black") style += "background: #58310C; ";
+    else style += "background: " + clr + "; ";
+
+    qDebug() << "x " << px << " y " << py;
+    style += " border-left: 2px solid black; ";
+    style += " border-top: 2px solid black; ";
+    if (py == 7) style += " border-right: 2px solid black; ";
+    if (px == 7) style += " border-bottom: 2px solid black; ";
+
+    style += "color: transparent; \
+              background-position: center;";
+
+     setStyleSheet(style);
 }
 
-bool Cell::isHasKing()
+QString Cell::getStyle()
 {
-    return king == nullptr ? false : true;
-}
-
-void Cell::setColor(QString ncolor)
-{
-    color = ncolor;
-}
-
-QString Cell::getColor()
-{
-    return color;
+    return style;
 }
 
 QSize Cell::sizeHint() const
 {
     QSize size = QToolButton::sizeHint();
-    size.rheight() += 30;
+    //size.rheight() += 20;
     //size.rwidth() = qMax(size.width(), size.height());
-    size.rwidth() += 30;
+    //size.rwidth() += 20;
+    size.rheight() = size.rwidth();
     return size;
 }
 
