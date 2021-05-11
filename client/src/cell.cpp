@@ -5,11 +5,12 @@ Cell::Cell(int nx, int ny, const QString &ncolor, Figure * figure, QWidget *pare
     :QToolButton(parent), x(nx), y(ny), color(ncolor), figure(figure) {
     setText(ncolor);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
+    //setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred, QSizePolicy::ControlType::ToolButton));
     style = "";
     setStyle(ncolor, nx, ny);
     if (figure) setFigure(figure);
-    this->setIconSize(this->sizeHint());
+    QSize size(sizeHint().rheight() - 10, sizeHint().rwidth() - 10);
+    this->setIconSize(size);
 }
 
 void Cell::setFigure(Figure * nfigure)
@@ -42,7 +43,7 @@ void Cell::setStyle(QString clr, int px, int py)
     else if (clr == "black") style += "background: #58310C; ";
     else style += "background: " + clr + "; ";
 
-    qDebug() << "x " << px << " y " << py;
+    //qDebug() << "x " << px << " y " << py;
     style += " border-left: 2px solid black; ";
     style += " border-top: 2px solid black; ";
     if (py == 7) style += " border-right: 2px solid black; ";
@@ -62,10 +63,16 @@ QString Cell::getStyle()
 QSize Cell::sizeHint() const
 {
     QSize size = QToolButton::sizeHint();
-    //size.rheight() += 20;
-    //size.rwidth() = qMax(size.width(), size.height());
-    //size.rwidth() += 20;
     size.rheight() = size.rwidth();
-    return size;
+    int sz = this->width() > this->height() ? this->width() : this->height();
+    return QSize(sz, sz);
 }
 
+void Cell::resizeEvent(QResizeEvent *event)
+{
+    //int w = event->size().width();
+    //int h = event->size().height();
+    //w = std::max(w, h);
+    //this->resize(w, h);
+    this->heightForWidth(this->height());
+}

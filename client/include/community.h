@@ -1,8 +1,9 @@
-#ifndef COMMUNITY_H
+﻿#ifndef COMMUNITY_H
 #define COMMUNITY_H
 
 #include <string>
 #include <vector>
+#include <QPixmap>
 
 class IUser {
 public:
@@ -19,17 +20,23 @@ public:
 
 class User : public IUser {
 public:
-    User(int nrating = 0, std::string npassword = "", std::string nlogin = "", int ntime = 0) 
-    	:rating(nrating), password(npassword), login(nlogin), time(ntime) {};
+    User(QString name = "", int nrating = 0, std::string npassword = "", std::string nlogin = "", int ntime = 100);
+    void setUserPhoto(QPixmap photo) { this->photo = photo; };
+    QPixmap getUserPhoto() { return photo; }
+    void setName(QString name) { this->name = name; };
+    QString getName() { return name; }
+
     int getUserRating() const override { return -1; }
     std::string getUserPassword() const override { return ""; };
     std::string getLogin() const override { return ""; };
-    int gameTime() const override { return -1; }
+    int gameTime() const override { return time; }
     std::pair<int, int> getUserStep() const override { return std::pair<int, int>(1, 1); }
     int changeRating(int newRating) const override { return newRating; }
     void setPassword(std::string password) override { this->password = password; }
     void setLogin(std::string login) override { this->login = login; };
 private:
+    QPixmap photo;
+    QString name;
     int rating;
     std::string password;
     std::string login;
@@ -40,20 +47,23 @@ private:
 
 class MyMessage {
 public:
-    MyMessage(std::string nmessage = ""): message(nmessage) {}
-    bool changeMessage(std::string new_message) { return false; }
-    std::string getMessage() const { return ""; };
+    MyMessage(QString nmessage = ""): message(nmessage) {}
+    void changeMessage(QString newMessage) { message = newMessage; }
+    QString getMessage() const { return message; };
 private:
-    std::string message;
+    QString message;
 };
 
 
 class Chat {
 public:
     Chat(User * nuser = nullptr) :user(nuser) {}
-    bool addMessage() { return false; };
-    bool deleteMessage(int index) { return false; }
-    bool cleanAllMessages() { return false; }
+    void addMessage(MyMessage newMessage) { messages.push_back(newMessage); };
+    void deleteMessage(int index) { messages.erase(messages.begin() + index); }
+    void cleanAllMessages() { messages.clear(); }
+    std::vector<MyMessage> getMessages() { return messages; };
+    User * getUser() { return user; }
+    MyMessage getLastMessage() { return messages[messages.size() - 1]; }
 private:
     std::vector<MyMessage> messages;
     User * user;

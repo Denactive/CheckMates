@@ -7,6 +7,8 @@
 #include <QGridLayout>
 #include <QWidget>
 #include <QFrame>
+#include <QResizeEvent>
+
 
 #include "include/figures.h"
 
@@ -31,7 +33,7 @@ public:
     void setStyle(QString clr = "white", int px = 0, int py = 0);
     QString getStyle();
     QSize sizeHint() const;
-    void resizeEvent(QResizeEvent * event) {}
+    void resizeEvent(QResizeEvent * event);
 
     QPair<int, int> getPosition() { return qMakePair(x, y); }
 };

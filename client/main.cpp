@@ -11,5 +11,7 @@ int main(int argc, char *argv[])
     w.show();
     //App ap;
     //ap.show();
+    //a.quit();
+    //QApplication::quit();
     return a.exec();
 }

@@ -20,6 +20,14 @@ find_package(GMock REQUIRED)
 include_directories(${INCLUDE_DIRECTORIES})
 message(${GMOCK_LIBRARIES})
 
+find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost)
+IF (Boost_FOUND)
+    message("Boost version: ${Boost_VERSION}")
+    include_directories(${Boost_INCLUDE_DIR})
+    ADD_DEFINITIONS("-DHAS_BOOST")
+ENDIF()
+
 #configure_file(CMakeLists.txt.in
 #        googletest-download/CMakeLists.txt)
 #execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
@@ -38,7 +46,6 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
-        mainwindow.ui
 
         src/graphics.cpp
         src/chessboard.cpp
@@ -85,6 +92,9 @@ else()
 endif()
 
 target_link_libraries(client PRIVATE clientlib)
+
+add_executable(server_connect server_connect/BoostExampleClient.cpp)
+target_link_libraries (server_connect ${Boost_LIBRARIES} -lpthread)
 
 
 

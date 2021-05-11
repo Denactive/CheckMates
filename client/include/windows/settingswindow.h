@@ -17,14 +17,16 @@ public:
     virtual bool chooseUserPhoto() = 0;
 };
 
-class SettingsWindow : public ISettingsWindow {
+class SettingsWindow : public QWidget, public ISettingsWindow {
+    Q_OBJECT
 public:
-    SettingsWindow(User * user = nullptr): user(user) {}
+    SettingsWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, User * user = nullptr);
     void drawUserSettings() override {}
     bool changeSettings() override { return true; }
     bool saveSettings() override { return true; }
     bool chooseUserPhoto() override { return true; }
 private:
+    QStackedWidget * main;
     User * user;
 };
 

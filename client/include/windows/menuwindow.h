@@ -1,4 +1,4 @@
-﻿#ifndef MENUWINDOW_H
+#ifndef MENUWINDOW_H
 #define MENUWINDOW_H
 #include <QWidget>
 #include <QTextEdit>
@@ -7,41 +7,59 @@
 #include <QAbstractListModel>
 #include <QStackedWidget>
 #include <QGridLayout>
+#include <QCheckBox>
 
-class Figure;
-class Chat;
-class Message;
-class User;
+#include "include/community.h"
 
 class IMenuWindow {
 public:
-    virtual void drawMessages() = 0;
-    virtual void drawFriends() = 0;
+    virtual void drawChats(std::vector<Chat*> chatInfo) = 0;
+    virtual void drawFriends(std::vector<User*> friendsInfo) = 0;
     virtual void tapPlay() = 0;
     virtual bool turnOnMatching()= 0;
-    virtual User * chooseFriend() = 0;
-    virtual Chat * chooseChat() = 0;
+    virtual void chooseFriend() = 0;
+    virtual void chooseChat() = 0;
 };
 
 class MenuWindow : public QWidget, public IMenuWindow {
     Q_OBJECT
 public:
-    MenuWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, bool isMatching = false);
-    void drawMessages() override {};
-    void drawFriends() override {};
+    MenuWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, bool isMatching = false, std::vector<Chat*> chatInfo = {}, std::vector<User*> friendsInfo = {});
+    void drawChats(std::vector<Chat*> chatInfo) override;
+    void drawMiddle();
+    void drawFriends(std::vector<User*> friendsInfo) override;
     bool turnOnMatching() override { return true; }
-    User * chooseFriend() override { return nullptr; }
-    Chat * chooseChat() override { return nullptr; }
+
+    void addFriend(size_t index, std::vector<User*> friendsInfo);
+    void addChat(size_t index, std::vector<Chat*> chatInfo);
 
 public slots:
     void tapPlay() override;
+    void chooseFriend() override;
+    void chooseChat() override;
+    void changeMatching();
+    void searchFriend() {}
+    void searchChat() {}
 
 private:
+
     QStackedWidget * main;
+    QHBoxLayout *menu;
 
     bool isMatching;
-    QList<Chat*> chats;
-    QList<User*> users;
+    QCheckBox *isMatchingBox;
+
+    QLineEdit *searchChatLine;
+    QLineEdit *searchFriendLine;
+
+    QList<QFrame*> chats; // info from Chat
+    QList<QFrame*> friends; // info from User
+
+    //std::vector<Chat*> chatInfo;
+    //std::vector<User*> friendsInfo;
+
+    int choosenFriendIndex;
+    QCheckBox *choosenFriend;
 };
 
 #endif // MENUWINDOW_H

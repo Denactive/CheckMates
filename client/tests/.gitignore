@@ -71,3 +71,5 @@ Thumbs.db
 *.dll
 *.exe
 
+build_test/
+googletest-release-1.10.0/

@@ -10,6 +10,7 @@
 #include <QStackedWidget>
 #include <QDebug>
 #include <QObject>
+#include <QComboBox>
 
 #include "include/graphics.h"
 #include "include/gameobjects.h"
@@ -26,7 +27,7 @@ class MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    MainWindow();
+    MainWindow(QWidget * parent = 0);
     ~MainWindow();
     void drawTop();
     void drawBottom();
@@ -39,7 +40,6 @@ public:
 private slots:
     void onSearchChatClicked();
 
-    void topPlayersClicked();
     void communityClicked();
     void settingsClicked();
     void aboutClicked();
@@ -53,6 +53,9 @@ private:
 
     MyButton* createButton(const QString &text ="", const char * member = nullptr);
     QString heart = QChar(0x00002764);
+
+    std::vector<User*> topUsersInfo;
+    QComboBox *topUsers;
 };
 
 #endif // MAINWINDOW_H
