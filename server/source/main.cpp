@@ -3,9 +3,11 @@
 //
 #include "server.h"
 
+// TODO: проброс request_hander_http для http и request_hander_ws для ws
+
 int main() {
     // BE CAREFUL WITH FILEPATH
-    Options opts("SaberLion-Devs", "25.40.253.246", 8000, "C:/Users/Denactive/source/repos/SaberDevs_CheckMates/server/storage");
+    Options opts("SaberLion-Devs", "25.40.253.246", 8000, 8001, "C:/Users/Denactive/source/repos/SaberDevs_CheckMates/server/storage");
     Server s(opts);
 
     const unsigned short threads_num = 1;

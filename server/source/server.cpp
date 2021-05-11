@@ -14,8 +14,14 @@ int Server::run(asio::io_context& ioc) {
     started_ = true;
 
     // Create and launch a listening port
+    // http
     std::make_shared<Listener>(ioc,
-        tcp::endpoint{ opts_.ip_, opts_.port_ },
+        tcp::endpoint{ opts_.ip_, opts_.port_http_ },
+        opts_.doc_root_
+        )->run();
+    // ws
+    std::make_shared<Listener>(ioc,
+        tcp::endpoint{ opts_.ip_, opts_.port_ws_ },
         opts_.doc_root_
         )->run();
     

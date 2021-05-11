@@ -23,31 +23,24 @@ public:
     Options(
         std::string owner,
         std::string ip_host,
-        unsigned short port,
+        unsigned short http_port,
+        unsigned short ws_port,
         std::string doc_root)
         : owner_(owner)
         , ip_(asio::ip::make_address(ip_host))
-        , port_(port)
+        , port_http_(http_port)
+        , port_ws_(ws_port)
         , doc_root_(std::make_shared<std::string>(doc_root))
     {
     }
 
-    std::string get_info() { return "owner: "; }// + owner_ + " | ip: " + ip_ + ":" + std::to_string(port_) + " | doc dir:" + doc_root_; }
+    std::string get_info() { return "owner: " + owner_ + " | ip: " + ip_.to_string() + ":" + std::to_string(port_ws_) + "(ws) / " + std::to_string(port_http_) + "(http)\ndoc dir:" + *doc_root_ + '\n'; }
 
-    //const unsigned short&   get_port() { return port_; }
-    //const std::string&      get_ip() { return ip_; }
-    //const std::string&      get_owner() { return owner_; }
-    //std::shared_ptr<std::string const> const& get_doc_root() { return doc_root_; }
-
-//private:
     const std::string owner_;
-    // const std::string ip_;
-    const unsigned short port_;
-    //const std::string doc_root_;
+    const unsigned short port_ws_;
+    const unsigned short port_http_;
     asio::ip::address const ip_;
-    //auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
     std::shared_ptr<std::string> const doc_root_;
-    //auto const threads = std::max<int>(1, std::atoi(argv[4]));
 };
 
 

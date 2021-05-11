@@ -1,8 +1,7 @@
-//
-// Created by denactive on 14.04.2021.
-//
-
 #include "net.h"
+
+
+// =======================[ Serializer ]=========================
 
 
 std::string JSON_serializer::serialize(std::string s) {
@@ -12,6 +11,13 @@ std::string JSON_serializer::serialize(std::string s) {
 std::string JSON_serializer::deserialize(std::string s) {
     return s;
 }
+
+// =======================[ Logger ]=========================
+
+
+
+
+// =======================[ Затычки ]=========================
 
 template <typename Serializer>
 void HTTP_format<Serializer>::authorize_handler() {
