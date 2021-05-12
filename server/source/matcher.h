@@ -4,7 +4,8 @@
 #include <queue>
 
 #include "GameSession.h"
-#include "User.h"
+
+
 class IMatcherQueue {
 public:
     virtual GameSession& start_game() = 0;

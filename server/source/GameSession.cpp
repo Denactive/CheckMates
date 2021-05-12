@@ -129,8 +129,8 @@ void GameSession::run() {
             enemy = &bPlayer;
         }
         enemy->all_available_Moves();
-        you->all_available_Moves();
         thr = enemy->all_threatens();
+        you->all_available_Moves();
         you->KingUpdate(thr);
 
         if (is_check(you, enemy)) {
@@ -142,6 +142,7 @@ void GameSession::run() {
         if (is_stalemate(you, enemy)) {
             info.isGame = false;
             info.isVictory = 0;
+            std::cout << "STALEMATE!!";
         }
         if (is_mate(you, enemy)) {
             info.isGame = false;
@@ -170,6 +171,8 @@ void GameSession::run() {
              }
         }
         }
+      //  auto pos = you->pieces[3]->where();
+        //std::cout  <<"\n %"<< pos[0] <<pos[1]<<"\n %";
         move(you, enemy, turn);
 
         board.draw_board();

@@ -12,8 +12,8 @@ set(SOURCE_DIR source)
 set(LIB_DIR lib)
 include_directories(source/ test/)
 
-find_package(Boost REQUIRED COMPONENTS system)
-#find_package(Boost)
+#find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost)
 IF (Boost_FOUND)
     message("Boost version: ${Boost_VERSION}")
     include_directories(${Boost_INCLUDE_DIR})
@@ -23,7 +23,7 @@ ENDIF()
 add_executable(${PROGRAM_NAME}
         ${SOURCE_DIR}/main.cpp
         source/server.cpp
-        #source/matcher.cpp
+        source/matcher.cpp
         source/net.cpp
         source/community.cpp
         source/ServerDB.cpp

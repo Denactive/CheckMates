@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 
+#include "Chesspiece.h"
+#include "ChessBoard.h"
 #include "Player.h"
 #include "TurnControl.h"
 
@@ -29,7 +31,7 @@ public:
     virtual void GiveUpHandler() = 0;
     virtual void run() = 0;
     virtual void StalemateHandler() = 0;
-    virtual bool is_check(IPlayer* you, IPlayer* enemy) = 0;
+    virtual bool is_check(class IPlayer* you, IPlayer* enemy) = 0;
     virtual bool is_mate(IPlayer* you, IPlayer* enemy)= 0;
     virtual bool is_stalemate(IPlayer* you, IPlayer* enemy)= 0;
 };
@@ -39,6 +41,7 @@ public:
 
   //  explicit GameSession(IDBServer* log, ITurnControl* control, IPlayer* player);
     GameSession(ITurnControl& control, IPlayer& player1, IPlayer& player2);
+    GameSession() = default;
     void SetBoard();
     bool MakeMove();
     void CreateLog();

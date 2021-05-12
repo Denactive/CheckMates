@@ -4,8 +4,9 @@
 #include <vector>
 #include <string>
 
-#include "Chesspiece.h"
-#include "ChessBoard.h"
+
+#include "User.h"
+#include "GameSession.h"
 
 
 
