@@ -138,7 +138,7 @@ std::vector<std::array<size_t, M>> Knight::available_moves() {
 std::set<std::array<size_t, K>> Knight::threatens() {
     threat.clear();
     std::array<size_t, K> mov;
-    for (auto i = avail_moves.begin(); i != avail_moves.end(); ++i) {
+    for (auto i = avail_moves.begin(); i < avail_moves.end(); ++i) {
         mov[0] = (*i)[2];
         mov[1] = (*i)[3];
         threat.insert(mov);
@@ -165,7 +165,7 @@ std::vector<std::array<size_t, M>> Bishop::available_moves() {
 std::set<std::array<size_t, K>> Bishop::threatens() {
     threat.clear();
     std::array<size_t, K> mov;
-    for (auto i = avail_moves.begin(); i != avail_moves.end(); ++i) {
+    for (auto i = avail_moves.begin(); i < avail_moves.end(); ++i) {
         mov[0] = (*i)[2];
         mov[1] = (*i)[3];
         threat.insert(mov);
@@ -239,24 +239,24 @@ std::set<std::array<size_t, K>> Pawn::threatens() {
     auto bd = board.get_board();
    // cell temp = bd[i][j];
     if (white) {
-        if (i + 1 < 8 && j - 1 < 8) {
+        if ((i + 1 < 8) && (j - 1 < 8)) {
             mov[0] = i + 1;
             mov[1] = j - 1;
             threat.insert(mov);
         }
-        if (i + 1 < 8 && j + 1 < 8) {
+        if ((i + 1 < 8) && (j + 1 < 8)) {
             mov[0] = i + 1;
             mov[1] = j + 1;
             threat.insert(mov);
         }
 
     } else {
-        if (i - 1 < 8 && j - 1 < 8) {
+        if ((i - 1 < 8) && (j - 1 < 8)) {
             mov[0] = i - 1;
             mov[1] = j - 1;
             threat.insert(mov);
         }
-        if (i - 1 < 8 && j + 1 < 8) {
+        if ((i - 1 < 8) && (j + 1 < 8)) {
             mov[0] = i - 1;
             mov[1] = j + 1;
             threat.insert(mov);

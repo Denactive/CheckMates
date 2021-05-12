@@ -49,8 +49,8 @@ std::set<std::array<size_t, K>> King::threatens() {
     std::array<size_t, K> mov;
     auto bd = board.get_board();
     cell temp = bd[i][j];
-    for (size_t k = (i > 0) ? i - 1 : i; k <= i + 1 && k < 8; ++k) {
-        for (size_t m = (j > 0) ? j - 1 : j; m <= j + 1 && m < 8; ++m) {
+    for (size_t k = (i > 0) ? i - 1 : i; (k <= i + 1) && (k < 8); k++) {
+        for (size_t m = (j > 0) ? j - 1 : j; (m <= j + 1) && (m < 8); m++) {
             if (!(k == i && m == j)) {
                 if (bd[k][m] != temp) {
                     mov[2] = k;

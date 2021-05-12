@@ -16,9 +16,9 @@ void GameSession::try_move(IPlayer* you, IPlayer* enemy) {
     auto i = moves.end() - 1;
     while (i >= moves.begin()) {
         turn = *(i);
-        std::cout << turn[0] << turn[1] <<turn [2] << turn [3] <<'\n';
+        //std::cout << turn[0] << turn[1] <<turn [2] << turn [3] <<'\n';
         you->move(turn);
-        std::cout <<you->where()[0] << you->where()[1]<< '\n';
+       // std::cout <<you->where()[0] << you->where()[1]<< '\n';
         //King* Kin = dynamic_cast<King *>(you->pieces[4]);
         //std::cout <<Kin->where()[0] <<Kin->where()[1] << '\n';
         board.move_chess(turn);
@@ -104,9 +104,6 @@ void GameSession::run() {
     bPlayer.KingUpdate(thr);
     thr = bPlayer.all_threatens();
     wPlayer.KingUpdate(thr);
-    //for (auto i = thr.begin(); i != thr.end(); ++i) {
-    // std::cout << (*i)[0] << ' '<< (*i)[1]  << '\n';
-    //}
     struct GInfo{
         bool isPlayer;
         bool isGame;
@@ -177,8 +174,8 @@ void GameSession::run() {
 
         board.draw_board();
         //std::cout <<"\n~~~ \n";
-        // you->print_pos();
-       // enemy->print_pos();
+         //you->print_pos();
+        //enemy->print_pos();
        // std::cout <<"\n~~~ \n";
     }
 
