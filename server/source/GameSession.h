@@ -58,6 +58,12 @@ public:
     std::array<size_t, M> GetTurn();
     void print_moves (IPlayer* you);
     void move(IPlayer* you, IPlayer* enemy, std::array<size_t, M> turn);
+    void send_move(std::array<size_t, M> turn) {
+        std::cout <<"\n"<< turn[0] << turn[1] << turn[2] << turn[3]<<"\n";
+    }
+    void send_info(GInfo info) {
+        std::cout <<"\n"<< info.isPlayer << info.isGame << info.isVictory << info.isCheck <<"\n";
+    }
     void try_move(IPlayer* you, IPlayer* enemy);
    // IDBServer* log;
     ITurnControl& control;

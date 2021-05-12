@@ -172,6 +172,10 @@ void GameSession::run() {
         //std::cout  <<"\n %"<< pos[0] <<pos[1]<<"\n %";
         move(you, enemy, turn);
 
+        send_info(info);
+
+        send_move(turn);
+
         board.draw_board();
         //std::cout <<"\n~~~ \n";
          you->print_pos();
