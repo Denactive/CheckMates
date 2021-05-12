@@ -54,7 +54,6 @@ void ChessBoard::arrangeFigures() {
        bpawns[i] =  new Pawn("black");
     }
 
-
     m_cells[makeIndex(0, 0)]->setFigure(brook);
     m_cells[makeIndex(0, 1)]->setFigure(bhorse);
     m_cells[makeIndex(0, 2)]->setFigure(bbishop);

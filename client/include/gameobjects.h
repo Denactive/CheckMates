@@ -24,6 +24,8 @@ class PhotoWidget : public QLabel
     Q_OBJECT
 public:
     PhotoWidget(QPixmap photo, QSize size = QSize(50,50), QWidget *parent = nullptr);
+
+    QSize sizeHint() const override;
 private:
     QPixmap photo;
     QSize size;

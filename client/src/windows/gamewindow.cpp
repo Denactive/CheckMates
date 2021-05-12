@@ -89,6 +89,8 @@ void GameWindow::drawGameTop()
     QPixmap photo("../img/friendPhoto.png");
     user.setUserPhoto(photo);
     topLayout->addLayout(playerStatisticsDraw(user));
+
+
     topLayout->setAlignment(Qt::AlignRight);
 
     game->addLayout(topLayout);
@@ -103,6 +105,8 @@ QVBoxLayout *GameWindow::playerStatisticsDraw(User &user)
     QLabel * playerPhotoWidget = new QLabel();
     playerPhotoWidget->setPixmap(photo);
     playerStatistics->addWidget(playerPhotoWidget);
+    //PhotoWidget *playerPhotoWidget = new PhotoWidget(user.getUserPhoto(), QSize(50, 50));
+    //playerStatistics->addWidget(playerPhotoWidget);
 
     int time = user.gameTime();
     QLabel * playerTime = new QLabel(user.getName() + "\nTime: " + QString::number(time));

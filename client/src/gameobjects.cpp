@@ -34,4 +34,11 @@ PhotoWidget::PhotoWidget(QPixmap photo, QSize size, QWidget *parent)
     //parent->resize(size);
 
     qDebug() << "size " << QLabel::width() << " " << QLabel::height();
+    QLabel::resize(size);
+    qDebug() << "size " << QLabel::width() << " " << QLabel::height();
+}
+
+QSize PhotoWidget::sizeHint() const
+{
+    return this->size;
 }
