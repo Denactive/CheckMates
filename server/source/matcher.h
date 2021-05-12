@@ -5,6 +5,7 @@
 
 #include "GameSession.h"
 
+
 class IMatcherQueue {
 public:
     virtual GameSession& start_game() = 0;
@@ -12,7 +13,7 @@ public:
     virtual void pop_user(IUser* u) = 0;
 };
 
-class MatcherQueue: IMatcherQueue {
+class MatcherQueue: public IMatcherQueue {
 public:
     GameSession& start_game() override;
     void push_user(IUser* u) override;

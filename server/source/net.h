@@ -21,7 +21,7 @@ namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace asio = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-#include "matcher.h"
+//#include "matcher.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -32,7 +32,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 #include <thread>
 #include <vector>
 
-// глобальная функция вывода ошибок
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 void static fail(beast::error_code ec, char const* what) {
     std::cerr << what << ": " << ec.message() << "\n";
 }
@@ -236,7 +236,7 @@ public:
                 class Fields = fields>      // The type of container to store the fields
                 class message;
 
-                /** Construct a message.
+            /* Construct a message.
 
                 @param body_args A tuple forwarded as a parameter
                 pack to the body constructor.
@@ -252,7 +252,7 @@ public:
             http::response<http::file_body> res{
                 std::piecewise_construct,
                 std::make_tuple(std::move(body)),
-                std::make_tuple(http::status::ok, req.version())      // тапл - это кортеж - контейнер из произвольного числа элементов произвольного типа
+                std::make_tuple(http::status::ok, req.version())      // С‚Р°РїР» - СЌС‚Рѕ РєРѕСЂС‚РµР¶ - РєРѕРЅС‚РµР№РЅРµСЂ РёР· РїСЂРѕРёР·РІРѕР»СЊРЅРѕРіРѕ С‡РёСЃР»Р° СЌР»РµРјРµРЅС‚РѕРІ РїСЂРѕРёР·РІРѕР»СЊРЅРѕРіРѕ С‚РёРїР°
             };
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
             res.set(http::field::content_type, mime_type(path));
@@ -330,7 +330,7 @@ private:
 // =======================[ Session ]=========================
 
 
-// Бывший Net
+// пїЅпїЅпїЅпїЅпїЅпїЅ Net
 // Handles an HTTP / WS server connection
 class Session : public std::enable_shared_from_this<Session>
 {
@@ -383,7 +383,7 @@ class Session : public std::enable_shared_from_this<Session>
 
 public:
     // Take ownership of the stream
-    // TODO: проброс http / ws методов обработки
+    // TODO: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ http / ws пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     Session(
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
