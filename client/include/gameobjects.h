@@ -8,6 +8,8 @@
 #include <QObject>
 #include <QLabel>
 
+#include "community.h"
+
 class MyButton : public QToolButton
 {
     Q_OBJECT
@@ -17,24 +19,14 @@ public:
     QSize sizeHint() const override;
 };
 
-// imagelabel2.h
-
-class ImageLabel2 : public QWidget
+class PhotoWidget : public QLabel
 {
-Q_OBJECT
-
+    Q_OBJECT
 public:
-explicit ImageLabel2(QWidget *parent = 0);
-const QPixmap* pixmap() const;
-
-public slots:
-void setPixmap(const QPixmap&);
-
-protected:
-void paintEvent(QPaintEvent *);
-
+    PhotoWidget(QPixmap photo, QSize size = QSize(50,50), QWidget *parent = nullptr);
 private:
-QPixmap pix;
+    QPixmap photo;
+    QSize size;
 };
 
 #endif // GAMEOBJECTS_H

@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget * parent) :QWidget(parent) {
         User * newUser = new User("Top user " + QString::number(number));
         topUsersInfo.push_back(newUser);
     }
+    infoAboutMe = new User();
 
     // end of zaglushka
 
@@ -99,13 +100,18 @@ void MainWindow::drawTop()
      topLayout->addWidget(community);
      topLayout->addWidget(settings);
 
-
      // some design correct
      topUsers->setStyleSheet("height: " + QString::number(community->sizeHint().height()) + "; text-align:center;");
      topUsers->setEditable(true);
      topUsers->lineEdit()->setReadOnly(true);
      topUsers->lineEdit()->setText("TOP PLAYERS");
      topUsers->lineEdit()->setAlignment(Qt::AlignCenter);
+
+     if (infoAboutMe) {
+        PhotoWidget *userPhoto = new PhotoWidget(infoAboutMe->getUserPhoto(), QSize(50,50));
+        topLayout->addWidget(userPhoto);
+     }
+
      mainLayout->addLayout(topLayout);
 }
 
@@ -143,6 +149,7 @@ void MainWindow::communityClicked()
 void MainWindow::settingsClicked()
 {
     QMessageBox::information(this, "Настройки", "Переход на страничку с настройками");
+    main->setCurrentIndex(2);
 }
 
 void MainWindow::aboutClicked()

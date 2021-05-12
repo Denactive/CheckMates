@@ -1,5 +1,7 @@
 #include "include/gameobjects.h"
 
+#include <QDebug>
+
 MyButton::MyButton(const QString &text, QWidget *parent) :QToolButton(parent)
 {
     setText(text);
@@ -24,38 +26,12 @@ QSize MyButton::sizeHint() const
     return size;
 }
 
-// imagelabel2.cpp
-
-ImageLabel2::ImageLabel2(QWidget *parent) :
-QWidget(parent)
+PhotoWidget::PhotoWidget(QPixmap photo, QSize size, QWidget *parent)
+    :QLabel(parent), photo(photo), size(size)
 {
-}
+    this->photo = photo.scaled(size, Qt::KeepAspectRatio);
+    setPixmap(this->photo);
+    //parent->resize(size);
 
-void ImageLabel2::paintEvent(QPaintEvent *event) {
-QWidget::paintEvent(event);
-
-if (pix.isNull())
-return;
-
-QPainter painter(this);
-painter.setRenderHint(QPainter::Antialiasing);
-
-QSize pixSize = pix.size();
-pixSize.scale(event->rect().size(), Qt::KeepAspectRatio);
-
-QPixmap scaledPix = pix.scaled(pixSize,
-Qt::KeepAspectRatio,
-Qt::SmoothTransformation
-);
-
-painter.drawPixmap(QPoint(), scaledPix);
-
-}
-
-const QPixmap* ImageLabel2::pixmap() const {
-return &pix;
-}
-
-void ImageLabel2::setPixmap (const QPixmap &pixmap){
-pix = pixmap;
+    qDebug() << "size " << QLabel::width() << " " << QLabel::height();
 }

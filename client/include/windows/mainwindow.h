@@ -56,6 +56,8 @@ private:
 
     std::vector<User*> topUsersInfo;
     QComboBox *topUsers;
+
+    User *infoAboutMe;
 };
 
 #endif // MAINWINDOW_H

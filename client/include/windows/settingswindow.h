@@ -6,8 +6,10 @@
 #include <QListWidget>
 #include <QAbstractListModel>
 #include <QStackedWidget>
+#include <QLayout>
 
 #include "include/community.h"
+#include "include/gameobjects.h"
 
 class ISettingsWindow {
 public:
@@ -28,6 +30,8 @@ public:
 private:
     QStackedWidget * main;
     User * user;
+
+    QVBoxLayout *settings;
 };
 
 #endif // SETTINGSWINDOW_H
