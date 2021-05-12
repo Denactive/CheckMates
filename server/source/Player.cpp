@@ -57,12 +57,6 @@ void Player::set_pieces() {
 
 }
 
-void Player::print_pos() {
-    for (size_t j = 0; j < 2 * N; ++j) {
-        auto position = pieces[j]->where();
-        std::cout << position[0] << ' ' << position[1] << '\n';
-    }
-}
 
 void Player::move(std::array<size_t, M> turn) {
     size_t num = 0;
