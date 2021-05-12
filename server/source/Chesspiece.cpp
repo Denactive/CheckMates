@@ -155,7 +155,6 @@ std::vector<std::array<size_t, M>> Bishop::available_moves() {
     mov[0] = i;
     mov[1] = j;
     auto bd = board.get_board();
-
     cell temp = bd[i][j];
 
 #include "bishop.h"
@@ -184,44 +183,44 @@ std::vector<std::array<size_t, M>> Pawn::available_moves() {
     auto bd = board.get_board();
     cell temp = bd[i][j];
     if (white) {
-        if (i == 1 && bd[i + 2][j] == Empty) {
+        if ((i == 1) && (bd[i + 2][j] == Empty)) {
             mov[2] = i + 2;
             mov[3] = j;
             avail_moves.push_back(mov);
         }
-        if (i + 1 < 8 && bd[i + 1][j] == Empty) {
+        if ((i + 1 < 8) && (bd[i + 1][j] == Empty)) {
             mov[2] = i + 1;
             mov[3] = j;
             avail_moves.push_back(mov);
         }
-        if (i + 1 < 8 && j - 1 < 8 && bd[i + 1][j - 1] != temp && bd[i + 1][j - 1] != Empty) {
+        if ((i + 1 < 8) && (j - 1 < 8) && (bd[i + 1][j - 1] != temp) && (bd[i + 1][j - 1] != Empty)) {
             mov[2] = i + 1;
             mov[3] = j - 1;
             avail_moves.push_back(mov);
         }
-        if (i + 1 < 8 && j + 1 < 8 && bd[i + 1][j + 1] != temp && bd[i + 1][j + 1] != Empty) {
+        if ((i + 1 < 8) && (j + 1 < 8) && (bd[i + 1][j + 1] != temp) && (bd[i + 1][j + 1] != Empty)) {
             mov[2] = i + 1;
             mov[3] = j + 1;
             avail_moves.push_back(mov);
         }
 
     } else {
-        if (i == 6 && bd[i - 2][j] == Empty) {
+        if ((i == 6) && (bd[i - 2][j] == Empty)) {
             mov[2] = i - 2;
             mov[3] = j;
             avail_moves.push_back(mov);
         }
-        if (i - 1 < 8  && bd[i - 1][j] == Empty) {
+        if ((i - 1 < 8)  && (bd[i - 1][j] == Empty)) {
             mov[2] = i - 1;
             mov[3] = j;
             avail_moves.push_back(mov);
         }
-        if (i - 1 < 8 && j - 1 < 8 && bd[i - 1][j - 1] != temp && bd[i - 1][j - 1] != Empty) {
+        if ((i - 1 < 8) && (j - 1 < 8) && (bd[i - 1][j - 1] != temp) && (bd[i - 1][j - 1] != Empty)) {
             mov[2] = i - 1;
             mov[3] = j - 1;
             avail_moves.push_back(mov);
         }
-        if (i - 1 < 8 && j + 1 < 8 && bd[i - 1][j + 1] != temp && bd[i - 1][j + 1] != Empty) {
+        if ((i - 1 < 8) && (j + 1 < 8) && (bd[i - 1][j + 1] != temp) && (bd[i - 1][j + 1] != Empty)) {
             mov[2] = i - 1;
             mov[3] = j + 1;
             avail_moves.push_back(mov);
@@ -237,7 +236,6 @@ std::set<std::array<size_t, K>> Pawn::threatens() {
     size_t j = position[1];
     std::array<size_t, K> mov;
     auto bd = board.get_board();
-   // cell temp = bd[i][j];
     if (white) {
         if ((i + 1 < 8) && (j - 1 < 8)) {
             mov[0] = i + 1;

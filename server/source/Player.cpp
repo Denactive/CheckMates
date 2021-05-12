@@ -17,6 +17,13 @@ std::vector<std::array<size_t, M>>  Player::all_available_Moves() {
     return moves;
 };
 
+void Player::print_pos() {
+    for (int i = 0; i < 2 * N; ++i) {
+        auto p = pieces[i]->where();
+        std::cout  <<"^"<< p[0] << p[1] <<'\n';
+    }
+}
+
 std::set<std::array<size_t, K>>  Player::all_threatens() {
     threats.clear();
     for (int i = 0; i < 2 * N; ++i) {

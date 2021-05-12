@@ -174,7 +174,7 @@ void GameSession::run() {
 
         board.draw_board();
         //std::cout <<"\n~~~ \n";
-         //you->print_pos();
+         you->print_pos();
         //enemy->print_pos();
        // std::cout <<"\n~~~ \n";
     }

@@ -19,7 +19,7 @@ public:
     virtual size_t try_capture(std::array<size_t, M> turn) = 0;
     virtual size_t GetUserId() = 0;
     virtual void set_pieces() = 0;
-   // virtual void print_pos() = 0;
+    virtual void print_pos() = 0;
     virtual ChessBoard& getboard () = 0;
     virtual void KingUpdate(std::set<std::array<size_t, K>> thr) = 0;
     virtual const size_t* where() = 0;
@@ -55,7 +55,7 @@ public:
     std::set<std::array<size_t, K>>  all_threatens();
     void move(std::array<size_t, M> turn);
     void is_captured(std::array<size_t, M> turn);
-    //void print_pos();
+    void print_pos();
     size_t GetUserId();
     void set_pieces();
 };
