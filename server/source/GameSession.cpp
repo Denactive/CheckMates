@@ -146,7 +146,7 @@ void GameSession::run() {
         }
         move(you, enemy, turn);
         board.draw_board();
-         you->print_pos();
+        you->print_pos();
     }
 
 }

@@ -24,11 +24,9 @@ int main() {
     std::array<size_t, M> turn;
     while (info.isGame) {
         turn = GetTurn();
-        std::cout << '@';
         int turn_accepted = A.run_turn(turn);
         info = A.send_info();
     }
-    std::cout << '*';
 
     Options opts("SaberLion-Devs", "127.0.0.1", 8000, 8001, "C:/Users/Denactive/source/repos/SaberDevs_CheckMates/server/storage");
     Server s(opts);
