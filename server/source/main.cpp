@@ -24,7 +24,7 @@ int main() {
     std::array<size_t, M> turn;
     while (info.isGame) {
         turn = GetTurn();
-        int turn_accepted = A.run_turn(turn);
+        A.run_turn(turn);
         info = A.send_info();
     }
 

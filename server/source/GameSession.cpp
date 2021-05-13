@@ -71,86 +71,6 @@ void GameSession::print_moves(IPlayer* you) {
 }
 
 
-void GameSession::run() {
-    std::cout << "game run\n";
-    board.set_board();
-    std::array<std::array<cell, N>, N> bd =  board.get_board();
-
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
-            std::cout << bd[i][j] << ' ';
-        }
-        std::cout << '\n';
-    }
-    wPlayer.set_pieces();
-    bPlayer.set_pieces();
-    std::set<std::array<size_t, K>> thr = wPlayer.all_threatens();
-    bPlayer.KingUpdate(thr);
-    thr = bPlayer.all_threatens();
-    wPlayer.KingUpdate(thr);
-
-    info.isGame = true;
-    info.isPlayer = false;
-    info.isVictory = 0;
-    info.isCheck = false;
-
-    while(info.isGame) {
-        info.isPlayer = !info.isPlayer;
-        IPlayer* you = &bPlayer;
-        IPlayer* enemy = &wPlayer;
-        if (info.isPlayer) {
-            you = &wPlayer;
-            enemy = &bPlayer;
-        }
-        enemy->all_available_Moves();
-        thr = enemy->all_threatens();
-        you->all_available_Moves();
-        you->KingUpdate(thr);
-
-        if (is_check(you, enemy)) {
-            info.isCheck = true;
-            try_move(you, enemy);
-            std::cout << "CHECK!!";
-        }
-
-        if (is_stalemate(you, enemy)) {
-            info.isGame = false;
-            info.isVictory = 0;
-            std::cout << "STALEMATE!!";
-        }
-        if (is_mate(you, enemy)) {
-            info.isGame = false;
-            info.isVictory = 1;
-            if (info.isPlayer) {
-                info.isVictory = 2;
-            }
-            std::cout << "CHECKMATE!!";
-            break;
-        }
-        print_moves(you);
-        for (auto i = thr.begin(); i != thr.end(); ++i) {
-            std::cout << (*i)[0] << ' '<< (*i)[1]  << '\n';
-        }
-        bool move_accepted = false;
-        std::cout << "\nenter input\n";
-        std::array<size_t, M> turn;
-        while (!move_accepted) {
-        std::vector<std::array<size_t, M>> moves = you->access();
-        for (auto i = moves.begin(); i != moves.end(); ++i) {
-             if (*i == turn) {
-                 move_accepted = true;
-                 std::cout << "true\n";
-                 break;
-             }
-        }
-        }
-        move(you, enemy, turn);
-        board.draw_board();
-        you->print_pos();
-    }
-
-}
-
 bool GameSession::is_check(IPlayer* you, IPlayer* enemy) {
     std::array<size_t, K> p;
     const size_t* pos = you->where();
@@ -195,11 +115,13 @@ void GameSession::setup() {
     }
     wPlayer.set_pieces();
     bPlayer.set_pieces();
+    wPlayer.all_available_Moves();
+    bPlayer.all_available_Moves();
     std::set<std::array<size_t, K>> thr = wPlayer.all_threatens();
     bPlayer.KingUpdate(thr);
     thr = bPlayer.all_threatens();
     wPlayer.KingUpdate(thr);
-
+    print_moves(&wPlayer);
     info.isGame = true;
     info.isPlayer = false;
     info.isVictory = 0;
@@ -217,10 +139,23 @@ int GameSession::run_turn(std::array<size_t, M> turn)  {
             you = &wPlayer;
             enemy = &bPlayer;
         }
-        enemy->all_available_Moves();
-        thr = enemy->all_threatens();
-        you->all_available_Moves();
-        you->KingUpdate(thr);
+
+
+    bool move_accepted = false;
+    std::cout << "\nenter input\n";
+    std::vector<std::array<size_t, M>> moves = you->access();
+    for (auto i = moves.begin(); i != moves.end(); ++i) {
+        if (*i == turn) {
+            move_accepted = true;
+            std::cout << "true\n";
+            break;
+        }
+    }
+    if (move_accepted) {
+        move(you, enemy, turn);
+        info.turn = turn;
+        board.draw_board();
+        you->print_pos();
 
         if (is_check(you, enemy)) {
             info.isCheck = true;
@@ -242,26 +177,16 @@ int GameSession::run_turn(std::array<size_t, M> turn)  {
             std::cout << "CHECKMATE!!";
             return 0;
         }
-        print_moves(you);
-        for (auto i = thr.begin(); i != thr.end(); ++i) {
-            std::cout << (*i)[0] << ' '<< (*i)[1]  << '\n';
-        }
-        bool move_accepted = false;
-        std::cout << "\nenter input\n";
-            std::vector<std::array<size_t, M>> moves = you->access();
-            for (auto i = moves.begin(); i != moves.end(); ++i) {
-                if (*i == turn) {
-                    move_accepted = true;
-                    std::cout << "true\n";
-                    break;
-                }
-            }
-       if (move_accepted) {
-           move(you, enemy, turn);
-           info.turn = turn;
-           board.draw_board();
-           you->print_pos();
-           return 0;
+
+        you->all_available_Moves();
+        thr = you->all_threatens();
+        enemy->all_available_Moves();
+        enemy->KingUpdate(thr);
+        print_moves(enemy);
+       // for (auto i = thr.begin(); i != thr.end(); ++i) {
+            //std::cout << (*i)[0] << ' '<< (*i)[1]  << '\n';
+      //  }
+
        } else {
            info.turn ={0, 0 , 0, 0};
            return 1;

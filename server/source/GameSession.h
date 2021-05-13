@@ -25,7 +25,6 @@ public:
     virtual ~IGameSession() {};
     virtual void CreateLog() = 0;
     virtual time_t GetTime() = 0;
-    virtual void run() = 0;
     virtual int run_turn(std::array<size_t, M> turn) = 0;
     virtual void setup() = 0;
     virtual bool is_check(class IPlayer* you, IPlayer* enemy) = 0;
@@ -46,7 +45,6 @@ public:
     bool is_mate(IPlayer* you, IPlayer* enemy);
     bool is_stalemate(IPlayer* you, IPlayer* enemy);
     bool GameStatus();
-    void run();
     int run_turn(std::array<size_t, M> turn);
     void setup();
     time_t GetTime();
