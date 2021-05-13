@@ -21,7 +21,7 @@ namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace asio = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-#include "matcher.h"
+//#include "matcher.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -32,7 +32,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 #include <thread>
 #include <vector>
 
-// глобальная функция вывода ошибок
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 void static fail(beast::error_code ec, char const* what) {
     std::cerr << what << ": " << ec.message() << "\n";
 }
@@ -47,7 +47,7 @@ public:
     virtual std::string deserialize(std::string) = 0;
 };
 
-class JSON_serializer: ISerializer {
+class JSON_serializer: public ISerializer {
 public:
     std::string serialize(std::string) override;
     std::string deserialize(std::string) override;
@@ -67,39 +67,55 @@ public:
     void log(std::string data) override;
 };
 
+// =======================[ Protocol Specific Handlers ]=========================
+
+class IFormat {
+public:
+    template <class Body, class Allocator, class Send>
+    void handle_request(beast::string_view, http::request<Body, http::basic_fields<Allocator>>&&, Send&&) {
+        std::cout << "basic to override\n";
+    }
+};
 
 // =======================[ WS ]=========================
 
 
-template <typename Serializer>
-class WS_format {
+//template <typename Serializer>
+class WS_format /*: public IFormat*/{
 public:
-    WS_format() = default;// delete;
-    /*WS_format(ISerializer& serializer)
+    WS_format() = delete;
+    WS_format(ISerializer* serializer)
     : serializer_(serializer)
     {
-    }*/
+    }
 
     void game_request_handler();
     void game_response_handler();
     void chat_handler();
+
+    template <class Body, class Allocator, class Send>
+    void handle_request(beast::string_view doc_root, http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
+        std::cout << "smtg\n";
+    }
 private:
-    Serializer serializer_;
+    ISerializer* serializer_;
 };
 
 
 // =======================[ HTTP ]=========================
 
 
-template <typename Serializer>
-class HTTP_format {
+//template <typename Serializer/*, typename HTTP_Logger*/>
+class HTTP_format: public IFormat {
 public:
 
-    HTTP_format() = default;// delete;
-    /*HTTP_format(ISerializer& serializer)
+    HTTP_format() = delete;
+    //HTTP_format(std::shared_ptr<ISerializer> serializer)
+    HTTP_format(ISerializer* serializer)
+        //: serializer_(std::make_shared<ISerializer>(serializer))
         : serializer_(serializer)
     {
-    }*/
+    }
 
     // client
     // void get_handler();
@@ -155,10 +171,14 @@ public:
             return res;
         };
 
+        //
+        // CHECKS AND VALIDATION
+        //
+
         // Make sure we can handle the method
         if (req.method() != http::verb::get &&
-            req.method() != http::verb::head)
-            //TODO: post method
+            req.method() != http::verb::head &&
+            req.method() != http::verb::post)
             return send(bad_request("Unknown HTTP-method"));
 
         // Request path must be absolute and not contain "..".
@@ -172,64 +192,76 @@ public:
         if (req.target().back() == '/')
             path.append("index.html");
 
-        // Attempt to open the file
-        beast::error_code ec;
-        http::file_body::value_type body;
-        body.open(path.c_str(), beast::file_mode::scan, ec);
+        //
+        // REQUEST EXECUTION
+        // 
+        
+        if (req.method() == http::verb::post) {
+            // go to DB write data
+        }
+        else {
 
-        // Handle the case where the file doesn't exist
-        if (ec == beast::errc::no_such_file_or_directory)
-            return send(not_found(req.target()));
+            // Attempt to open the file
+            beast::error_code ec;
+            http::file_body::value_type body;
+            body.open(path.c_str(), beast::file_mode::scan, ec);
 
-        // Handle an unknown error
-        if (ec)
-            return send(server_error(ec.message()));
+            // Handle the case where the file doesn't exist
+            if (ec == beast::errc::no_such_file_or_directory)
+                return send(not_found(req.target()));
 
-        // Cache the size since we need it after the move
-        auto const size = body.size();
+            // Handle an unknown error
+            if (ec)
+                return send(server_error(ec.message()));
 
-        // Respond to HEAD request
-        if (req.method() == http::verb::head)
-        {
-            http::response<http::empty_body> res{ http::status::ok, req.version() };
+            // Cache the size since we need it after the move
+            auto const size = body.size();
+
+            // Respond to HEAD request
+            if (req.method() == http::verb::head)
+            {
+                http::response<http::empty_body> res{ http::status::ok, req.version() };
+                res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+                res.set(http::field::content_type, mime_type(path));
+                res.content_length(size);
+                res.keep_alive(req.keep_alive());
+                return send(std::move(res));
+            }
+
+            // Respond to GET request
+
+            /*template<
+                bool isRequest,             // `true` for requests, `false` for responses
+                class Body,                 // Controls the container and algorithms used for the body
+                class Fields = fields>      // The type of container to store the fields
+                class message;
+
+            /* Construct a message.
+
+                @param body_args A tuple forwarded as a parameter
+                pack to the body constructor.
+
+                @param fields_args A tuple forwarded as a parameter
+                pack to the `Fields` constructor.
+
+                template<class... BodyArgs, class... FieldsArgs>
+                message(std::piecewise_construct_t,
+                    std::tuple<BodyArgs...> body_args,
+                    std::tuple<FieldsArgs...> fields_args);
+            */
+            http::response<http::file_body> res{
+                std::piecewise_construct,
+                std::make_tuple(std::move(body)),
+                std::make_tuple(http::status::ok, req.version())      // С‚Р°РїР» - СЌС‚Рѕ РєРѕСЂС‚РµР¶ - РєРѕРЅС‚РµР№РЅРµСЂ РёР· РїСЂРѕРёР·РІРѕР»СЊРЅРѕРіРѕ С‡РёСЃР»Р° СЌР»РµРјРµРЅС‚РѕРІ РїСЂРѕРёР·РІРѕР»СЊРЅРѕРіРѕ С‚РёРїР°
+            };
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
             res.set(http::field::content_type, mime_type(path));
             res.content_length(size);
             res.keep_alive(req.keep_alive());
             return send(std::move(res));
         }
-
-        // Respond to GET request
-
-        /*template<
-            bool isRequest,             // `true` for requests, `false` for responses
-            class Body,                 // Controls the container and algorithms used for the body
-            class Fields = fields>      // The type of container to store the fields
-            class message;
-
-            /** Construct a message.
-
-            @param body_args A tuple forwarded as a parameter
-            pack to the body constructor.
-
-            @param fields_args A tuple forwarded as a parameter
-            pack to the `Fields` constructor.
-
-            template<class... BodyArgs, class... FieldsArgs>
-            message(std::piecewise_construct_t,
-                std::tuple<BodyArgs...> body_args,
-                std::tuple<FieldsArgs...> fields_args);
-        */
-        http::response<http::file_body> res{
-            std::piecewise_construct,
-            std::make_tuple(std::move(body)),
-            std::make_tuple(http::status::ok, req.version())      // тапл - это кортеж - контейнер из произвольного числа элементов произвольного типа
-        };
-        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(http::field::content_type, mime_type(path));
-        res.content_length(size);
-        res.keep_alive(req.keep_alive());
-        return send(std::move(res));
+        // TODO: common value res
+        //return send(std::move(res));
     }
 
 private:
@@ -290,15 +322,15 @@ private:
         return result;
     }
 
-    // ISerializer& serializer_;
-    Serializer serializer_;
+    //std::shared_ptr<ISerializer> serializer_;
+    ISerializer* serializer_;
 };
 
 
 // =======================[ Session ]=========================
 
 
-// Бывший Net
+// пїЅпїЅпїЅпїЅпїЅпїЅ Net
 // Handles an HTTP / WS server connection
 class Session : public std::enable_shared_from_this<Session>
 {
@@ -344,20 +376,25 @@ class Session : public std::enable_shared_from_this<Session>
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
     std::shared_ptr<void> res_;
+    IFormat* format_;
+    ISerializer* js_;
+    //HTTP_format* format_;
     send_lambda lambda_;
-    HTTP_format<JSON_serializer> http_;
-    WS_format<JSON_serializer> ws_;
 
 public:
     // Take ownership of the stream
-    // TODO: проброс http / ws методов обработки
+    // TODO: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ http / ws пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     Session(
         tcp::socket&& socket,
-        std::shared_ptr<std::string const> const& doc_root)
+        std::shared_ptr<std::string const> const& doc_root,
+        IFormat* format)
         : stream_(std::move(socket))
         , doc_root_(doc_root)
+        /*, format_(format)*/
         , lambda_(*this)
     {
+        js_ = new JSON_serializer();
+        format_ = new HTTP_format(js_);
     }
 
     // Start the asynchronous operation
@@ -398,7 +435,7 @@ public:
             return fail(ec, "read");
 
         // Send the response
-        http_.handle_request(*doc_root_, std::move(req_), lambda_);
+        format_->handle_request(*doc_root_, std::move(req_), lambda_);
     }
 
     void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) {
