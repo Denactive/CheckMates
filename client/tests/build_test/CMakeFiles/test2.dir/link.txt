@@ -1,1 +1,0 @@
-/usr/bin/c++    -rdynamic CMakeFiles/test2.dir/tst_database.o CMakeFiles/test2.dir/main.o CMakeFiles/test2.dir/home/svetlana/tp/Chess/CheckMates/client/src/database.o  -o test2  -lpthread 
