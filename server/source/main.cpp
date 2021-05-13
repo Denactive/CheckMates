@@ -1,11 +1,6 @@
 
 #include "server.h"
 
-std::array<size_t, M> GetTurn() {
-    std::array<size_t, M> turn;
-    std::cin >> turn[0] >>  turn[1] >> turn[2] >> turn[3];
-    return turn;
-}
 
 int main() {
     // BE CAREFUL WITH FILEPATH
@@ -21,10 +16,8 @@ int main() {
 
     A.setup();
     GInfo info = A.send_info();
-    std::array<size_t, M> turn;
     while (info.isGame) {
-        turn = GetTurn();
-        int turn_accepted = A.run_turn(turn);
+        int turn_accepted = A.run_turn();
         info = A.send_info();
     }
 

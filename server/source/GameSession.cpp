@@ -1,6 +1,11 @@
 #include "GameSession.h"
 #include "iostream"
 
+std::array<size_t, M> GameSession::GetTurn() {
+    std::array<size_t, M> turn;
+    std::cin >> turn[0] >>  turn[1] >> turn[2] >> turn[3];
+    return turn;
+}
 
 
 GameSession::GameSession(ITurnControl& control, IPlayer& player1, IPlayer& player2):
@@ -207,7 +212,7 @@ void GameSession::setup() {
     info.turn = {0, 0 , 0 ,0};
 }
 
-int GameSession::run_turn(std::array<size_t, M> turn)  {
+int GameSession::run_turn()  {
     std::set<std::array<size_t, K>> thr;
 
         info.isPlayer = !info.isPlayer;
@@ -246,8 +251,11 @@ int GameSession::run_turn(std::array<size_t, M> turn)  {
         for (auto i = thr.begin(); i != thr.end(); ++i) {
             std::cout << (*i)[0] << ' '<< (*i)[1]  << '\n';
         }
+
+       std::array<size_t, M> turn;
         bool move_accepted = false;
         std::cout << "\nenter input\n";
+        turn = GetTurn();
             std::vector<std::array<size_t, M>> moves = you->access();
             for (auto i = moves.begin(); i != moves.end(); ++i) {
                 if (*i == turn) {
