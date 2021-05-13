@@ -66,15 +66,7 @@ std::array<size_t, M> GameSession::GetTurn() {
 time_t GameSession::GetTime() {
     return control.GetTime(control.GetTurn());
 }
-
-bool GameSession::MakeMove() {
-
-    return true;
-}
-
-void GameSession::SetBoard() { std::cout << "set board\n"; };
 void GameSession::CreateLog() { std::cout << "crt log\n"; };
-void GameSession::DrawHandler() { std::cout << "draw handler\n"; };
 bool GameSession::GameStatus() {
     return info.isGame;
 };
@@ -215,6 +207,3 @@ bool GameSession::is_stalemate(IPlayer* you, IPlayer* enemy){
     return false;
 
 };
-
-void GameSession::GiveUpHandler() { std::cout << "gu handler\n"; };
-void GameSession::StalemateHandler() { std::cout << "stmt handler\n"; };
