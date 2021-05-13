@@ -1,5 +1,8 @@
 #ifndef MENUWINDOW_H
 #define MENUWINDOW_H
+#include <algorithm>
+#include <iterator>
+
 #include <QWidget>
 #include <QTextEdit>
 #include <QLineEdit>
@@ -10,6 +13,7 @@
 #include <QCheckBox>
 
 #include "include/community.h"
+#include "include/windows/chatwindow.h"
 
 class IMenuWindow {
 public:
@@ -42,7 +46,6 @@ public slots:
     void searchChat() {}
 
 private:
-
     QStackedWidget * main;
     QHBoxLayout *menu;
 
@@ -52,14 +55,12 @@ private:
     QLineEdit *searchChatLine;
     QLineEdit *searchFriendLine;
 
-    QList<QFrame*> chats; // info from Chat
+    QList<ChatButton*> chats; // info from Chat
     QList<QFrame*> friends; // info from User
-
-    //std::vector<Chat*> chatInfo;
-    //std::vector<User*> friendsInfo;
 
     int choosenFriendIndex;
     QCheckBox *choosenFriend;
+    std::vector<Chat*> chatInfo;
 };
 
 #endif // MENUWINDOW_H

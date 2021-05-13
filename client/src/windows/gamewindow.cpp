@@ -14,12 +14,7 @@ GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, bool isPlayer, bo
     drawGameTop();
 
     QHBoxLayout *middle = new QHBoxLayout();
-
-    //middle->addWidget(drawChessBoard());
-    //spacer = new QWidget(10, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
-    //spacer = new QLabel("space");
     ChessBoard * board = new ChessBoard(isKingUnderMat, isPlayer);
-    //middle->addWidget(spacer);
     middle->addWidget(board);
     middle->addWidget(drawGameChat());
 
@@ -31,17 +26,8 @@ GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, bool isPlayer, bo
 QWidget* GameWindow::drawGameChat()
 {
     QWidget *chatWidget = new QWidget();
-    //QSizePolicy spRight(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    //spRight.setHorizontalStretch(1);
-    //chatWidget->setSizePolicy(spRight);
-
     QVBoxLayout *bottomLayout = new QVBoxLayout();
 
-    User user;
-    QPixmap photo("../img/userPhoto.png");
-    user.setName("You name");
-    user.setUserPhoto(photo);
-    bottomLayout->addLayout(playerStatisticsDraw(user));
     bottomLayout->addLayout(drawChat());
 
     QHBoxLayout * buttons = new QHBoxLayout();
@@ -105,8 +91,6 @@ QVBoxLayout *GameWindow::playerStatisticsDraw(User &user)
     QLabel * playerPhotoWidget = new QLabel();
     playerPhotoWidget->setPixmap(photo);
     playerStatistics->addWidget(playerPhotoWidget);
-    //PhotoWidget *playerPhotoWidget = new PhotoWidget(user.getUserPhoto(), QSize(50, 50));
-    //playerStatistics->addWidget(playerPhotoWidget);
 
     int time = user.gameTime();
     QLabel * playerTime = new QLabel(user.getName() + "\nTime: " + QString::number(time));
@@ -125,27 +109,6 @@ QVBoxLayout* GameWindow::drawChat(Chat *chat)  {
     chatLayout->addWidget(writeMessage);
 
     return chatLayout;
-}
-
-void GameWindow::resizeEvent(QResizeEvent *event)
-{
-
-//    int w = event->size().width();
-//    int h = event->size().height();
-//    //int sp = std::max(w, h);
-//    int space = board->getSize();
-
-//    qDebug() << "change w " << w << " h:" << h;
-//    size.first = w;
-//    size.second = h;
-
-//    qDebug() << "board size: " << board->getSize();
-//    spacer->setStyleSheet("margin-left: " + QString::number(space/2) + ";");
-//    //QRect rect(0, 0, space / 2, space / 2);
-//    //spacer->setGeometry(rect);
-//    //spacer->changeSize(space/2, space/2, QSizePolicy::Expanding, QSizePolicy::Minimum);
-//    qDebug() << "new spacer size: " << spacer->sizeHint().width();
-//    //qDebug() << "new spacer rect size: " << spacer->geometry().width();
 }
 
 void GameWindow::sendClicked()

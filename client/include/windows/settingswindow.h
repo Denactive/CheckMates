@@ -7,6 +7,8 @@
 #include <QAbstractListModel>
 #include <QStackedWidget>
 #include <QLayout>
+#include <QDebug>
+#include <QMessageBox>
 
 #include "include/community.h"
 #include "include/gameobjects.h"
@@ -27,6 +29,9 @@ public:
     bool changeSettings() override { return true; }
     bool saveSettings() override { return true; }
     bool chooseUserPhoto() override { return true; }
+
+public slots:
+    void backToMenu();
 private:
     QStackedWidget * main;
     User * user;

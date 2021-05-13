@@ -6,16 +6,6 @@ MyButton::MyButton(const QString &text, QWidget *parent) :QToolButton(parent)
 {
     setText(text);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-//    setStyleSheet("border-image: url(../img/black_chess.png) 0 0 0 0 scretch; color: red; background-position: center; ");
-
-//    QRect rect(0, 0, 1000, 1000);
-    //QPixmap sprite;
-    //sprite.load("../img/black_chess.png");
-    //sprite.setGe
-//    QPixmap pix = sprite.copy(rect);
-//    QSize pixSize(sizeHint());
-//    pix.scaled(pixSize);
-//    setIcon(pix);
 }
 
 QSize MyButton::sizeHint() const
@@ -31,7 +21,6 @@ PhotoWidget::PhotoWidget(QPixmap photo, QSize size, QWidget *parent)
 {
     this->photo = photo.scaled(size, Qt::KeepAspectRatio);
     setPixmap(this->photo);
-    //parent->resize(size);
 
     qDebug() << "size " << QLabel::width() << " " << QLabel::height();
     QLabel::resize(size);
@@ -41,4 +30,12 @@ PhotoWidget::PhotoWidget(QPixmap photo, QSize size, QWidget *parent)
 QSize PhotoWidget::sizeHint() const
 {
     return this->size;
+}
+
+ChatButton::ChatButton(QWidget *parent)
+    :QFrame(parent)
+{
+    //this->setFrameStyle(QFrame::Panel);
+    //this->setFrameShadow(QFrame::Raised);
+    //this->setLineWidth(2);
 }

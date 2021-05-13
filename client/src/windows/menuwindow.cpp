@@ -20,6 +20,9 @@ MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, s
     drawFriends(friendsInfo);
 
     setLayout(menu);
+
+    copy(chatInfo.begin(), chatInfo.end(), back_inserter(this->chatInfo));
+    qDebug() << "chat info: " << this->chatInfo[0]->getLastMessage().getMessage();
 }
 
 void MenuWindow::drawChats(std::vector<Chat*> chatInfo) {
@@ -46,8 +49,8 @@ void MenuWindow::drawChats(std::vector<Chat*> chatInfo) {
         addChat(i, chatInfo);
     }
 
-    for (size_t i = 0; i < chatInfo.size(); ++i) {
-        chatsLayout->addWidget(chats[i]);
+    for (auto & chatValue : chats) {
+        chatsLayout->addWidget(chatValue);
     }
 
     menu->addLayout(chatsLayout);
@@ -65,24 +68,16 @@ void MenuWindow::drawMiddle()
     middleLayout->addWidget(playButton);
 
     isMatchingBox = new QCheckBox(" choose to search random player for play");
-    //connect(isMatchingBox, SIGNAL(clicked()), this, SLOT(changeMatching()));
     middleLayout->addWidget(isMatchingBox);
 
     QPixmap photo("../img/preview.jpg");
     QSize photoSize(playButton->width(), playButton->height());
 
     QLabel * previewPhotoWidget = new QLabel();
-    //previewPhotoWidget->setStyleSheet("border: url(../img/preview.jpg)");
-
-    //int w = std::min(photo.width(), previewPhotoWidget->width());//previewPhotoWidget->maximumWidth());
-    //int h = std::min(photo.height(), previewPhotoWidget->height());//previewPhotoWidget->maximumHeight());
     QPixmap preview = photo.scaled(photoSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     previewPhotoWidget->setPixmap(preview);
-   //previewPhotoWidget->setScaledContents(true);
-   //previewPhotoWidget->setSizePolicy(QSizePolicy::Fixed);
 
     middleLayout->addWidget(previewPhotoWidget);
-
     middleLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
     menu->addLayout(middleLayout);
@@ -116,8 +111,8 @@ void MenuWindow::drawFriends(std::vector<User*> friendsInfo) {
         addFriend(i, friendsInfo);
     }
 
-    for (size_t i = 0; i < friendsInfo.size(); ++i) {
-        friendsLayout->addWidget(friends[i]);
+    for (auto & friendValue : friends) {
+        friendsLayout->addWidget(friendValue);
     }
 
     menu->addLayout(friendsLayout);
@@ -147,7 +142,10 @@ void MenuWindow::chooseFriend()
 
 void MenuWindow::chooseChat()
 {
-    //QFrame * clickChat = (QFrame*) sender();
+    qDebug() << "menu -> chat";
+    ChatWindow *chatWindow = new ChatWindow(this, main, chatInfo[0]);
+    main->insertWidget(4, chatWindow);
+    main->setCurrentIndex(4);
 }
 
 void MenuWindow::changeMatching()
@@ -190,10 +188,7 @@ void MenuWindow::addFriend(size_t index, std::vector<User*> friendsInfo)
 
 void MenuWindow::addChat(size_t index, std::vector<Chat *> chatInfo)
 {
-    QFrame *chat = new QFrame();
-    chat->setFrameStyle(QFrame::Panel);
-    chat->setFrameShadow(QFrame::Raised);
-    chat->setLineWidth(2);
+    ChatButton *chat = new ChatButton();
 
     QHBoxLayout *chatLayout = new QHBoxLayout();
 
@@ -210,6 +205,7 @@ void MenuWindow::addChat(size_t index, std::vector<Chat *> chatInfo)
     chatLayout->addWidget(lastMessage);
 
     chat->setLayout(chatLayout);
-    connect(chat, SIGNAL(clicked()), this, SLOT(chooseChat()));
+
     chats.push_back(chat);
+    connect(chats[index], SIGNAL(clicked()), this, SLOT(chooseChat()));
 }

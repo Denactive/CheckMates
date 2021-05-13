@@ -14,8 +14,6 @@
 
 class IChessBoard {
     virtual void arrangeFigures() = 0;
-    virtual bool move(int index) = 0;
-    //virtual bool isBorderOfBoard(const size_t index) = 0;
     virtual int getSize() const = 0;
     virtual void isKingUnderMat() = 0;
 };
@@ -26,12 +24,9 @@ class ChessBoard : public QWidget,  public IChessBoard
 public:
     ChessBoard(bool kingUnderMat = true, bool isPlayer = true, int newSize = 0, QWidget * parent = nullptr);
     void arrangeFigures() override;;
-    bool move(int index) override;
-    //bool isBorderOfBoard(const size_t index) override;
     int getSize() const override { return size; }
     void setSize(int newSize) { size = newSize; }
     void isKingUnderMat() override;
-    void resizeEvent(QResizeEvent * event);
     QSize sizeHint() const;
 
 private slots:

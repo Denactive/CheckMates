@@ -8,5 +8,15 @@ SettingsWindow::SettingsWindow(QWidget *parent, QStackedWidget *main, User *user
     MyButton * chooseThemeBtn = new MyButton("Choose theme");
     settings->addWidget(chooseThemeBtn);
 
+    MyButton * backBtn = new MyButton("BACK");
+    connect(backBtn, SIGNAL(clicked()), this, SLOT(backToMenu()));
+    settings->addWidget(backBtn);
+
     setLayout(settings);
+}
+
+void SettingsWindow::backToMenu()
+{
+    main->setCurrentIndex(0);
+    qDebug() << "settings -> main\n";
 }

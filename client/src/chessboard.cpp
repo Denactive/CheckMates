@@ -11,15 +11,7 @@
 
 ChessBoard::ChessBoard(bool kingUnderMat, bool isPlayer, int newSize, QWidget *parent)
     :QWidget(parent), size(newSize),  isPlayer(isPlayer), kingUnderMat(kingUnderMat) {
-    //setStyleSheet("background-color: white;");
-    //setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    //QHBoxLayout * mainWidgetLayout = new QHBoxLayout();
-    //spacer = new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum);
-    //mainWidgetLayout->addSpacerItem(spacer);
-    //mainWidgetLayout->setAlignment(Qt::AlignCenter);
-    //board = new QWidget();
 
     mainLayout = new QGridLayout();
     mainLayout->setAlignment(Qt::AlignCenter);
@@ -30,9 +22,6 @@ ChessBoard::ChessBoard(bool kingUnderMat, bool isPlayer, int newSize, QWidget *p
     if (kingUnderMat) isKingUnderMat();
 
     mainLayout->setSpacing(0);
-
-    //board->setLayout(mainLayout);
-    //mainWidgetLayout->addWidget(board);
     setLayout(mainLayout);
 
     clickCell = nullptr;
@@ -95,32 +84,13 @@ void ChessBoard::initBoard()
     }
 }
 
-bool ChessBoard::move(int index)
-{
-    return true;
-}
-
 void ChessBoard::isKingUnderMat()
 {
     m_cells[kingPos]->setStyle("darkred", kingPos / 8, kingPos % 8);
 }
 
-void ChessBoard::resizeEvent(QResizeEvent *event)
-{
-    //int w = event->size().width();
-    //int h = event->size().height();
-    //w = std::min(w, h);
-
-    //this->resize(w, w);
-    //setSize(w);
-
-    ////this->setStyleSheet("margin-left: -" + QString::number(w/100) + "px;");
-}
-
 QSize ChessBoard::sizeHint() const
 {
-    //QSize size = this->sizeHint();
-    //size.rheight() = size.rwidth();
     int sz = this->width() > this->height() ? this->width() : this->height();
     return QSize(sz, sz);
 }
@@ -132,7 +102,6 @@ void ChessBoard::cellClicked()
 
     qDebug() << "In cell: " << cell;
     qDebug() << "Pos: " << btn->getPosition().first << " " << btn->getPosition().second;
-    //qDebug() << btn->getStyle();
 
     if (kingUnderMat) isKingUnderMat();
 
@@ -171,23 +140,13 @@ Cell* ChessBoard::createCell(const QString &color, int x, int y, const char *mem
 }
 
 
-//bool ChessBoard::isBorderOfBoard(const size_t index)
-//{
-    //return index >= size;
-//}
-
 void ChessBoard::drawBoardLabels()
 {
-    //QGridLayout *boardContainer = new QGridLayout();
-
     for (int i = 0; i < 64; ++i) {
         int row = i / 8;
         int col = i % 8;
          mainLayout->addWidget(m_cells[i], row + 1, col + 1);
     }
-
-    //boardContainer->setSpacing(0);
-
 
     for (int i = 0; i < 8; ++i) {
         QString numberText = QString::number(i);

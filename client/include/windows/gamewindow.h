@@ -11,7 +11,6 @@
 #include <QLabel>
 #include <QTime>
 #include <QTimer>
-// fliker free i двойная буферизация flickerfree, double buffering
 
 #include "include/community.h"
 #include "include/figures.h"
@@ -41,8 +40,6 @@ public:
     QVBoxLayout* playerStatisticsDraw(User & user);
     QVBoxLayout* drawChat(Chat *chat = nullptr) override;
 
-    void resizeEvent(QResizeEvent * event);
-
 public slots:
     void surrender() override;
     void offerDraw() override;
@@ -60,9 +57,5 @@ private:
     QLineEdit * writeMessage;
     QLabel *gameMessage;
     QLabel * gameTime;
-
-    // QLabel * spacer;
-    //ChessBoard *board;
-    //std::pair<int,int> size;
 };
 #endif // GAMEWINDOW_H

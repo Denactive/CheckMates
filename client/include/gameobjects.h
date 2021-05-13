@@ -7,6 +7,7 @@
 #include <QPaintEvent>
 #include <QObject>
 #include <QLabel>
+#include <QPushButton>
 
 #include "community.h"
 
@@ -17,6 +18,15 @@ public:
     MyButton(const QString & text = "", QWidget *parent = nullptr);
 
     QSize sizeHint() const override;
+};
+
+class ChatButton :  public QFrame
+{
+    Q_OBJECT
+public:
+    ChatButton(QWidget *parent = nullptr);
+
+    //QSize sizeHint() const override;
 };
 
 class PhotoWidget : public QLabel

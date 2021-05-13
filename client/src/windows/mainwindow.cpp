@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget * parent) :QWidget(parent) {
 
     GameWindow *gameWindow = new GameWindow(this, main);
 
-    // initialization, structure from graphics class
+    // initialization, structure from graphics class - zaglushka
     std::vector<Chat*> chatInfo; std::vector<User*> friendsInfo;
     for (int i = 0; i < 5; ++i) {
         User * newUser = new User("User " + QString::number(i));
@@ -39,20 +39,22 @@ MainWindow::MainWindow(QWidget * parent) :QWidget(parent) {
         topUsersInfo.push_back(newUser);
     }
     infoAboutMe = new User();
+    infoAboutMe->setName("John");
 
     // end of zaglushka
 
     MenuWindow *mainWindow = new MenuWindow(this, main, false, chatInfo, friendsInfo);
-    SettingsWindow *settingsWindow = new SettingsWindow();
+    SettingsWindow *settingsWindow = new SettingsWindow(this, main, infoAboutMe);
+    AuthorizerWindow *authorizerWindow = new AuthorizerWindow(this, main, true);
 
     main->insertWidget(0, mainWindow);
     main->insertWidget(1, gameWindow);
     main->insertWidget(2, settingsWindow);
+    main->insertWidget(3, authorizerWindow);
 
     drawTop();
     //mainLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
     mainLayout->addWidget(main);
-    //mainLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
     drawBottom();
 
     setLayout(mainLayout);
@@ -62,18 +64,6 @@ MainWindow::MainWindow(QWidget * parent) :QWidget(parent) {
 
 MainWindow::~MainWindow()
 {
-    /*for(int i = main->count(); i >= 0; i--)
-    {
-        QWidget* widget = main->widget(i);
-        main->removeWidget(widget);
-    }
-    delete [] main;
-
-    for(int i = 0; i < mainLayout->count(); ++i)
-    {
-        delete mainLayout->takeAt(i);
-    }
-    delete [] mainLayout;*/
     delete main;
 }
 
@@ -86,11 +76,10 @@ void MainWindow::drawTop()
 
      topUsers = new QComboBox(this);
 
-     for (size_t i = 0; i < topUsersInfo.size(); ++i) {
-         topUsers->addItem(topUsersInfo[i]->getName(), Qt::TextAlignmentRole);
+     for (auto & userValue : topUsersInfo) {
+         topUsers->addItem(userValue->getName(), Qt::TextAlignmentRole);
      }
      connect(topUsers, SIGNAL(clicked()), this, SLOT(topPlayersClicked()));
-     //MyButton* topPlayers = createButton("TOP PLAYERS", SLOT(topPlayersClicked()));
 
      MyButton* community = createButton("Community", SLOT(communityClicked()));
      MyButton* settings = createButton("Settings", SLOT(settingsClicked()));
@@ -100,6 +89,17 @@ void MainWindow::drawTop()
      topLayout->addWidget(community);
      topLayout->addWidget(settings);
 
+     if (infoAboutMe) {
+        QHBoxLayout *settingsLayout = new QHBoxLayout();
+        settingsLayout->setAlignment(Qt::AlignRight);
+
+        settingsLayout->addWidget(new QLabel(infoAboutMe->getName()));
+        PhotoWidget *userPhoto = new PhotoWidget(infoAboutMe->getUserPhoto(), QSize(50,50));
+        settingsLayout->addWidget(userPhoto);
+
+        topLayout->addLayout(settingsLayout);
+     }
+
      // some design correct
      topUsers->setStyleSheet("height: " + QString::number(community->sizeHint().height()) + "; text-align:center;");
      topUsers->setEditable(true);
@@ -107,10 +107,6 @@ void MainWindow::drawTop()
      topUsers->lineEdit()->setText("TOP PLAYERS");
      topUsers->lineEdit()->setAlignment(Qt::AlignCenter);
 
-     if (infoAboutMe) {
-        PhotoWidget *userPhoto = new PhotoWidget(infoAboutMe->getUserPhoto(), QSize(50,50));
-        topLayout->addWidget(userPhoto);
-     }
 
      mainLayout->addLayout(topLayout);
 }
@@ -132,7 +128,6 @@ void MainWindow::drawBottom()
     bottomLayout->addWidget(exit);
 
     mainLayout->addLayout(bottomLayout);
-    //mainLayout->addWidget(exit);
 }
 
 void MainWindow::onSearchChatClicked()
