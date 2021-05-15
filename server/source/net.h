@@ -12,6 +12,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/beast/http/type_traits.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
@@ -71,71 +72,25 @@ public:
 
 class IFormat {
 public:
-    template <class Body, class Allocator, class Send>
-    void handle_request(beast::string_view, http::request<Body, http::basic_fields<Allocator>>&&, Send&&) {
-        std::cout << "basic to override\n";
-    }
-};
-
-// =======================[ WS ]=========================
-
-
-//template <typename Serializer>
-class WS_format /*: public IFormat*/{
-public:
-    WS_format() = delete;
-    WS_format(ISerializer* serializer)
-    : serializer_(serializer)
-    {
-    }
-
-    void game_request_handler();
-    void game_response_handler();
-    void chat_handler();
-
-    template <class Body, class Allocator, class Send>
-    void handle_request(beast::string_view doc_root, http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
-        std::cout << "smtg\n";
-    }
-private:
-    ISerializer* serializer_;
-};
-
-
-// =======================[ HTTP ]=========================
-
-
-//template <typename Serializer/*, typename HTTP_Logger*/>
-class HTTP_format: public IFormat {
-public:
-
-    HTTP_format() = delete;
-    //HTTP_format(std::shared_ptr<ISerializer> serializer)
-    HTTP_format(ISerializer* serializer)
-        //: serializer_(std::make_shared<ISerializer>(serializer))
-        : serializer_(serializer)
-    {
-    }
-
-    // client
-    // void get_handler();
-    // void post_handler();
-
-    // server
-    void authorize_handler();
-    void register_handler();
+    //void handle_request(beast::string_view doc_root, http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
+    //template<bool isRequest, class Body, class Fields>
+    //void operator()(http::message<isRequest, Body, Fields>&& msg) const
+    virtual void handle_request(beast::string_view
+            , http::request<http::string_body>&&
+            , std::function<void(http::message<false, http::string_body, http::fields>)>
+        ) = 0;
 
     // This function produces an HTTP response for the given
     // request. The type of the response object depends on the
     // contents of the request, so the interface requires the
     // caller to pass a generic lambda for receiving the response.
+    /*
     template <class Body, class Allocator, class Send>
     void handle_request(beast::string_view doc_root, http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
         // Returns a bad request response
         auto const bad_request =
             [&req](beast::string_view why)
         {
-
             http::response<http::string_body> res{ http::status::bad_request, req.version() };
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
             res.set(http::field::content_type, "text/html");
@@ -195,7 +150,7 @@ public:
         //
         // REQUEST EXECUTION
         // 
-        
+
         if (req.method() == http::verb::post) {
             // go to DB write data
         }
@@ -249,11 +204,226 @@ public:
                     std::tuple<BodyArgs...> body_args,
                     std::tuple<FieldsArgs...> fields_args);
             */
+            /*
             http::response<http::file_body> res{
                 std::piecewise_construct,
                 std::make_tuple(std::move(body)),
                 std::make_tuple(http::status::ok, req.version())      // тапл - это кортеж - контейнер из произвольного числа элементов произвольного типа
             };
+            std::cout << "answering to connection. Handler type is: " << type << std::endl;
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, mime_type(path));
+            res.content_length(size);
+            res.keep_alive(req.keep_alive());
+            return send(std::move(res));
+        }
+        // TODO: common value res
+        //return send(std::move(res));
+    }
+    */
+};
+// =======================[ WS ]=========================
+
+
+class WS_format : public IFormat {
+public:
+    WS_format() = delete;
+    WS_format(std::shared_ptr<ISerializer> serializer)
+    : serializer_(serializer)
+    {
+    }
+
+    void game_request_handler();
+    void game_response_handler();
+    void chat_handler();
+
+    virtual void handle_request(beast::string_view doc_root
+        , http::request<http::string_body>&& req
+        , std::function<void(http::message<false, http::string_body, http::fields>)> send) override {
+        std::cout << "WS format handler" << std::endl;
+    }
+    
+
+private:
+    std::shared_ptr<ISerializer> serializer_;
+    const std::string type = "ws";
+};
+
+
+// =======================[ HTTP ]=========================
+
+
+//template <typename Serializer/*, typename HTTP_Logger*/>
+class HTTP_format: public IFormat {
+public:
+
+    HTTP_format() = delete;
+    HTTP_format(std::shared_ptr<ISerializer> serializer)
+        : serializer_(serializer)
+    {
+    }
+
+    // client
+    // void get_handler();
+    // void post_handler();
+
+    // server
+    void authorize_handler();
+    void register_handler();
+
+    void handle_request(beast::string_view doc_root
+        , http::request<http::string_body>&& req
+        , std::function<void(http::message<false, http::string_body, http::fields>)> send) override {
+        // Returns a bad request response
+        auto const bad_request =
+            [&req](beast::string_view why)
+        {
+            http::response<http::string_body> res{ http::status::bad_request, req.version() };
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, "text/html");
+            res.keep_alive(req.keep_alive());
+            res.body() = std::string(why);
+            res.prepare_payload();
+            return res;
+        };
+
+        // Returns a not found response
+        auto const not_found =
+            [&req](beast::string_view target)
+        {
+            http::response<http::string_body> res{ http::status::not_found, req.version() };
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, "text/html");
+            res.keep_alive(req.keep_alive());
+            res.body() = "The resource '" + std::string(target) + "' was not found.";
+            res.prepare_payload();
+            return res;
+        };
+
+        // Returns a server error response
+        auto const server_error =
+            [&req](beast::string_view what)
+        {
+            http::response<http::string_body> res{ http::status::internal_server_error, req.version() };
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, "text/html");
+            res.keep_alive(req.keep_alive());
+            res.body() = "An error occurred: '" + std::string(what) + "'";
+            res.prepare_payload();
+            return res;
+        };
+
+        //
+        // CHECKS AND VALIDATION
+        //
+
+        // Make sure we can handle the method
+        if (req.method() != http::verb::get &&
+            req.method() != http::verb::head &&
+            req.method() != http::verb::post)
+            return send(bad_request("Unknown HTTP-method"));
+
+        // Request path must be absolute and not contain "..".
+        if (req.target().empty() ||
+            req.target()[0] != '/' ||
+            req.target().find("..") != beast::string_view::npos)
+            return send(bad_request("Illegal request-target"));
+
+        // Build the path to the requested file
+        std::string path = path_cat(doc_root, req.target());
+        if (req.target().back() == '/')
+            path.append("index.html");
+
+        //
+        // REQUEST EXECUTION
+        //
+
+        if (req.method() == http::verb::post) {
+            // go to DB write data
+        }
+        else {
+
+            // Attempt to open the file
+            beast::error_code ec;
+            http::file_body::value_type body;
+            http::string_body::value_type string_body;
+            body.open(path.c_str(), beast::file_mode::scan, ec);
+
+            // Handle the case where the file doesn't exist
+            if (ec == beast::errc::no_such_file_or_directory)
+                return send(not_found(req.target()));
+
+            // Handle an unknown error
+            if (ec)
+                return send(server_error(ec.message()));
+
+            // Cache the size since we need it after the move
+            auto const size = body.size();
+
+            // Respond to HEAD request
+            if (req.method() == http::verb::head)
+            {
+                http::response<http::string_body> res{ http::status::ok, req.version() };
+                res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+                res.set(http::field::content_type, mime_type(path));
+                res.content_length(size);
+                res.keep_alive(req.keep_alive());
+                return send(std::move(res));
+            }
+
+            // Respond to GET request
+
+            /*template<
+                bool isRequest,             // `true` for requests, `false` for responses
+                class Body,                 // Controls the container and algorithms used for the body
+                class Fields = fields>      // The type of container to store the fields
+                class message;
+
+            /* Construct a message.
+
+                @param body_args A tuple forwarded as a parameter
+                pack to the body constructor.
+
+                @param fields_args A tuple forwarded as a parameter
+                pack to the `Fields` constructor.
+
+                template<class... BodyArgs, class... FieldsArgs>
+                message(std::piecewise_construct_t,
+                    std::tuple<BodyArgs...> body_args,
+                    std::tuple<FieldsArgs...> fields_args);
+            */
+
+
+            http::response<http::file_body> res_file{
+                std::piecewise_construct,
+                std::make_tuple(std::move(body)),
+                std::make_tuple(http::status::ok, req.version())      // тапл - это кортеж - контейнер из произвольного числа элементов произвольного типа
+            };
+
+            size_t bytes_read = 1;
+            std::string content;//  (res_file.body().file().size(ec));
+
+            char* block = new char [1024];
+            while (bytes_read) {
+                bytes_read = res_file.body().file().read(block, 1024, ec);
+                if (ec)
+                    fail(ec, "file copy");
+                std::string block_string (block, bytes_read);
+                content += block_string;
+                std::cout << "Block read: " << block_string << std::endl;
+            }
+            delete[] block;
+
+            //std::shared_ptr<std::string> content_ptr(&content);
+            
+            http::response<http::string_body> res{
+                std::piecewise_construct,
+                //std::make_tuple(std::move(content_ptr)),
+                std::make_tuple(content),
+                std::make_tuple(http::status::ok, req.version())
+            };
+
+            std::cout << "answering to connection. Handler type is: " << type << std::endl;
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
             res.set(http::field::content_type, mime_type(path));
             res.content_length(size);
@@ -322,8 +492,9 @@ private:
         return result;
     }
 
-    //std::shared_ptr<ISerializer> serializer_;
-    ISerializer* serializer_;
+
+    std::shared_ptr<ISerializer> serializer_;
+    const std::string type = "http";
 };
 
 
@@ -346,15 +517,17 @@ class Session : public std::enable_shared_from_this<Session>
         {
         }
 
-        template<bool isRequest, class Body, class Fields>
+        //template<bool isRequest, class Body, class Fields>
         void
-            operator()(http::message<isRequest, Body, Fields>&& msg) const
+            // operator()(http::message<isRequest, Body, Fields>&& msg) const
+            operator()(http::message<false, http::string_body, http::fields>&& msg) const
         {
             // The lifetime of the message has to extend
             // for the duration of the async operation so
             // we use a shared_ptr to manage it.
             auto sp = std::make_shared<
-                http::message<isRequest, Body, Fields>>(std::move(msg));
+                http::message<false, http::string_body, http::fields>>(std::move(msg));
+                //http::message<isRequest, Body, Fields>>(std::move(msg));
 
             // Store a type-erased version of the shared
             // pointer in the class to keep it alive.
@@ -376,9 +549,7 @@ class Session : public std::enable_shared_from_this<Session>
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
     std::shared_ptr<void> res_;
-    IFormat* format_;
-    ISerializer* js_;
-    //HTTP_format* format_;
+    std::shared_ptr<IFormat> format_;
     send_lambda lambda_;
 
 public:
@@ -387,14 +558,12 @@ public:
     Session(
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
-        IFormat* format)
+        std::shared_ptr<IFormat>& format)
         : stream_(std::move(socket))
         , doc_root_(doc_root)
-        /*, format_(format)*/
+        , format_(format)
         , lambda_(*this)
     {
-        js_ = new JSON_serializer();
-        format_ = new HTTP_format(js_);
     }
 
     // Start the asynchronous operation

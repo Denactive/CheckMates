@@ -46,12 +46,10 @@ public:
 
 class Server {
 public:
-    Server(Options opts, IFormat* format, IMatcherQueue* matcher_queue)
+    Server(Options opts, std::shared_ptr<IFormat> format, std::shared_ptr<IMatcherQueue> matcher_queue)
         : opts_(opts)
-        //, format_(std::make_shared<IFormat>(format))
         , format_(format)
         , mq_(matcher_queue)
-        //, mq_(std::make_shared<IMatcherQueue>(matcher_queue))
     {
     }
 
@@ -64,10 +62,8 @@ public:
 private:
 
     Options opts_;
-    //std::shared_ptr<IMatcherQueue> mq_;
-    //std::shared_ptr<IFormat> const format_;
-    IMatcherQueue* mq_;
-    IFormat* format_;
+    std::shared_ptr<IMatcherQueue> mq_;
+    std::shared_ptr<IFormat> format_;
     bool started_ = false;
 };
 
@@ -81,14 +77,14 @@ class Listener : public std::enable_shared_from_this<Listener>
     asio::io_context& ioc_;
     tcp::acceptor acceptor_;
     std::shared_ptr<std::string const> doc_root_;
-    IFormat* format_;
+    std::shared_ptr<IFormat> format_;
 
 public:
     Listener(
         asio::io_context& ioc,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root,
-        IFormat* format)
+        std::shared_ptr<IFormat>& format)
         : ioc_(ioc)
         , acceptor_(asio::make_strand(ioc))
         , doc_root_(doc_root)
