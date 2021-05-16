@@ -17,25 +17,44 @@
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 
-namespace beast = boost::beast;         // from <boost/beast.hpp>
-namespace http = beast::http;           // from <boost/beast/http.hpp>
-namespace asio = boost::asio;            // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <filesystem>
 
-//#include "matcher.h"
+#include <chrono>
+#include <ctime> 
 
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
-#include <iostream>
 #include <memory>
-#include <string>
 #include <thread>
+
+#include <string>
 #include <vector>
 
-// ���������� ������� ������ ������
+namespace beast = boost::beast;          // from <boost/beast.hpp>
+namespace http = beast::http;            // from <boost/beast/http.hpp>
+namespace asio = boost::asio;            // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
+using time_point = std::chrono::system_clock::time_point;
+namespace fs = std::filesystem;
+
+
+// global error function
 void static fail(beast::error_code ec, char const* what) {
     std::cerr << what << ": " << ec.message() << "\n";
+}
+// casting windows / linux filepaths
+std::string static cast_filepath(const std::string& path) {
+    std::string res(path);
+#ifdef BOOST_MSVC
+    for (auto& c : res)
+        if (c == '/')
+            c = '\\';
+#endif
+    return res;
 }
 
 
@@ -60,12 +79,23 @@ public:
 
 class ILogger {
 public:
-    virtual void log(std::string data) = 0;
+    virtual void log(std::string& data, beast::error_code& ec) = 0;
 };
 
-class ConsoleLogger : ILogger {
+class FileLogger : public ILogger {
 public:
-    void log(std::string data) override;
+    FileLogger(const std::string& dir)
+        : dir_(dir)
+    {
+    }
+
+    void log(std::string& data, beast::error_code& ec) override;
+
+private:
+
+    std::string serializeTimePoint(const time_point& time, const std::string& format);
+
+    const fs::path dir_;
 };
 
 // =======================[ Protocol Specific Handlers ]=========================
@@ -75,152 +105,16 @@ public:
     //void handle_request(beast::string_view doc_root, http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
     //template<bool isRequest, class Body, class Fields>
     //void operator()(http::message<isRequest, Body, Fields>&& msg) const
-    virtual void handle_request(beast::string_view
-            , http::request<http::string_body>&&
-            , std::function<void(http::message<false, http::string_body, http::fields>)>
-        ) = 0;
 
     // This function produces an HTTP response for the given
     // request. The type of the response object depends on the
     // contents of the request, so the interface requires the
     // caller to pass a generic lambda for receiving the response.
-    /*
-    template <class Body, class Allocator, class Send>
-    void handle_request(beast::string_view doc_root, http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
-        // Returns a bad request response
-        auto const bad_request =
-            [&req](beast::string_view why)
-        {
-            http::response<http::string_body> res{ http::status::bad_request, req.version() };
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(http::field::content_type, "text/html");
-            res.keep_alive(req.keep_alive());
-            res.body() = std::string(why);
-            res.prepare_payload();
-            return res;
-        };
 
-        // Returns a not found response
-        auto const not_found =
-            [&req](beast::string_view target)
-        {
-            http::response<http::string_body> res{ http::status::not_found, req.version() };
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(http::field::content_type, "text/html");
-            res.keep_alive(req.keep_alive());
-            res.body() = "The resource '" + std::string(target) + "' was not found.";
-            res.prepare_payload();
-            return res;
-        };
-
-        // Returns a server error response
-        auto const server_error =
-            [&req](beast::string_view what)
-        {
-            http::response<http::string_body> res{ http::status::internal_server_error, req.version() };
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(http::field::content_type, "text/html");
-            res.keep_alive(req.keep_alive());
-            res.body() = "An error occurred: '" + std::string(what) + "'";
-            res.prepare_payload();
-            return res;
-        };
-
-        //
-        // CHECKS AND VALIDATION
-        //
-
-        // Make sure we can handle the method
-        if (req.method() != http::verb::get &&
-            req.method() != http::verb::head &&
-            req.method() != http::verb::post)
-            return send(bad_request("Unknown HTTP-method"));
-
-        // Request path must be absolute and not contain "..".
-        if (req.target().empty() ||
-            req.target()[0] != '/' ||
-            req.target().find("..") != beast::string_view::npos)
-            return send(bad_request("Illegal request-target"));
-
-        // Build the path to the requested file
-        std::string path = path_cat(doc_root, req.target());
-        if (req.target().back() == '/')
-            path.append("index.html");
-
-        //
-        // REQUEST EXECUTION
-        // 
-
-        if (req.method() == http::verb::post) {
-            // go to DB write data
-        }
-        else {
-
-            // Attempt to open the file
-            beast::error_code ec;
-            http::file_body::value_type body;
-            body.open(path.c_str(), beast::file_mode::scan, ec);
-
-            // Handle the case where the file doesn't exist
-            if (ec == beast::errc::no_such_file_or_directory)
-                return send(not_found(req.target()));
-
-            // Handle an unknown error
-            if (ec)
-                return send(server_error(ec.message()));
-
-            // Cache the size since we need it after the move
-            auto const size = body.size();
-
-            // Respond to HEAD request
-            if (req.method() == http::verb::head)
-            {
-                http::response<http::empty_body> res{ http::status::ok, req.version() };
-                res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-                res.set(http::field::content_type, mime_type(path));
-                res.content_length(size);
-                res.keep_alive(req.keep_alive());
-                return send(std::move(res));
-            }
-
-            // Respond to GET request
-
-            /*template<
-                bool isRequest,             // `true` for requests, `false` for responses
-                class Body,                 // Controls the container and algorithms used for the body
-                class Fields = fields>      // The type of container to store the fields
-                class message;
-
-            /* Construct a message.
-
-                @param body_args A tuple forwarded as a parameter
-                pack to the body constructor.
-
-                @param fields_args A tuple forwarded as a parameter
-                pack to the `Fields` constructor.
-
-                template<class... BodyArgs, class... FieldsArgs>
-                message(std::piecewise_construct_t,
-                    std::tuple<BodyArgs...> body_args,
-                    std::tuple<FieldsArgs...> fields_args);
-            */
-            /*
-            http::response<http::file_body> res{
-                std::piecewise_construct,
-                std::make_tuple(std::move(body)),
-                std::make_tuple(http::status::ok, req.version())      // тапл - это кортеж - контейнер из произвольного числа элементов произвольного типа
-            };
-            std::cout << "answering to connection. Handler type is: " << type << std::endl;
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(http::field::content_type, mime_type(path));
-            res.content_length(size);
-            res.keep_alive(req.keep_alive());
-            return send(std::move(res));
-        }
-        // TODO: common value res
-        //return send(std::move(res));
-    }
-    */
+    virtual void handle_request(beast::string_view
+            , http::request<http::string_body>&&
+            , std::function<void(http::message<false, http::string_body, http::fields>)>
+        ) = 0;
 };
 // =======================[ WS ]=========================
 
@@ -228,8 +122,9 @@ public:
 class WS_format : public IFormat {
 public:
     WS_format() = delete;
-    WS_format(std::shared_ptr<ISerializer> serializer)
+    WS_format(const std::shared_ptr<ISerializer>& serializer, const std::shared_ptr<ILogger>& logger)
     : serializer_(serializer)
+    , logger_(logger)
     {
     }
 
@@ -246,6 +141,7 @@ public:
 
 private:
     std::shared_ptr<ISerializer> serializer_;
+    std::shared_ptr<ILogger> logger_;
     const std::string type = "ws";
 };
 
@@ -253,27 +149,20 @@ private:
 // =======================[ HTTP ]=========================
 
 
-//template <typename Serializer/*, typename HTTP_Logger*/>
 class HTTP_format: public IFormat {
 public:
 
     HTTP_format() = delete;
-    HTTP_format(std::shared_ptr<ISerializer> serializer)
+    HTTP_format(const std::shared_ptr<ISerializer>& serializer, const std::shared_ptr<ILogger>& logger)
         : serializer_(serializer)
+        , logger_(logger)
     {
     }
-
-    // client
-    // void get_handler();
-    // void post_handler();
-
-    // server
-    void authorize_handler();
-    void register_handler();
 
     void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
         , std::function<void(http::message<false, http::string_body, http::fields>)> send) override {
+        std::cout << "HTTP-handler: Got an request!" << std::endl;
         // Returns a bad request response
         auto const bad_request =
             [&req](beast::string_view why)
@@ -316,19 +205,22 @@ public:
         //
         // CHECKS AND VALIDATION
         //
+        std::string logging_data;
 
         // Make sure we can handle the method
         if (req.method() != http::verb::get &&
             req.method() != http::verb::head &&
-            req.method() != http::verb::post)
+            req.method() != http::verb::post) {
+            log(logging_data += "fail: unsupported request: " + req.method_string().to_string());
             return send(bad_request("Unknown HTTP-method"));
-
+        }
         // Request path must be absolute and not contain "..".
         if (req.target().empty() ||
             req.target()[0] != '/' ||
-            req.target().find("..") != beast::string_view::npos)
+            req.target().find("..") != beast::string_view::npos) {
+            log(logging_data += "fail: invalid target: " + req.method_string().to_string());
             return send(bad_request("Illegal request-target"));
-
+        }
         // Build the path to the requested file
         std::string path = path_cat(doc_root, req.target());
         if (req.target().back() == '/')
@@ -338,24 +230,30 @@ public:
         // REQUEST EXECUTION
         //
 
+        beast::error_code ec;
+        http::file_body::value_type body;
+        http::string_body::value_type string_body;
+
+        logging_data += req.method_string().to_string() + "-req file: " + req.target().to_string() + "\n";
+
         if (req.method() == http::verb::post) {
             // go to DB write data
         }
         else {
-
             // Attempt to open the file
-            beast::error_code ec;
-            http::file_body::value_type body;
-            http::string_body::value_type string_body;
             body.open(path.c_str(), beast::file_mode::scan, ec);
 
             // Handle the case where the file doesn't exist
-            if (ec == beast::errc::no_such_file_or_directory)
+            if (ec == beast::errc::no_such_file_or_directory) {
+                log(logging_data += "fail: unreachable target: " + req.target().to_string());
                 return send(not_found(req.target()));
+            }
 
             // Handle an unknown error
-            if (ec)
+            if (ec) {
+                log(logging_data += "fail: unknown error: " + ec.message());
                 return send(server_error(ec.message()));
+            }
 
             // Cache the size since we need it after the move
             auto const size = body.size();
@@ -368,6 +266,7 @@ public:
                 res.set(http::field::content_type, mime_type(path));
                 res.content_length(size);
                 res.keep_alive(req.keep_alive());
+                log(logging_data += "OK");
                 return send(std::move(res));
             }
 
@@ -406,15 +305,16 @@ public:
             char* block = new char [1024];
             while (bytes_read) {
                 bytes_read = res_file.body().file().read(block, 1024, ec);
-                if (ec)
+                if (ec) {
                     fail(ec, "file copy");
-                std::string block_string (block, bytes_read);
+                    logging_data += "an error occured while copying " + req.target().to_string() + ": " + ec.message() + "\n"
+                        + "here: " + std::string(block, bytes_read) + '\n';
+
+                }
+                std::string block_string(block, bytes_read);
                 content += block_string;
-                std::cout << "Block read: " << block_string << std::endl;
             }
             delete[] block;
-
-            //std::shared_ptr<std::string> content_ptr(&content);
             
             http::response<http::string_body> res{
                 std::piecewise_construct,
@@ -423,11 +323,11 @@ public:
                 std::make_tuple(http::status::ok, req.version())
             };
 
-            std::cout << "answering to connection. Handler type is: " << type << std::endl;
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
             res.set(http::field::content_type, mime_type(path));
             res.content_length(size);
             res.keep_alive(req.keep_alive());
+            log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
             return send(std::move(res));
         }
         // TODO: common value res
@@ -492,8 +392,18 @@ private:
         return result;
     }
 
+    void log(std::string& data) {
+        beast::error_code ec;
+        logger_->log(data, ec);
+        if (ec)
+            fail(ec, "http-handler logger");
+    }
+
+    void authorize_handler();
+    void register_handler();
 
     std::shared_ptr<ISerializer> serializer_;
+    std::shared_ptr<ILogger> logger_;
     const std::string type = "http";
 };
 

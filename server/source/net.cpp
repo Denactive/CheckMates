@@ -15,6 +15,43 @@ std::string JSON_serializer::deserialize(std::string s) {
 // =======================[ Logger ]=========================
 
 
+std::string FileLogger::serializeTimePoint(const time_point& time, const std::string& format)
+{
+    std::time_t tt = std::chrono::system_clock::to_time_t(time);
+    std::tm tm;
+    if (localtime_s(&tm, &tt)) //Locale time-zone, usually UTC by default.
+        return "undefined_time";
+    char mbstr[64];
+    std::stringstream ss;
+
+    if (std::strftime(mbstr, 64, format.c_str(), &tm))
+        ss << mbstr;
+    else
+        ss << "undefined_time";
+    
+    return ss.str();
+}
+
+void FileLogger::log(std::string& data, beast::error_code& ec) {
+    std::string filename = serializeTimePoint(std::chrono::system_clock::now(), "%y-%m-%d-%H_%M_%S") + ".txt";
+    const fs::path log_file_path = dir_ / filename;
+    filename = cast_filepath(log_file_path.u8string());
+
+    std::cout << "Log: trying to open " << filename << std::endl;
+    std::ofstream out(filename);
+    try {
+        if (!out.is_open())
+            throw
+                beast::system_error{ beast::errc::make_error_code(beast::errc::no_such_file_or_directory) };
+    }
+    catch (beast::system_error& e) {
+        ec = e.code();
+        return;
+    }
+    out << data;
+    out.close();
+}
+
 
 
 // =======================[ Затычки ]=========================
