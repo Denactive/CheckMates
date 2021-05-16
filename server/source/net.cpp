@@ -32,26 +32,49 @@ std::string FileLogger::serializeTimePoint(const time_point& time, const std::st
     return ss.str();
 }
 
-void FileLogger::log(std::string& data, beast::error_code& ec) {
+void FileLogger::log(const std::string& data) {
+    beast::error_code ec;
+    try {
+    if (initialized)
+        log_stream_ << data;
+    else throw
+        beast::system_error{ beast::errc::make_error_code(beast::errc::not_connected) };
+    }
+    catch (beast::system_error& e) {
+        ec = e.code();
+        fail(ec, "logger stream is not opened");
+    }
+}
+
+void FileLogger::init(beast::error_code& ec) {
+    if (initialized)
+        return;
     std::string filename = serializeTimePoint(std::chrono::system_clock::now(), "%y-%m-%d-%H_%M_%S") + ".txt";
     const fs::path log_file_path = dir_ / filename;
     filename = cast_filepath(log_file_path.u8string());
-
-    std::cout << "Log: trying to open " << filename << std::endl;
+    log_stream_.open(filename);
+    std::cout << "Log: trying to open " << filename;
     std::ofstream out(filename);
     try {
         if (!out.is_open())
             throw
-                beast::system_error{ beast::errc::make_error_code(beast::errc::no_such_file_or_directory) };
+            beast::system_error{ beast::errc::make_error_code(beast::errc::no_such_file_or_directory) };
     }
     catch (beast::system_error& e) {
+        std::cout << " : fail" << std::endl;
         ec = e.code();
         return;
     }
-    out << data;
-    out.close();
-}
+    std::cout << " : success" << std::endl;
+    initialized = true;
+};
 
+void FileLogger::close() {
+    if (!initialized)
+        return;
+    log_stream_.close();
+    initialized = false;
+}
 
 
 // =======================[ Затычки ]=========================

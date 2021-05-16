@@ -79,7 +79,10 @@ public:
 
 class ILogger {
 public:
-    virtual void log(std::string& data, beast::error_code& ec) = 0;
+    virtual void log(const std::string& data) = 0;
+    virtual void set_log_file(const std::string& path) = 0;
+    virtual void close() = 0;
+    virtual void init(beast::error_code& ec) = 0;
 };
 
 class FileLogger : public ILogger {
@@ -89,13 +92,19 @@ public:
     {
     }
 
-    void log(std::string& data, beast::error_code& ec) override;
+    void log(const std::string& data) override;
+    void set_log_file(const std::string& path) override { dir_ = fs::path(path); }
+    void init(beast::error_code& ec) override;
+    void close() override;
+    bool is_initialized() { return initialized; }
 
 private:
 
     std::string serializeTimePoint(const time_point& time, const std::string& format);
 
-    const fs::path dir_;
+    std::ofstream log_stream_;
+    fs::path dir_;
+    bool initialized = false;
 };
 
 // =======================[ Protocol Specific Handlers ]=========================
@@ -113,6 +122,7 @@ public:
 
     virtual void handle_request(beast::string_view
             , http::request<http::string_body>&&
+            , const std::shared_ptr<ILogger>& logger
             , std::function<void(http::message<false, http::string_body, http::fields>)>
         ) = 0;
 };
@@ -122,9 +132,8 @@ public:
 class WS_format : public IFormat {
 public:
     WS_format() = delete;
-    WS_format(const std::shared_ptr<ISerializer>& serializer, const std::shared_ptr<ILogger>& logger)
+    WS_format(const std::shared_ptr<ISerializer>& serializer)
     : serializer_(serializer)
-    , logger_(logger)
     {
     }
 
@@ -134,6 +143,7 @@ public:
 
     virtual void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
+        , const std::shared_ptr<ILogger>& logger
         , std::function<void(http::message<false, http::string_body, http::fields>)> send) override {
         std::cout << "WS format handler" << std::endl;
     }
@@ -141,7 +151,6 @@ public:
 
 private:
     std::shared_ptr<ISerializer> serializer_;
-    std::shared_ptr<ILogger> logger_;
     const std::string type = "ws";
 };
 
@@ -153,16 +162,17 @@ class HTTP_format: public IFormat {
 public:
 
     HTTP_format() = delete;
-    HTTP_format(const std::shared_ptr<ISerializer>& serializer, const std::shared_ptr<ILogger>& logger)
+    HTTP_format(const std::shared_ptr<ISerializer>& serializer)
         : serializer_(serializer)
-        , logger_(logger)
     {
     }
 
     void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
+        , const std::shared_ptr<ILogger>& logger
         , std::function<void(http::message<false, http::string_body, http::fields>)> send) override {
         std::cout << "HTTP-handler: Got an request!" << std::endl;
+        std::string logging_data;
         // Returns a bad request response
         auto const bad_request =
             [&req](beast::string_view why)
@@ -205,20 +215,19 @@ public:
         //
         // CHECKS AND VALIDATION
         //
-        std::string logging_data;
 
         // Make sure we can handle the method
         if (req.method() != http::verb::get &&
             req.method() != http::verb::head &&
             req.method() != http::verb::post) {
-            log(logging_data += "fail: unsupported request: " + req.method_string().to_string());
+            logger->log(logging_data += "fail: unsupported request: " + req.method_string().to_string());
             return send(bad_request("Unknown HTTP-method"));
         }
         // Request path must be absolute and not contain "..".
         if (req.target().empty() ||
             req.target()[0] != '/' ||
             req.target().find("..") != beast::string_view::npos) {
-            log(logging_data += "fail: invalid target: " + req.method_string().to_string());
+            logger->log(logging_data += "fail: invalid target: " + req.method_string().to_string());
             return send(bad_request("Illegal request-target"));
         }
         // Build the path to the requested file
@@ -245,13 +254,13 @@ public:
 
             // Handle the case where the file doesn't exist
             if (ec == beast::errc::no_such_file_or_directory) {
-                log(logging_data += "fail: unreachable target: " + req.target().to_string());
+                logger->log(logging_data += "fail: unreachable target: " + req.target().to_string());
                 return send(not_found(req.target()));
             }
 
             // Handle an unknown error
             if (ec) {
-                log(logging_data += "fail: unknown error: " + ec.message());
+                logger->log(logging_data += "fail: unknown error: " + ec.message());
                 return send(server_error(ec.message()));
             }
 
@@ -266,7 +275,7 @@ public:
                 res.set(http::field::content_type, mime_type(path));
                 res.content_length(size);
                 res.keep_alive(req.keep_alive());
-                log(logging_data += "OK");
+                logger->log(logging_data += "OK");
                 return send(std::move(res));
             }
 
@@ -327,7 +336,7 @@ public:
             res.set(http::field::content_type, mime_type(path));
             res.content_length(size);
             res.keep_alive(req.keep_alive());
-            log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
+            logger->log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
             return send(std::move(res));
         }
         // TODO: common value res
@@ -392,18 +401,10 @@ private:
         return result;
     }
 
-    void log(std::string& data) {
-        beast::error_code ec;
-        logger_->log(data, ec);
-        if (ec)
-            fail(ec, "http-handler logger");
-    }
-
     void authorize_handler();
     void register_handler();
 
     std::shared_ptr<ISerializer> serializer_;
-    std::shared_ptr<ILogger> logger_;
     const std::string type = "http";
 };
 
@@ -461,6 +462,7 @@ class Session : public std::enable_shared_from_this<Session>
     std::shared_ptr<void> res_;
     std::shared_ptr<IFormat> format_;
     send_lambda lambda_;
+    const std::shared_ptr<ILogger>& logger_;
 
 public:
     // Take ownership of the stream
@@ -468,16 +470,26 @@ public:
     Session(
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
-        std::shared_ptr<IFormat>& format)
+        std::shared_ptr<IFormat>& format,
+        const std::string& log_dir)
         : stream_(std::move(socket))
         , doc_root_(doc_root)
         , format_(format)
         , lambda_(*this)
+        , logger_(std::make_shared<FileLogger>(log_dir))
     {
     }
 
     // Start the asynchronous operation
     void run() {
+        beast::error_code ec;
+        logger_->init(ec);
+        if (ec)
+            fail(ec, "unable to init log");
+        else
+            // TODO: пробросить какой-нибудь айпи или типа
+            logger_->log("Connected\n");
+
         // We need to be executing within a strand to perform async operations
         // on the I/O objects in this session. Although not strictly necessary
         // for single-threaded contexts, this example code is written to be
@@ -505,23 +517,29 @@ public:
 
     void on_read(beast::error_code ec, std::size_t bytes_transferred) {
         boost::ignore_unused(bytes_transferred);
-
         // This means they closed the connection
-        if (ec == http::error::end_of_stream)
+        std::string logging_data;
+        if (ec == http::error::end_of_stream) {
+            logger_->log("Connection refused by client\n");
             return do_close();
+        }
 
-        if (ec)
+        if (ec) {
+            logger_->log("Read failed: " + ec.message() + '\n');
             return fail(ec, "read");
+        }
 
         // Send the response
-        format_->handle_request(*doc_root_, std::move(req_), lambda_);
+        format_->handle_request(*doc_root_, std::move(req_), logger_, lambda_);
     }
 
     void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) {
         boost::ignore_unused(bytes_transferred);
 
-        if (ec)
+        if (ec) {
+            logger_->log("Write failed: " + ec.message() + '\n');
             return fail(ec, "write");
+        }
 
         if (close)
         {
@@ -539,6 +557,7 @@ public:
 
     void do_close() {
         // Send a TCP shutdown
+        logger_->log("Connection closed successfully\n");
         beast::error_code ec;
         stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
 

@@ -17,6 +17,7 @@ int Server::run(asio::io_context& ioc) {
     std::make_shared<Listener>(ioc,
         tcp::endpoint{ opts_.ip_, opts_.port_ },
         opts_.doc_root_,
+        opts_.log_dir_,
         format_
         )->run();
 

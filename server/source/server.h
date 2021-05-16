@@ -24,20 +24,23 @@ public:
         std::string owner,
         std::string ip_host,
         unsigned short port,
-        std::string doc_root)
+        const std::string& doc_root,
+        const  std::string& log_dir)
         : owner_(owner)
         , ip_(asio::ip::make_address(ip_host))
         , port_(port)
         , doc_root_(std::make_shared<std::string>(doc_root))
+        , log_dir_(std::make_shared<std::string>(log_dir))
     {
     }
 
-    std::string get_info() { return "owner: " + owner_ + " | ip: " + ip_.to_string() + ":" + std::to_string(port_) + "(http)\ndoc dir:" + *doc_root_ + '\n'; }
+    std::string get_info() { return "owner: " + owner_ + " | ip: " + ip_.to_string() + ":" + std::to_string(port_) + "(http)\ndoc dir:" + *doc_root_ + "\nlog dir: " + *log_dir_ + '\n'; }
 
     const std::string owner_;
     const unsigned short port_;
     asio::ip::address const ip_;
     std::shared_ptr<std::string> const doc_root_;
+    std::shared_ptr< std::string> const log_dir_;
 };
 
 
@@ -77,6 +80,7 @@ class Listener : public std::enable_shared_from_this<Listener>
     asio::io_context& ioc_;
     tcp::acceptor acceptor_;
     std::shared_ptr<std::string const> doc_root_;
+    std::shared_ptr<std::string const> log_dir_;
     std::shared_ptr<IFormat> format_;
 
 public:
@@ -84,11 +88,13 @@ public:
         asio::io_context& ioc,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root,
+        std::shared_ptr<std::string const> const& log_dir,
         std::shared_ptr<IFormat>& format)
         : ioc_(ioc)
         , acceptor_(asio::make_strand(ioc))
         , doc_root_(doc_root)
         , format_(format)
+        , log_dir_(log_dir)
     {
         beast::error_code ec;
 
@@ -158,7 +164,8 @@ private:
             std::make_shared<Session>(
                 std::move(socket),
                 doc_root_,
-                format_
+                format_,
+                *log_dir_
                 )->run();
         }
 
