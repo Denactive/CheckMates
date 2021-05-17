@@ -52,12 +52,13 @@ public:
     void setAllMessagesFromQuery() override;
     std::vector<MsgInfo> getAllMessages() override { return messagesInfo; }
     void fillChats();
-    std::vector<Chat*> getChats() { return chatsInfo; }
+    std::vector<std::shared_ptr<Chat>> getChats() { return chatsInfo; }
+    std::shared_ptr<User> findUser(int index);
 
 private:
     std::vector<UserInfo> usrInfo;
     std::vector<MsgInfo> messagesInfo;
-    std::vector<Chat*> chatsInfo;
+    std::vector<std::shared_ptr<Chat>> chatsInfo;
 };
 
 struct Stats {

@@ -6,6 +6,9 @@
 #include <QPixmap>
 #include <QString>
 #include <QDebug>
+#include <memory>
+
+using namespace std;
 
 class IUser {
 public:
@@ -62,16 +65,17 @@ private:
 
 class Chat {
 public:
-    Chat(User * nuser = nullptr) :user(nuser) {}
+    Chat(std::shared_ptr<User> nuser = std::make_shared<User>()) :user(nuser) {}
     void addMessage(MyMessage newMessage) { messages.push_back(newMessage); };
     void deleteMessage(int index) { messages.erase(messages.begin() + index); }
     void cleanAllMessages() { messages.clear(); }
     std::vector<MyMessage> getMessages() { return messages; };
-    User * getUser() { return user; }
+    std::shared_ptr<User> getUser() { return user; }
+    void setUser(std::shared_ptr<User> usr) { user = usr; }
     MyMessage getLastMessage() { return messages[messages.size() - 1]; }
 private:
     std::vector<MyMessage> messages;
-    User * user;
+    std::shared_ptr<User> user;
 };
 
 #endif // COMMUNITY_H

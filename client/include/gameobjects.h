@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QLabel>
 #include <QPushButton>
+#include <memory>
 
 #include "community.h"
 
@@ -26,13 +27,13 @@ class ChatButton :  public QFrame
 signals:
     void clicked();
 public:
-    ChatButton(QWidget *parent = nullptr, Chat * chat = nullptr);
+    ChatButton(QWidget *parent = nullptr, std::shared_ptr<Chat> chat = std::make_shared<Chat>());
 
     void mousePressEvent(QMouseEvent *event);
-    Chat * getChat() { return chat; }
-    void setChat(Chat * chat) { this->chat = chat; }
+    std::shared_ptr<Chat> getChat() { return chat; }
+    void setChat(std::shared_ptr<Chat> chat) { this->chat = chat; }
 private:
-    Chat * chat;
+    std::shared_ptr<Chat> chat;
 };
 
 class PhotoWidget : public QLabel

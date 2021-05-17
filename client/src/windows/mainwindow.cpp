@@ -9,18 +9,12 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
 
     // get data from database
     std::vector<UserInfo> usrsInfo = db->getUsersData();
-    std::vector<Chat*> chatsInfo = db->getChats();
+    std::vector<std::shared_ptr<Chat>> chatsInfo = db->getChats();
 
     std::vector<User*> friendsInfo;
     for (int i = 0; i < int(usrsInfo.size()); ++i) {
         User *newUser = new User(usrsInfo[i].name, usrsInfo[i].rating,
                          usrsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
-//        for (int j = 0; j < 5; ++j) {
-//            MyMessage newMessage;
-//            newMessage.changeMessage("chat " + QString::number(i) + " ,msg " + QString::number(j));
-//            newChat->addMessage(newMessage);
-//        }
-//        chatInfo.push_back(&newChat);
         friendsInfo.push_back(newUser);
     }
 

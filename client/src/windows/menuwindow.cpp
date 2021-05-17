@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <QMessageBox>
 
-MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<Chat*> chatInfo, std::vector<User*> friendsInfo)
+MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo, std::vector<User*> friendsInfo)
     :QWidget(parent), main(main), isMatching(isMatching)
 {
     menu = new QHBoxLayout();
@@ -25,7 +25,7 @@ MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, s
     qDebug() << "chat info: " << this->chatInfo[0]->getLastMessage().getMessage();
 }
 
-void MenuWindow::drawChats(std::vector<Chat*> chatInfo) {
+void MenuWindow::drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) {
     //QWidget *chatsLayoutWidget = new QWidget();
     QVBoxLayout *chatsLayout = new QVBoxLayout();
 
@@ -227,18 +227,18 @@ void MenuWindow::addFriend(size_t index, std::vector<User*> friendsInfo)
     friends.push_back(newFriend);
 }
 
-void MenuWindow::addChat(size_t index, std::vector<Chat *> chatInfo)
+void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatInfo)
 {
     ChatButton *chat = new ChatButton();
 
     QHBoxLayout *chatLayout = new QHBoxLayout();
 
-    User * user = chatInfo[index]->getUser();
+    //User * user = chatInfo[index]->getUser();
     QLabel *userPhotoContainer = new QLabel("User photo");
     QSize sizePhoto(50, 50);
-    qDebug() << "point " << user->getUserPhoto();
-    QPixmap userPhoto = user->getUserPhoto().scaled(sizePhoto);
-    qDebug() << "point " << chatInfo.size();
+    //QPixmap userPhoto("../img/userPhoto.png"); //user->getUserPhoto().scaled(sizePhoto);
+    //userPhoto = userPhoto.scaled(sizePhoto);
+    QPixmap userPhoto(chatInfo[index]->getUser()->getUserPhoto().scaled(sizePhoto));
     userPhotoContainer->setPixmap(userPhoto);
 
 

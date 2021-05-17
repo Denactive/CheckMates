@@ -34,7 +34,7 @@ QSize PhotoWidget::sizeHint() const
     return this->size;
 }
 
-ChatButton::ChatButton(QWidget *parent, Chat * chat)
+ChatButton::ChatButton(QWidget *parent, std::shared_ptr<Chat> chat)
     :QFrame(parent), chat(chat)
 {
     this->setFrameStyle(QFrame::Panel);

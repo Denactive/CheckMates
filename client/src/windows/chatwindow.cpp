@@ -2,7 +2,7 @@
 
 #include "include/windows/chatwindow.h"
 
-ChatWindow::ChatWindow(QWidget *parent, QStackedWidget *main, Chat *chat)
+ChatWindow::ChatWindow(QWidget *parent, QStackedWidget *main, std::shared_ptr<Chat> chat)
         :QWidget(parent), main(main), chat(chat)
 {
     chatMenu = new QVBoxLayout();

@@ -65,6 +65,7 @@ void Database::setAllMessagesFromQuery()
     }
 }
 
+
 void Database::fillChats()
 {
     QSqlQuery query = QSqlQuery(this->database());
@@ -78,7 +79,7 @@ void Database::fillChats()
     int chatID = -1;
     while (true)
     {
-        Chat *newChat = new Chat();
+        std::shared_ptr<Chat> newChat = std::make_shared<Chat>();
         if (chatID == -1)
             if (!query.next()) break;
         qDebug() << "chatID" << chatID;
@@ -100,9 +101,34 @@ void Database::fillChats()
         if (!query.isValid()) break;
     }
 
+    QSqlQuery query2 = QSqlQuery(this->database());
+    if (!query.exec("SELECT _id, UserID, fromWho FROM Chats")) {
+        qDebug() << query.lastError().databaseText();
+        qDebug() << query.lastError().driverText();
+    }
+
+    while (query2.next()) {
+        int id = query.value(0).toInt();
+        int userId = query.value(1).toInt();
+
+        chatsInfo[id]->setUser(findUser(userId));
+    }
+
 //    for (auto & value : chatsInfo) {
 //       std::vector<MyMessage> msgs = value->getMessages();
 //       for (auto & msg : msgs)
 //           qDebug() << msg.getMessage();
-//    }
+      //    }
+}
+
+std::shared_ptr<User> Database::findUser(int index)
+{
+    QSqlQuery query = QSqlQuery(this->database());
+    if (!query.exec("SELECT _id, UserID, MessagesID FROM Users WHERE _id=" + QString::number(index))) {
+        qDebug() << query.lastError().databaseText();
+        qDebug() << query.lastError().driverText();
+    }
+    std::shared_ptr<User> usr = std::make_shared<User>();
+
+    return usr;
 }

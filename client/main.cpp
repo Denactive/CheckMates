@@ -8,8 +8,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    Database *chessDb = new Database();
-    std::shared_ptr<Database> db(chessDb);
+    std::shared_ptr<Database> db = std::make_shared<Database>();
     MainWindow w(db);
     w.show();
 
