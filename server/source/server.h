@@ -164,8 +164,8 @@ private:
             std::make_shared<Session>(
                 std::move(socket),
                 doc_root_,
-                format_,
-                *log_dir_
+                log_dir_,
+                format_
                 )->run();
         }
 

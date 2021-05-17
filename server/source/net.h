@@ -2,6 +2,7 @@
 #define CHECKMATES_NET_H
 
 #define TIMEOUT_DELAY 30  // (s)
+#define BASIC_DEBUG 1
 
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0A00
@@ -87,9 +88,10 @@ public:
 
 class FileLogger : public ILogger {
 public:
-    FileLogger(const std::string& dir)
-        : dir_(dir)
+    FileLogger(std::shared_ptr<std::string const> const& log_dir)
+        : log_dir_(log_dir)
     {
+        dir_ = fs::path(*log_dir_);
     }
 
     void log(const std::string& data) override;
@@ -102,6 +104,7 @@ private:
 
     std::string serializeTimePoint(const time_point& time, const std::string& format);
 
+    std::shared_ptr<std::string const> const& log_dir_;
     std::ofstream log_stream_;
     fs::path dir_;
     bool initialized = false;
@@ -470,18 +473,20 @@ public:
     Session(
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
-        std::shared_ptr<IFormat>& format,
-        const std::string& log_dir)
+        std::shared_ptr<std::string const> const& log_dir,
+        std::shared_ptr<IFormat>& format
+        )
         : stream_(std::move(socket))
         , doc_root_(doc_root)
+        , logger_(std::make_shared<FileLogger>(log_dir))
         , format_(format)
         , lambda_(*this)
-        , logger_(std::make_shared<FileLogger>(log_dir))
     {
     }
 
     // Start the asynchronous operation
     void run() {
+        if (BASIC_DEBUG) std::cout << "session run\n";
         beast::error_code ec;
         logger_->init(ec);
         if (ec)
@@ -501,6 +506,7 @@ public:
     }
 
     void do_read() {
+        if (BASIC_DEBUG) std::cout << "do read\n";
         // Make the request empty before reading,
         // otherwise the operation behavior is undefined.
         req_ = {};
@@ -516,6 +522,7 @@ public:
     }
 
     void on_read(beast::error_code ec, std::size_t bytes_transferred) {
+        if (BASIC_DEBUG) std::cout << "on read\n";
         boost::ignore_unused(bytes_transferred);
         // This means they closed the connection
         std::string logging_data;
@@ -534,6 +541,7 @@ public:
     }
 
     void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) {
+        if (BASIC_DEBUG) std::cout << "on write\n";
         boost::ignore_unused(bytes_transferred);
 
         if (ec) {
@@ -556,6 +564,7 @@ public:
     }
 
     void do_close() {
+        if (BASIC_DEBUG) std::cout << "do close\n";
         // Send a TCP shutdown
         logger_->log("Connection closed successfully\n");
         beast::error_code ec;
