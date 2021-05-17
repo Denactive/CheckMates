@@ -2,7 +2,7 @@
 #define CHECKMATES_NET_H
 
 #define TIMEOUT_DELAY 30  // (s)
-#define BASIC_DEBUG 1
+#define BASIC_DEBUG 0
 
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0A00
@@ -465,7 +465,7 @@ class Session : public std::enable_shared_from_this<Session>
     std::shared_ptr<void> res_;
     std::shared_ptr<IFormat> format_;
     send_lambda lambda_;
-    const std::shared_ptr<ILogger>& logger_;
+    const std::shared_ptr<ILogger> logger_;
 
 public:
     // Take ownership of the stream
@@ -512,7 +512,7 @@ public:
         req_ = {};
 
         // Set the timeout.
-        stream_.expires_after(std::chrono::seconds(30));
+        stream_.expires_after(std::chrono::seconds(TIMEOUT_DELAY));
 
         // Read a request
         http::async_read(stream_, buffer_, req_,
