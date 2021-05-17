@@ -1,6 +1,0 @@
-Connected
-GET-req file: /test.txt
-OK
-Creating a response of 147 bytes
-Connection refused by client
-Connection closed successfully

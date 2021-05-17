@@ -34,8 +34,8 @@ add_executable(${PROGRAM_NAME}
         source/TurnControl.cpp
         source/ChessBoard.cpp
         source/Chesspiece.cpp)
-
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
+
 
 
 enable_testing()

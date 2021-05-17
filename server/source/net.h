@@ -3,6 +3,7 @@
 
 #define TIMEOUT_DELAY 30  // (s)
 #define BASIC_DEBUG 0
+#define START_GAME_IMITATION 1
 
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0A00
@@ -126,7 +127,8 @@ public:
     virtual void handle_request(beast::string_view
             , http::request<http::string_body>&&
             , const std::shared_ptr<ILogger>& logger
-            , std::function<void(http::message<false, http::string_body, http::fields>)>
+        , std::function<void(http::message<false, http::string_body, http::fields>)>
+        , std::function<void(std::shared_ptr<std::string>, unsigned int, bool)>
         ) = 0;
 };
 // =======================[ WS ]=========================
@@ -147,7 +149,8 @@ public:
     virtual void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
         , const std::shared_ptr<ILogger>& logger
-        , std::function<void(http::message<false, http::string_body, http::fields>)> send) override {
+        , std::function<void(http::message<false, http::string_body, http::fields>)> send
+        , std::function<void(std::shared_ptr<std::string>, unsigned int, bool)> start_game) override {
         std::cout << "WS format handler" << std::endl;
     }
     
@@ -173,7 +176,8 @@ public:
     void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
         , const std::shared_ptr<ILogger>& logger
-        , std::function<void(http::message<false, http::string_body, http::fields>)> send) override {
+        , std::function<void(http::message<false, http::string_body, http::fields>)> send
+        , std::function<void(std::shared_ptr<std::string>, unsigned int, bool)> start_game) override {
         std::cout << "HTTP-handler: Got an request!" << std::endl;
         std::string logging_data;
         // Returns a bad request response
@@ -280,6 +284,10 @@ public:
                 res.keep_alive(req.keep_alive());
                 logger->log(logging_data += "OK");
                 return send(std::move(res));
+            }
+
+            if (START_GAME_IMITATION) {
+                return start_game(std::make_shared<std::string>("Game started\nPlayers: 1, 2\n"), req.version(), req.keep_alive());
             }
 
             // Respond to GET request
@@ -441,13 +449,46 @@ class Session : public std::enable_shared_from_this<Session>
             // we use a shared_ptr to manage it.
             auto sp = std::make_shared<
                 http::message<false, http::string_body, http::fields>>(std::move(msg));
-                //http::message<isRequest, Body, Fields>>(std::move(msg));
+            //http::message<isRequest, Body, Fields>>(std::move(msg));
 
-            // Store a type-erased version of the shared
-            // pointer in the class to keep it alive.
+        // Store a type-erased version of the shared
+        // pointer in the class to keep it alive.
             self_.res_ = sp;
 
             // Write the response
+            http::async_write(
+                self_.stream_,
+                *sp,
+                beast::bind_front_handler(
+                    &Session::on_write,
+                    self_.shared_from_this(),
+                    sp->need_eof()));
+        }
+    };
+    
+    struct start_game_lambda
+    {
+        Session& self_;
+
+        explicit
+            start_game_lambda(Session& self)
+            : self_(self)
+        {
+        }
+
+        void
+            operator()(std::shared_ptr<std::string> game_data, unsigned int protocol_version, bool keep_alive) const
+        {
+            http::message<false, http::string_body, http::fields> res{ http::status::ok, protocol_version };
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, "text/html");
+            res.keep_alive(keep_alive);
+            res.body() = std::string("Game ready:\n\tgame ID: 12\n\topponent: player1");
+            res.prepare_payload();
+
+            auto sp = std::shared_ptr<http::message<false, http::string_body, http::fields>>(&res);
+            self_.res_ = sp;
+
             http::async_write(
                 self_.stream_,
                 *sp,
@@ -465,6 +506,7 @@ class Session : public std::enable_shared_from_this<Session>
     std::shared_ptr<void> res_;
     std::shared_ptr<IFormat> format_;
     send_lambda lambda_;
+    start_game_lambda start_game_;
     const std::shared_ptr<ILogger> logger_;
 
 public:
@@ -481,6 +523,7 @@ public:
         , logger_(std::make_shared<FileLogger>(log_dir))
         , format_(format)
         , lambda_(*this)
+        , start_game_(*this)
     {
     }
 
@@ -537,7 +580,7 @@ public:
         }
 
         // Send the response
-        format_->handle_request(*doc_root_, std::move(req_), logger_, lambda_);
+        format_->handle_request(*doc_root_, std::move(req_), logger_, lambda_, start_game_);
     }
 
     void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) {

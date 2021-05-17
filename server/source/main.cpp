@@ -1,6 +1,7 @@
 
 #include "server.h"
 
+
 int main() {
     
     // common data
@@ -22,6 +23,22 @@ int main() {
     Server s_http(opts_http, hf, mq);
     Server s_ws(opts_ws, ws, mq);
 
+/*
+    ChessBoard board;
+    board.set_board();
+    Player player1(board, true);
+    Player player2(board, false);
+    TurnControl control;
+    GameSession A(control, player1, player2);
+
+
+    A.setup();
+    GInfo info = A.send_info();
+    while (info.isGame) {
+        int turn_accepted = A.run_turn();
+        info = A.send_info();
+    }
+    */
 
     const unsigned short threads_num = 1;
     asio::io_context ioc{ threads_num };
