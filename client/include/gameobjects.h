@@ -23,10 +23,16 @@ public:
 class ChatButton :  public QFrame
 {
     Q_OBJECT
+signals:
+    void clicked();
 public:
-    ChatButton(QWidget *parent = nullptr);
+    ChatButton(QWidget *parent = nullptr, Chat * chat = nullptr);
 
-    //QSize sizeHint() const override;
+    void mousePressEvent(QMouseEvent *event);
+    Chat * getChat() { return chat; }
+    void setChat(Chat * chat) { this->chat = chat; }
+private:
+    Chat * chat;
 };
 
 class PhotoWidget : public QLabel
@@ -40,5 +46,26 @@ private:
     QPixmap photo;
     QSize size;
 };
+
+class LabelImage: public QLabel {
+
+  private:
+    QPixmap _qPixmap, _qPixmapScaled;
+
+  public:
+    void setPixmap(const QPixmap &qPixmap) { setPixmap(qPixmap, size()); }
+
+  public:
+    void resizeLabel(QResizeEvent * event);
+    void resizeEvent(QResizeEvent * event);
+    QSize getSize() { return _size; }
+    void setSize(QSize newSize) { _size = newSize; }
+
+  private:
+    void setPixmap(const QPixmap &qPixmap, const QSize &size);
+
+    QSize _size;
+};
+
 
 #endif // GAMEOBJECTS_H

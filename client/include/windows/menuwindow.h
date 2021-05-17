@@ -12,6 +12,10 @@
 #include <QGridLayout>
 #include <QCheckBox>
 
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QMainWindow>
+
 #include "include/community.h"
 #include "include/windows/chatwindow.h"
 
@@ -36,6 +40,7 @@ public:
 
     void addFriend(size_t index, std::vector<User*> friendsInfo);
     void addChat(size_t index, std::vector<Chat*> chatInfo);
+    void resizeEvent(QResizeEvent * event);
 
 public slots:
     void tapPlay() override;
@@ -61,6 +66,9 @@ private:
     int choosenFriendIndex;
     QCheckBox *choosenFriend;
     std::vector<Chat*> chatInfo;
+
+    MyButton * playButton;
+    LabelImage * previewLabelImage;
 };
 
 #endif // MENUWINDOW_H

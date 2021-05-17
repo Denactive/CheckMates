@@ -41,8 +41,8 @@ ENDIF()
 enable_testing()
 #add_subdirectory(tests)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Core Quick Sql LinguistTools REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Core Quick Sql LinguistTools REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -81,7 +81,8 @@ set(PROJECT_SOURCES
 )
 
 add_library(clientlib SHARED ${PROJECT_SOURCES})
-target_link_libraries(clientlib Qt${QT_VERSION_MAJOR}::Widgets GTest::GTest GTest::Main)
+target_link_libraries(clientlib Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Sql GTest::GTest GTest::Main)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(client ${PROJECT_SOURCES})

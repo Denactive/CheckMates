@@ -7,11 +7,11 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
+
+    Database *chessDb = new Database();
+    std::shared_ptr<Database> db(chessDb);
+    MainWindow w(db);
     w.show();
-    //App ap;
-    //ap.show();
-    //a.quit();
-    //QApplication::quit();
+
     return a.exec();
 }

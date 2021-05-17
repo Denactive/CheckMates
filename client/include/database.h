@@ -1,9 +1,65 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 #include <string>
+#include <QtSql/QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlRecord>
+#include <QString>
+#include <memory>
+#include <vector>
+
 #include "../include/community.h"
 
-/*in develop*/
+struct UserInfo {
+    QString name;
+    QString login;
+    QString password;
+    QString photoPath;
+    int rating;
+};
+
+struct MsgInfo {
+    QString text;
+    int chatID;
+};
+
+struct GameInfo {
+    bool currentPlayer; // true - me, false - opponent
+    bool isCheck; // true - is shax
+    bool isGame; // false - quit game
+    int isVictory; // 0 - draw, 1 - me, 2 - opponent
+    int lastFigurePos; // [0-63]
+    int newFigurePos;
+};
+
+class IDatabase {
+    virtual void setUserDataFromQuery() = 0;
+    virtual std::vector<UserInfo> getUsersData() = 0;
+    virtual void setAllMessagesFromQuery() = 0;
+    virtual std::vector<MsgInfo> getAllMessages() = 0;
+
+};
+
+class Database : public QSqlDatabase,  public IDatabase
+{
+public:
+    Database();
+    void setUserDataFromQuery() override;
+    std::vector<UserInfo> getUsersData() override { return usrInfo; }
+//    void setChatDataFromQuery() override;
+//    std::vector<Chat> getChatsData() override { return chatsInfo; }
+    void setAllMessagesFromQuery() override;
+    std::vector<MsgInfo> getAllMessages() override { return messagesInfo; }
+    void fillChats();
+    std::vector<Chat*> getChats() { return chatsInfo; }
+
+private:
+    std::vector<UserInfo> usrInfo;
+    std::vector<MsgInfo> messagesInfo;
+    std::vector<Chat*> chatsInfo;
+};
+
 struct Stats {
     int avgGameLen;
     int movesToWinQuantity;
@@ -30,19 +86,6 @@ public:
     int getStaleMatePercentage() override { return -1; }
     int getGameLeavingPercentage() override { return -1; }
     int giveUpsPercentage() override { return -1; }
-};
-
-class IDatabase {
-     virtual std::string query(std::string) = 0;
-};
-
-class Database : public IDatabase
-{
-public:
-    Database();
-    std::string query(std::string) override;
-private:
-    std::string fileDB;
 };
 
 #endif // DATABASE_H

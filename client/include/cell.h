@@ -9,7 +9,6 @@
 #include <QFrame>
 #include <QResizeEvent>
 
-
 #include "include/figures.h"
 
 class Cell : public QToolButton {

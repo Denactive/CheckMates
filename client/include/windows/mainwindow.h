@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <vector>
 #include <QMainWindow>
 #include <QWidget>
 #include <QGridLayout>
@@ -12,9 +13,16 @@
 #include <QObject>
 #include <QComboBox>
 
+#include <QKeyEvent>
+#include <QMessageBox>
+#include <QPixmap>
+#include <QToolButton>
+#include <QApplication>
+
 #include "include/graphics.h"
 #include "include/gameobjects.h"
 #include "include/chessboard.h"
+#include "include/database.h"
 
 #include "include/windows/menuwindow.h"
 #include "include/windows/authorizerwindow.h"
@@ -22,12 +30,12 @@
 #include "include/windows/settingswindow.h"
 #include "include/windows/gamewindow.h"
 
+
 class MainWindow : public QWidget
 {
     Q_OBJECT
-
 public:
-    MainWindow(QWidget * parent = 0);
+    MainWindow(std::shared_ptr<Database> db, QWidget * parent = 0);
     ~MainWindow();
     void drawTop();
     void drawBottom();
@@ -58,6 +66,8 @@ private:
     QComboBox *topUsers;
 
     User *infoAboutMe;
+
+    std::shared_ptr<Database> db;
 };
 
 #endif // MAINWINDOW_H
