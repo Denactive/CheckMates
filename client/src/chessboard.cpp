@@ -100,8 +100,8 @@ void ChessBoard::cellClicked()
     Cell *btn = (Cell*) sender();
     QString cell = btn->text();
 
-    qDebug() << "In cell: " << cell;
-    qDebug() << "Pos: " << btn->getPosition().first << " " << btn->getPosition().second;
+    if (DEBUGCHESS) qDebug() << "In cell: " << cell;
+    if (DEBUGCHESS) qDebug() << "Pos: " << btn->getPosition().first << " " << btn->getPosition().second;
 
     if (kingUnderMat) isKingUnderMat();
 

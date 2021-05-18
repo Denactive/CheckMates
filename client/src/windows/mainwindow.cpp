@@ -1,53 +1,56 @@
-#include <QKeyEvent>
-#include <QMessageBox>
 #include <QDebug>
-#include <QPixmap>
-#include <QWidget>
-#include <QGridLayout>
-#include <QToolButton>
-#include <QMessageBox>
-#include <QApplication>
-
 #include "include/windows/mainwindow.h"
-#include "include/windows/gamewindow.h"
-#include "include/windows/menuwindow.h"
-#include "include/chessboard.h"
-#include "include/gameobjects.h"
 
-MainWindow::MainWindow(QWidget * parent) :QWidget(parent) {
+MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(parent), db(db) {
     main = new QStackedWidget();
     mainLayout = new QVBoxLayout();
 
     GameWindow *gameWindow = new GameWindow(this, main);
 
-    // initialization, structure from graphics class - zaglushka
-    std::vector<Chat*> chatInfo; std::vector<User*> friendsInfo;
-    for (int i = 0; i < 5; ++i) {
-        User * newUser = new User("User " + QString::number(i));
-        Chat * newChat = new Chat(newUser);
-        for (int j = 0; j < 5; ++j) {
-            MyMessage newMessage;
-            newMessage.changeMessage("chat " + QString::number(i) + " ,msg " + QString::number(j));
-            newChat->addMessage(newMessage);
-        }
-        chatInfo.push_back(newChat);
+    // get data from database
+    std::vector<UserInfo> usrsInfo = db->getUsersData();
+    std::vector<std::shared_ptr<Chat>> chatsInfo = db->getChats();
+    std::vector<std::shared_ptr<User>> friendsInfo;
+
+    for (int i = 0; i < int(usrsInfo.size()); ++i) {
+        std::shared_ptr<User> newUser = std::make_shared<User>(usrsInfo[i].name, usrsInfo[i].rating,
+                         usrsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
         friendsInfo.push_back(newUser);
     }
-    for (int i = 0; i < 5; ++i) {
-        int number = rand() % 10;
-        User * newUser = new User("Top user " + QString::number(number));
+
+//    qDebug() << "chats" << chatsInfo.size();
+//    for (auto & value : chatsInfo) {
+//       std::vector<MyMessage> msgs = value->getMessages();
+//       if (!msgs.size()) qDebug() << "not messages in chat";
+
+//       for (auto & msg : msgs)
+//           qDebug() << msg.getMessage();
+//    }
+
+    for (int i = 0; i < 5 && i < int(usrsInfo.size()); ++i) {
+        std::shared_ptr<User> newUser = std::make_shared<User>(usrsInfo[i].name, usrsInfo[i].rating,
+                                  usrsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
+
         topUsersInfo.push_back(newUser);
     }
-    infoAboutMe = new User();
-    infoAboutMe->setName("John");
 
-    // end of zaglushka
 
-    MenuWindow *mainWindow = new MenuWindow(this, main, false, chatInfo, friendsInfo);
+    infoAboutMe = std::make_shared<User>();
+    infoAboutMe->setName(usrsInfo[0].name);
+    infoAboutMe->setLogin(usrsInfo[0].login);
+    infoAboutMe->setPassword(usrsInfo[0].password);
+    infoAboutMe->setUserPhoto(usrsInfo[0].photoPath);
+    infoAboutMe->changeRating(usrsInfo[0].rating);
+
+    if (DEBUGDATA) qDebug() << "current user: " << infoAboutMe->getName();
+    // end of get data
+
+    MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo);
+
     SettingsWindow *settingsWindow = new SettingsWindow(this, main, infoAboutMe);
     AuthorizerWindow *authorizerWindow = new AuthorizerWindow(this, main, true);
 
-    main->insertWidget(0, mainWindow);
+    main->insertWidget(0, menuWindow);
     main->insertWidget(1, gameWindow);
     main->insertWidget(2, settingsWindow);
     main->insertWidget(3, authorizerWindow);
@@ -79,7 +82,7 @@ void MainWindow::drawTop()
      for (auto & userValue : topUsersInfo) {
          topUsers->addItem(userValue->getName(), Qt::TextAlignmentRole);
      }
-     connect(topUsers, SIGNAL(clicked()), this, SLOT(topPlayersClicked()));
+     //connect(topUsers, SIGNAL(clicked()), this, SLOT(topPlayersClicked()));
 
      MyButton* community = createButton("Community", SLOT(communityClicked()));
      MyButton* settings = createButton("Settings", SLOT(settingsClicked()));

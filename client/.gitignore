@@ -73,7 +73,9 @@ Thumbs.db
 
 Testing/
 build/
+GMockConfig.cmake
 
 tests/build_test/
 tests/googletest-release-1.10.0/
+CMakeLists.txt.user
 

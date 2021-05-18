@@ -22,6 +22,7 @@ public:
 };
 
 class AuthorizerWindow : public QWidget, public IAuthorizerWindow {
+    Q_OBJECT
 public:
     AuthorizerWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, bool isValid = false);
     void drawForm() override {}
@@ -30,6 +31,7 @@ public:
 
 public slots:
     void backToMenu();
+
 private:
     QStackedWidget * main;
     bool isValid;

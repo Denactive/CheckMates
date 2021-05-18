@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QLabel>
 #include <QPushButton>
+#include <memory>
 
 #include "community.h"
 
@@ -23,10 +24,16 @@ public:
 class ChatButton :  public QFrame
 {
     Q_OBJECT
+signals:
+    void clicked();
 public:
-    ChatButton(QWidget *parent = nullptr);
+    ChatButton(QWidget *parent = nullptr, std::shared_ptr<Chat> chat = std::make_shared<Chat>());
 
-    //QSize sizeHint() const override;
+    void mousePressEvent(QMouseEvent *event);
+    std::shared_ptr<Chat> getChat() { return chat; }
+    void setChat(std::shared_ptr<Chat> chat) { this->chat = chat; }
+private:
+    std::shared_ptr<Chat> chat;
 };
 
 class PhotoWidget : public QLabel
@@ -40,5 +47,26 @@ private:
     QPixmap photo;
     QSize size;
 };
+
+class LabelImage: public QLabel {
+
+  private:
+    QPixmap _qPixmap, _qPixmapScaled;
+
+  public:
+    void setPixmap(const QPixmap &qPixmap) { setPixmap(qPixmap, size()); }
+
+  public:
+    void resizeLabel(QResizeEvent * event);
+    void resizeEvent(QResizeEvent * event);
+    QSize getSize() { return _size; }
+    void setSize(QSize newSize) { _size = newSize; }
+
+  private:
+    void setPixmap(const QPixmap &qPixmap, const QSize &size);
+
+    QSize _size;
+};
+
 
 #endif // GAMEOBJECTS_H

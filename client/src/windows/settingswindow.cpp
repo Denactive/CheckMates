@@ -1,6 +1,6 @@
 #include "include/windows/settingswindow.h"
 
-SettingsWindow::SettingsWindow(QWidget *parent, QStackedWidget *main, User *user)
+SettingsWindow::SettingsWindow(QWidget *parent, QStackedWidget *main, std::shared_ptr<User> user)
         :QWidget(parent), main(main), user(user)
 {
     settings = new QVBoxLayout();

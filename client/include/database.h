@@ -1,9 +1,60 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 #include <string>
-#include "../include/community.h"
+#include <QtSql/QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlRecord>
+#include <QString>
+#include <memory>
+#include <vector>
 
-/*in develop*/
+#include "../include/community.h"
+#define DEBUGDATA 0
+
+struct UserInfo {
+    QString name;
+    QString login;
+    QString password;
+    QString photoPath;
+    int rating;
+};
+
+struct MsgInfo {
+    QString text;
+    int chatID;
+};
+
+struct GameInfo {
+    bool currentPlayer; // true - me, false - opponent
+    bool isCheck; // true - is shax
+    bool isGame; // false - quit game
+    int isVictory; // 0 - draw, 1 - me, 2 - opponent
+    int lastFigurePos; // [0-63]
+    int newFigurePos;
+    int figuresID;
+};
+
+class IDatabase {
+    virtual void setUserDataFromQuery() = 0;
+    virtual std::vector<UserInfo> getUsersData() = 0;
+};
+
+class Database : public QSqlDatabase,  public IDatabase
+{
+public:
+    Database();
+    void setUserDataFromQuery() override;
+    std::vector<UserInfo> getUsersData() override { return usrInfo; }
+    void fillChats();
+    std::vector<std::shared_ptr<Chat>> getChats() { return chatsInfo; }
+    std::shared_ptr<User> findUser(int index);
+
+private:
+    std::vector<UserInfo> usrInfo;
+    std::vector<std::shared_ptr<Chat>> chatsInfo;
+};
+
 struct Stats {
     int avgGameLen;
     int movesToWinQuantity;
@@ -30,19 +81,6 @@ public:
     int getStaleMatePercentage() override { return -1; }
     int getGameLeavingPercentage() override { return -1; }
     int giveUpsPercentage() override { return -1; }
-};
-
-class IDatabase {
-     virtual std::string query(std::string) = 0;
-};
-
-class Database : public IDatabase
-{
-public:
-    Database();
-    std::string query(std::string) override;
-private:
-    std::string fileDB;
 };
 
 #endif // DATABASE_H
