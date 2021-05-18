@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.11)
 project(CheckMates)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 
 # крутая компиляция для взрослых
-#set(CMAKE_CXX_FLAGS "-g -coverage -O0 -Wall -Werror -fprofile-arcs -ftest-coverage -fPIC")
-set(CMAKE_CXX_FLAGS "-g -Wall ")
+#set(CMAKE_CXX_FLAGS "-g -coverage -O0 -Wall -fprofile-arcs -ftest-coverage -fPIC -lstdc++fs")
+set(CMAKE_CXX_FLAGS "-g -Wall -std=c++17")
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 set(GMock_DIR ./)
 set(PROGRAM_NAME server)

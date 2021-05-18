@@ -5,9 +5,12 @@
 #define BASIC_DEBUG 0
 #define START_GAME_IMITATION 1
 
-#ifdef _WIN32
-#define _WIN32_WINNT 0x0A00
+#ifdef _WIN64
+#define _WIN64_WINNT 0x0A00
 #endif
+
+//#ifndef BOOST_BEAST_HTTP_STRING_BODY_HPP
+//#define BOOST_BEAST_HTTP_STRING_BODY_HPP
 
 #define BOOST_DATE_TIME_NO_LIB
 
@@ -42,7 +45,6 @@ namespace asio = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
 using time_point = std::chrono::system_clock::time_point;
 namespace fs = std::filesystem;
-
 
 // global error function
 void static fail(beast::error_code ec, char const* what) {
@@ -162,7 +164,6 @@ private:
 
 
 // =======================[ HTTP ]=========================
-
 
 class HTTP_format: public IFormat {
 public:
