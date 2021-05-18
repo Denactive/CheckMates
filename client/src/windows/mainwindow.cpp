@@ -10,44 +10,42 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
     // get data from database
     std::vector<UserInfo> usrsInfo = db->getUsersData();
     std::vector<std::shared_ptr<Chat>> chatsInfo = db->getChats();
+    std::vector<std::shared_ptr<User>> friendsInfo;
 
-    std::vector<User*> friendsInfo;
     for (int i = 0; i < int(usrsInfo.size()); ++i) {
-        User *newUser = new User(usrsInfo[i].name, usrsInfo[i].rating,
+        std::shared_ptr<User> newUser = std::make_shared<User>(usrsInfo[i].name, usrsInfo[i].rating,
                          usrsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
         friendsInfo.push_back(newUser);
     }
 
-    qDebug() << "chats" << chatsInfo.size();
-    for (auto & value : chatsInfo) {
-       std::vector<MyMessage> msgs = value->getMessages();
-       if (!msgs.size()) qDebug() << "not messages in chat";
+//    qDebug() << "chats" << chatsInfo.size();
+//    for (auto & value : chatsInfo) {
+//       std::vector<MyMessage> msgs = value->getMessages();
+//       if (!msgs.size()) qDebug() << "not messages in chat";
 
-       for (auto & msg : msgs)
-           qDebug() << msg.getMessage();
-    }
+//       for (auto & msg : msgs)
+//           qDebug() << msg.getMessage();
+//    }
 
     for (int i = 0; i < 5 && i < int(usrsInfo.size()); ++i) {
-        User *newUser = new User(usrsInfo[i].name, usrsInfo[i].rating,
+        std::shared_ptr<User> newUser = std::make_shared<User>(usrsInfo[i].name, usrsInfo[i].rating,
                                   usrsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
 
         topUsersInfo.push_back(newUser);
     }
 
 
-    infoAboutMe = new User();
+    infoAboutMe = std::make_shared<User>();
     infoAboutMe->setName(usrsInfo[0].name);
     infoAboutMe->setLogin(usrsInfo[0].login);
     infoAboutMe->setPassword(usrsInfo[0].password);
     infoAboutMe->setUserPhoto(usrsInfo[0].photoPath);
     infoAboutMe->changeRating(usrsInfo[0].rating);
 
-    qDebug() << "current user: " << infoAboutMe->getName();
+    if (DEBUGDATA) qDebug() << "current user: " << infoAboutMe->getName();
     // end of get data
 
     MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo);
-
-    qDebug() << "point";
 
     SettingsWindow *settingsWindow = new SettingsWindow(this, main, infoAboutMe);
     AuthorizerWindow *authorizerWindow = new AuthorizerWindow(this, main, true);

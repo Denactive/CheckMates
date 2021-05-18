@@ -24,7 +24,7 @@ public:
 class SettingsWindow : public QWidget, public ISettingsWindow {
     Q_OBJECT
 public:
-    SettingsWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, User * user = nullptr);
+    SettingsWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, std::shared_ptr<User> user = std::make_shared<User>());
     void drawUserSettings() override {}
     bool changeSettings() override { return true; }
     bool saveSettings() override { return true; }
@@ -34,7 +34,7 @@ public slots:
     void backToMenu();
 private:
     QStackedWidget * main;
-    User * user;
+    std::shared_ptr<User> user;
 
     QVBoxLayout *settings;
 };

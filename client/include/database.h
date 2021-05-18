@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "../include/community.h"
+#define DEBUGDATA 0
 
 struct UserInfo {
     QString name;
@@ -31,14 +32,12 @@ struct GameInfo {
     int isVictory; // 0 - draw, 1 - me, 2 - opponent
     int lastFigurePos; // [0-63]
     int newFigurePos;
+    int figuresID;
 };
 
 class IDatabase {
     virtual void setUserDataFromQuery() = 0;
     virtual std::vector<UserInfo> getUsersData() = 0;
-    virtual void setAllMessagesFromQuery() = 0;
-    virtual std::vector<MsgInfo> getAllMessages() = 0;
-
 };
 
 class Database : public QSqlDatabase,  public IDatabase
@@ -47,17 +46,12 @@ public:
     Database();
     void setUserDataFromQuery() override;
     std::vector<UserInfo> getUsersData() override { return usrInfo; }
-//    void setChatDataFromQuery() override;
-//    std::vector<Chat> getChatsData() override { return chatsInfo; }
-    void setAllMessagesFromQuery() override;
-    std::vector<MsgInfo> getAllMessages() override { return messagesInfo; }
     void fillChats();
     std::vector<std::shared_ptr<Chat>> getChats() { return chatsInfo; }
     std::shared_ptr<User> findUser(int index);
 
 private:
     std::vector<UserInfo> usrInfo;
-    std::vector<MsgInfo> messagesInfo;
     std::vector<std::shared_ptr<Chat>> chatsInfo;
 };
 

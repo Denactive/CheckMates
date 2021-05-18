@@ -62,10 +62,10 @@ private:
     MyButton* createButton(const QString &text ="", const char * member = nullptr);
     QString heart = QChar(0x00002764);
 
-    std::vector<User*> topUsersInfo;
+    std::vector<std::shared_ptr<User>> topUsersInfo;
     QComboBox *topUsers;
 
-    User *infoAboutMe;
+    std::shared_ptr<User> infoAboutMe;
 
     std::shared_ptr<Database> db;
 };

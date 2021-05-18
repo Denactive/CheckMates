@@ -73,4 +73,5 @@ Thumbs.db
 
 Testing/
 build/
+GMockConfig.cmake
 

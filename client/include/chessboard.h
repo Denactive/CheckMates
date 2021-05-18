@@ -1,5 +1,6 @@
 #ifndef CHESSBOARD_H
 #define CHESSBOARD_H
+#define DEBUGCHESS 0
 
 #include <QAbstractListModel>
 #include <string>

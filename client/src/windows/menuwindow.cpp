@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <QMessageBox>
 
-MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo, std::vector<User*> friendsInfo)
+MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo, std::vector<std::shared_ptr<User>> friendsInfo)
     :QWidget(parent), main(main), isMatching(isMatching)
 {
     menu = new QHBoxLayout();
@@ -22,7 +22,7 @@ MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, s
     setLayout(menu);
 
     copy(chatInfo.begin(), chatInfo.end(), back_inserter(this->chatInfo));
-    qDebug() << "chat info: " << this->chatInfo[0]->getLastMessage().getMessage();
+    if (DEBUG) qDebug() << "chat info: " << this->chatInfo[0]->getLastMessage().getMessage();
 }
 
 void MenuWindow::drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) {
@@ -90,11 +90,11 @@ void MenuWindow::drawMiddle()
         QSize photoSize(playButton->width(), playButton->height());
         QPixmap preview = photo.scaled(photoSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         previewLabelImage->setPixmap(preview);
-        qDebug() << "file preview set";
+        if (DEBUG) qDebug() << "file preview set";
     }
     else {
       previewLabelImage->setText(QString::fromLatin1("Sorry. Cannot find file for preview photo."));
-      qDebug() << "file preview not found";
+      if (DEBUG) qDebug() << "file preview not found";
     }
 
 
@@ -112,8 +112,8 @@ void MenuWindow::resizeEvent(QResizeEvent *event)
 //    QPixmap photo("../img/preview.jpg");
 //    previewPhotoWidget->resize(event->size().width(), double(event->size().width()) * double(photo.width() / photo.height()));
 //    QSize photoSize(previewLabelImage->width(), previewLabelImage->height());
-    qDebug() << "event size" << event->size().width() <<  " " << event->size().height();
-    qDebug() << "preview size label" << previewLabelImage->getSize().width() <<  " " << previewLabelImage->getSize().height();
+    if (DEBUG) qDebug() << "event size" << event->size().width() <<  " " << event->size().height();
+    if (DEBUG) qDebug() << "preview size label" << previewLabelImage->getSize().width() <<  " " << previewLabelImage->getSize().height();
 //    QPixmap preview = previewLabelImage->pixmap()->scaled(photoSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 ////    preview.scaledToWidth(playButton->width());
 //    previewLabelImage->setPixmap(preview);
@@ -122,7 +122,7 @@ void MenuWindow::resizeEvent(QResizeEvent *event)
 }
 
 
-void MenuWindow::drawFriends(std::vector<User*> friendsInfo) {
+void MenuWindow::drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) {
     QVBoxLayout *friendsLayout = new QVBoxLayout();
 
     QLabel *friendHeader = new QLabel("Friends");
@@ -144,7 +144,7 @@ void MenuWindow::drawFriends(std::vector<User*> friendsInfo) {
 
     friendsLayout->addLayout(searchLayout);
 
-    qDebug() << "f size: " << friendsInfo.size();
+    if (DEBUG) qDebug() << "f size: " << friendsInfo.size();
 
     for (size_t i = 0; i < friendsInfo.size(); ++i) {
         addFriend(i, friendsInfo);
@@ -194,7 +194,7 @@ void MenuWindow::changeMatching()
     isMatchingBox->setChecked(isMatchingBox->isChecked());
 }
 
-void MenuWindow::addFriend(size_t index, std::vector<User*> friendsInfo)
+void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> friendsInfo)
 {
     QFrame *newFriend = new QFrame();
     newFriend->setFrameStyle(QFrame::Panel);
@@ -203,7 +203,7 @@ void MenuWindow::addFriend(size_t index, std::vector<User*> friendsInfo)
 
     QHBoxLayout *friendLayout = new QHBoxLayout();
 
-    User * user = friendsInfo[index];
+    std::shared_ptr<User> user = friendsInfo[index];
     QLabel *userPhotoContainer = new QLabel("User photo");
     QSize sizePhoto(50, 50);
     QPixmap userPhoto = user->getUserPhoto().scaled(sizePhoto);

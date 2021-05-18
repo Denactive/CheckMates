@@ -4,33 +4,45 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <QObject>
+#include <QDebug>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QAuthenticator>
+#include <QNetworkProxy>
 
-#include "../include/community.h"
-#include "../include/chessboard.h"
-#include "../include/figures.h"
-#include "../include/windows/mainwindow.h"
-#include "../include/database.h"
+#include "include/community.h"
+#include "include/chessboard.h"
+#include "include/figures.h"
+#include "include/windows/mainwindow.h"
+#include "include/database.h"
 
-class IGraphics
-{
+// QNetworkAccessManager - инкапсулирует HTTP протокол, включает SSL
+
+class Client : public QObject {
+    Q_OBJECT
 public:
-    virtual void StartDraw() = 0;
-    virtual void cleanAll() = 0;
-    virtual bool getData(char ** figures, User* user, Chat * chats) = 0;
-};
+    Client(QObject *parent = nullptr);
 
-class Graphics : public IGraphics
-{
+signals:
+
+public slots:
+    void getData(char const* host, int port, char const* target);
+    void post(QString location, QByteArray data);
+
+private slots:
+    void readyRead();
+    void authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator);
+    void encrypted(QNetworkReply *reply);
+    void finished(QNetworkReply *reply);
+    void networkAccessibleChanged(QNetworkAccessManager::NetworkAccessibility accessible);
+    void preSharedKeyAuthenticationRequired(QNetworkReply *reply, QSslPreSharedKeyAuthenticator *authenticator);
+    void proxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator);
+    void sslErrors(QNetworkReply *reply, const QList<QSslError> &errors);
+
 private:
-    User * user;
-    char ** figures;
-    Chat *chats;
-public:
-    Graphics(char ** nfigures = nullptr, User * nuser = nullptr, Chat * nchats = nullptr)
-        :user(nuser), figures(nfigures), chats(nchats) {}
-    void StartDraw() override {}
-    void cleanAll() override {}
-    bool getData(char ** figures, User* user, Chat * chats) override { return true; }
+    QNetworkAccessManager manager;
 };
 
 #endif // GRAPHICS_H

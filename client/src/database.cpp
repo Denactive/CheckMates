@@ -44,28 +44,6 @@ void Database::setUserDataFromQuery()
     }
 }
 
-void Database::setAllMessagesFromQuery()
-{
-    QSqlQuery query = QSqlQuery(this->database());
-    if (!query.exec("SELECT _id, text, chatID FROM Messages")) {
-        qDebug() << query.lastError().databaseText();
-        qDebug() << query.lastError().driverText();
-    }
-
-    while (query.next())
-    {
-        MsgInfo newMsgInfo;
-        QString text = query.value(1).toString();
-        int chatID = query.value(2).toInt();
-
-        newMsgInfo.text = text;
-        newMsgInfo.chatID = chatID;
-
-        messagesInfo.push_back(newMsgInfo);
-    }
-}
-
-
 void Database::fillChats()
 {
     QSqlQuery query = QSqlQuery(this->database());
@@ -82,17 +60,17 @@ void Database::fillChats()
         std::shared_ptr<Chat> newChat = std::make_shared<Chat>();
         if (chatID == -1)
             if (!query.next()) break;
-        qDebug() << "chatID" << chatID;
+        // qDebug() << "chatID" << chatID;
         while (chatID <= fillChatID) {
             chatID = query.value(2).toInt();
             QString text = query.value(1).toString();
-            qDebug() << "add: " << text;
+            // qDebug() << "add: " << text;
 
             bool fromWho = query.value(3).toBool();
             MyMessage msg(text, fromWho);
             newChat->addMessage(msg);
 
-            qDebug() << "new chatID" << chatID;
+            // qDebug() << "new chatID" << chatID;
             if (!query.next()) break;
         }
         fillChatID = chatID;
@@ -102,7 +80,7 @@ void Database::fillChats()
     }
 
     QSqlQuery query2 = QSqlQuery(this->database());
-    if (!query.exec("SELECT _id, UserID, fromWho FROM Chats")) {
+    if (!query.exec("SELECT _id, UserID FROM Chats")) {
         qDebug() << query.lastError().databaseText();
         qDebug() << query.lastError().driverText();
     }
@@ -113,12 +91,6 @@ void Database::fillChats()
 
         chatsInfo[id]->setUser(findUser(userId));
     }
-
-//    for (auto & value : chatsInfo) {
-//       std::vector<MyMessage> msgs = value->getMessages();
-//       for (auto & msg : msgs)
-//           qDebug() << msg.getMessage();
-      //    }
 }
 
 std::shared_ptr<User> Database::findUser(int index)
