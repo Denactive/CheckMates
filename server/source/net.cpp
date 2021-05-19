@@ -19,7 +19,7 @@ std::string FileLogger::serializeTimePoint(const time_point& time, const std::st
 {
     std::time_t tt = std::chrono::system_clock::to_time_t(time);
     std::tm tm;
-#ifdef _WIN64
+#ifdef _WIN32
     if (localtime_s(&tm, &tt)) //Locale time-zone, usually UTC by default.
         return "undefined_time";
 #else

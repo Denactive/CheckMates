@@ -1,11 +1,5 @@
 #include "Player.h"
-#include "Chesspiece.h"
-#include "iostream"
 
-Player::Player(ChessBoard& board,  bool wb): board(board), king(nullptr),wb(wb){
-    Player::set_pieces();
-    king = static_cast<King *>(pieces[4]);
-};
 
 std::vector<std::array<size_t, M>>  Player::all_available_Moves() {
     moves.clear();

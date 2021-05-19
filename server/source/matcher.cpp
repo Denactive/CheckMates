@@ -3,22 +3,64 @@
 //
 #include "matcher.h"
 
-GameSession& MatcherQueue::start_game() {
+std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1, std::shared_ptr<IUser> p2) {
+    auto GetTurn = []() {
+        std::array<size_t, M> turn;
+        std::cout << "\nenter input\n";
+        std::cin >> turn[0] >> turn[1] >> turn[2] >> turn[3];
+        return turn;
+    };
+
     std::cout << "Matcher: starting a game\n";
     // TODO fill the constructor correctly
-//    GameSession gs = new GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
-    ChessBoard board;
-    board.set_board();
-    Player player1(board, true);
-    Player player2(board, false);
-    TurnControl control;
-GameSession* gs = new GameSession(control, player1, player2);
-    return *gs;
-}
-void MatcherQueue::push_user(IUser* u) {
-    std::cout << "Matcher: pushing user " << u->get_id() << ' ' << u->get_nickname() << "\n";
+    //    GameSession gs = new GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
+    
+    auto game_session = std::make_shared<GameSession>(p1, p2);
+    
+    std::array<size_t, M> turn;
+    GInfo info = game_session->send_info();
+
+    while (info.isGame) {
+        game_session->prepare_turn();
+        // собираем информацию о доступных ходах текущего игрока
+        // местоположении фигур и т.п.
+        // посылаем эту информацию
+        info = game_session->send_info();
+        // посылаем информацию о статусе игры
+        if (!info.isGame) {
+            break;
+        }
+        // выход из цикла, чтобы не вводить следующий ход, если мат
+        turn = GetTurn();
+        // получаем ход - массив из 4 целых size_t.
+        // ¬ качестве параметра передаетс€ в функцию run_turn;
+        int validation = game_session->run_turn(turn);
+        // совершаем ход. возвращаетс€ 0, если ход прин€т, 1 - если не прин€т
+        // тогда снова получаем ход и делаем A.run_turn()
+        if (!validation) {
+            info = game_session->send_info();
+            // отправил —вете
+            std::cout << "valid move\n";
+        }
+
+    }
+    return game_session;
 }
 
-void MatcherQueue::pop_user(IUser* u) {
+void MatcherQueue::push_user(std::shared_ptr<IUser> u) {
+    std::cout << "Matcher: pushing user " << u->get_id() << ' ' << u->get_nickname() << "\n";
+    q_.push(u);
+
+    if (q_.size() == 2) {
+        // startgame
+        auto p1 = q_.front();
+        q_.pop();
+        auto p2 = q_.front();
+        q_.pop();
+        start_game(p1, p2);
+    }
+}
+
+void MatcherQueue::pop_user(std::shared_ptr<IUser> u) {
     std::cout << "Matcher: popping user " << u->get_id() << ' ' << u->get_nickname() << "\n";
 }

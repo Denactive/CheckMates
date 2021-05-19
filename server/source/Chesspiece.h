@@ -34,14 +34,14 @@ private:
 public:
     void Update_King(std::set<std::array<size_t, K>> input) ;
     const size_t* where()  { return position;}
-    King(size_t i, size_t j, ChessBoard& board);
+    King(size_t i, size_t j, std::shared_ptr<ChessBoard> board);
     ~King();
     void move(std::array<size_t, M> turn) {
         position[0] = turn[2];
         position[1] = turn[3];
       //  std::cout << position[0]<< position[1]<< turn[2]<< turn[3];
     }
-    ChessBoard& board;
+    std::shared_ptr<ChessBoard> board;
     void castling();
     std::vector<std::array<size_t, M>> available_moves();
     std::set<std::array<size_t, K>> threatens();
@@ -59,7 +59,7 @@ private:
     std::vector<std::array<size_t, M>> avail_moves;
 public:
     const size_t* where()  { return position;}
-    Queen(size_t i, size_t j, ChessBoard& board): board(board) {
+    Queen(size_t i, size_t j, std::shared_ptr<ChessBoard> board): board(board) {
         position[0] = i;
         position[1] = j;
     };
@@ -67,7 +67,7 @@ public:
         position[0] = turn[2];
         position[1] = turn[3];
     }
-    ChessBoard& board;
+    std::shared_ptr<ChessBoard> board;
     std::vector<std::array<size_t, M>> available_moves();
     std::set<std::array<size_t, K>> threatens();
     void is_captured() {
@@ -88,7 +88,7 @@ private:
     std::set<std::array<size_t, K>> threat;
 public:
     const size_t* where()  { return position;}
-    Bishop(size_t i, size_t j, ChessBoard& board): board(board) {
+    Bishop(size_t i, size_t j, std::shared_ptr<ChessBoard> board): board(board) {
         position[0] = i;
         position[1] = j;
     }
@@ -96,7 +96,7 @@ public:
         position[0] = turn[2];
         position[1] = turn[3];
     }
-    ChessBoard& board;
+    std::shared_ptr<ChessBoard> board;
     std::vector<std::array<size_t, M>> available_moves();
     std::set<std::array<size_t, K>> threatens();
     void is_captured() {
@@ -116,7 +116,8 @@ private:
     std::vector<std::array<size_t, M>> avail_moves;
 public:
     const size_t* where()  { return position;}
-    Rook(size_t i, size_t j, ChessBoard& board): board(board) {
+    Rook(size_t i, size_t j, std::shared_ptr<ChessBoard> board)
+        : board(board) {
         position[0] = i;
         position[1] = j;
     };
@@ -124,7 +125,7 @@ public:
         position[0] = turn[2];
         position[1] = turn[3];
     }
-    ChessBoard& board;
+    std::shared_ptr<ChessBoard> board;
     std::vector<std::array<size_t, M>> available_moves();
     std::set<std::array<size_t, K>> threatens();
     void is_captured() {
@@ -144,7 +145,7 @@ private:
     std::vector<std::array<size_t, M>> avail_moves;
 public:
     const size_t* where()  { return position;}
-    Knight(size_t i, size_t j, ChessBoard& board): board(board) {
+    Knight(size_t i, size_t j, std::shared_ptr<ChessBoard> board): board(board) {
         position[0] = i;
         position[1] = j;
     };
@@ -152,7 +153,7 @@ public:
         position[0] = turn[2];
         position[1] = turn[3];
     }
-    ChessBoard& board;
+    std::shared_ptr<ChessBoard> board;
     std::vector<std::array<size_t, M>> available_moves();
     std::set<std::array<size_t, K>> threatens();
     void is_captured() {
@@ -173,7 +174,7 @@ private:
     std::vector<std::array<size_t, M>>avail_moves;
 public:
     const size_t* where()  { return position;}
-    Pawn(size_t i, size_t j, ChessBoard& board): board(board) {
+    Pawn(size_t i, size_t j, std::shared_ptr<ChessBoard> board): board(board) {
         position[0] = i;
         position[1] = j;
         if (i == 1) {
@@ -188,7 +189,7 @@ public:
         position[1] = turn[3];
     }
 
-    ChessBoard& board;
+    std::shared_ptr<ChessBoard> board;
     std::vector<std::array<size_t, M>> available_moves();
     std::set<std::array<size_t, K>> threatens();
     void is_captured() {

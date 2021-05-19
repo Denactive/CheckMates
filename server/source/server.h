@@ -6,7 +6,7 @@
 #define CHECKMATES_SERVER_H
 
 #include "net.h"
-#include "matcher.h"
+//#include "matcher.h"
 // matcher contains GameSession (starts games)
 // GameSession contains Player, which contains User
 // User contains Community
@@ -49,10 +49,9 @@ public:
 
 class Server {
 public:
-    Server(Options opts, std::shared_ptr<IFormat> format, std::shared_ptr<IMatcherQueue> matcher_queue)
+    Server(Options opts, std::shared_ptr<IFormat> format)
         : opts_(opts)
         , format_(format)
-        , mq_(matcher_queue)
     {
     }
 
@@ -65,7 +64,6 @@ public:
 private:
 
     Options opts_;
-    std::shared_ptr<IMatcherQueue> mq_;
     std::shared_ptr<IFormat> format_;
     bool started_ = false;
 };
@@ -84,6 +82,9 @@ class Listener : public std::enable_shared_from_this<Listener>
     std::shared_ptr<IFormat> format_;
 
 public:
+    // TODO: mutex
+    size_t token_cnt = 0;
+
     Listener(
         asio::io_context& ioc,
         tcp::endpoint endpoint,
