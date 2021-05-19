@@ -2,30 +2,33 @@
 #include "include/windows/mainwindow.h"
 
 MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(parent), db(db) {
+    setStyleSheet("background-image: url(../img/background2.jpg); background-color: #EDECEA;");
     main = new QStackedWidget();
     mainLayout = new QVBoxLayout();
 
-    GameWindow *gameWindow = new GameWindow(this, main);
-
     // get data from database
-    std::vector<UserInfo> usrsInfo = db->getUsersData();
-    std::vector<std::shared_ptr<Chat>> chatsInfo = db->getChats();
+    usrsInfo = db->getUsersData(); // все пользователи для регистрации, получаем отсортированных по рейтингу
+    frnsInfo = db->getUsersData(); // друзья регистрируемого игрока, должен заполниться после login, пока заглушка
+    std::shared_ptr<GameInfo> gameInfo = db->getGameInfo();
+    qDebug() << "point" << gameInfo->isCheck;
+
     std::vector<std::shared_ptr<User>> friendsInfo;
+    std::vector<std::shared_ptr<Chat>> chatsInfo = db->getChats();
 
     for (int i = 0; i < int(usrsInfo.size()); ++i) {
         std::shared_ptr<User> newUser = std::make_shared<User>(usrsInfo[i].name, usrsInfo[i].rating,
-                         usrsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
+                         frnsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
         friendsInfo.push_back(newUser);
     }
 
-//    qDebug() << "chats" << chatsInfo.size();
-//    for (auto & value : chatsInfo) {
-//       std::vector<MyMessage> msgs = value->getMessages();
-//       if (!msgs.size()) qDebug() << "not messages in chat";
+    /*qDebug() << "chats" << chatsInfo.size();
+    for (auto & value : chatsInfo) {
+       std::vector<MyMessage> msgs = value->getMessages();
+       if (!msgs.size()) qDebug() << "not messages in chat";
 
-//       for (auto & msg : msgs)
-//           qDebug() << msg.getMessage();
-//    }
+       for (auto & msg : msgs)
+          qDebug() << msg.getMessage();
+    }*/
 
     for (int i = 0; i < 5 && i < int(usrsInfo.size()); ++i) {
         std::shared_ptr<User> newUser = std::make_shared<User>(usrsInfo[i].name, usrsInfo[i].rating,
@@ -34,17 +37,10 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
         topUsersInfo.push_back(newUser);
     }
 
-
-    infoAboutMe = std::make_shared<User>();
-    infoAboutMe->setName(usrsInfo[0].name);
-    infoAboutMe->setLogin(usrsInfo[0].login);
-    infoAboutMe->setPassword(usrsInfo[0].password);
-    infoAboutMe->setUserPhoto(usrsInfo[0].photoPath);
-    infoAboutMe->changeRating(usrsInfo[0].rating);
-
-    if (DEBUGDATA) qDebug() << "current user: " << infoAboutMe->getName();
+    setRegisterUser(gameInfo->meId);
     // end of get data
 
+    GameWindow *gameWindow = new GameWindow(this, main, gameInfo);
     MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo);
 
     SettingsWindow *settingsWindow = new SettingsWindow(this, main, infoAboutMe);
@@ -62,7 +58,6 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
 
     setLayout(mainLayout);
     setWindowTitle("Main");
-    setStyleSheet("background-color: lightblue;");
 }
 
 MainWindow::~MainWindow()
@@ -75,7 +70,9 @@ void MainWindow::drawTop()
      QHBoxLayout *topLayout = new QHBoxLayout();
 
      QLabel * gameName = new QLabel("SaberChess");
-     gameName->setStyleSheet("font-weight: bold; color: darkblue; font-size:26px;");
+     gameName->setStyleSheet("font-weight: bold; color: #464545; font-size:26px; font-family: 'LucidaGrande'; ");
+
+     MyButton* community = createButton("Community", SLOT(communityClicked()));
 
      topUsers = new QComboBox(this);
 
@@ -84,32 +81,62 @@ void MainWindow::drawTop()
      }
      //connect(topUsers, SIGNAL(clicked()), this, SLOT(topPlayersClicked()));
 
-     MyButton* community = createButton("Community", SLOT(communityClicked()));
      MyButton* settings = createButton("Settings", SLOT(settingsClicked()));
 
      topLayout->addWidget(gameName);
-     topLayout->addWidget(topUsers);
      topLayout->addWidget(community);
+     topLayout->addWidget(topUsers);
      topLayout->addWidget(settings);
 
-     if (infoAboutMe) {
-        QHBoxLayout *settingsLayout = new QHBoxLayout();
-        settingsLayout->setAlignment(Qt::AlignRight);
+     authorizerIs = new QWidget();
+     authorizerNo = new QWidget();
 
-        settingsLayout->addWidget(new QLabel(infoAboutMe->getName()));
-        PhotoWidget *userPhoto = new PhotoWidget(infoAboutMe->getUserPhoto(), QSize(50,50));
-        settingsLayout->addWidget(userPhoto);
+     // is authorizer
+     QHBoxLayout * authorizeIsLayout = new QHBoxLayout();
+     QVBoxLayout *settingsLayout = new QVBoxLayout();
+     settingsLayout->setAlignment(Qt::AlignRight);
 
-        topLayout->addLayout(settingsLayout);
-     }
+     PhotoWidget *userPhoto = new PhotoWidget(infoAboutMe->getUserPhoto(), QSize(50,50));
+     settingsLayout->addWidget(userPhoto);
+     settingsLayout->addWidget(new QLabel(infoAboutMe->getName()));
+
+     MyButton* logout = createButton("Log out", SLOT(logoutClicked()));
+
+     authorizeIsLayout->addLayout(settingsLayout);
+     authorizeIsLayout->addWidget(logout);
+
+     // no authorizer
+     QHBoxLayout * authorizerContainer = new QHBoxLayout();
+
+     MyButton* login = createButton("Log in", SLOT(loginClicked()));
+     MyButton* reg = createButton("Register", SLOT(registrClicked()));
+//     login->addStyle("height: " + QString::number(double(community->sizeHint().height())) + "px; ");
+//     reg->addStyle("height: " + QString::number(double(community->sizeHint().height())) + "px; ");
+
+     QLabel * margin = new QLabel();
+     margin->setStyleSheet("width: 50px;");
+     authorizerContainer->addWidget(margin);
+     authorizerContainer->addWidget(login);
+     authorizerContainer->addWidget(reg);
+
+     authorizerIs->setLayout(authorizeIsLayout);
+     authorizerNo->setLayout(authorizerContainer);
+
+     topLayout->addWidget(authorizerIs);
+     topLayout->addWidget(authorizerNo);
+
+     if (!infoAboutMe)
+         authorizerIs->hide();
+     else
+         authorizerNo->hide();
 
      // some design correct
-     topUsers->setStyleSheet("height: " + QString::number(community->sizeHint().height()) + "; text-align:center;");
      topUsers->setEditable(true);
      topUsers->lineEdit()->setReadOnly(true);
      topUsers->lineEdit()->setText("TOP PLAYERS");
      topUsers->lineEdit()->setAlignment(Qt::AlignCenter);
-
+     topUsers->setStyleSheet("height: " + QString::number(community->sizeHint().height() + 30) + "; text-align:center; \
+            background-color: #ACCCC4; border: 2px solid #464545; border-radius: 10%");
 
      mainLayout->addLayout(topLayout);
 }
@@ -131,6 +158,20 @@ void MainWindow::drawBottom()
     bottomLayout->addWidget(exit);
 
     mainLayout->addLayout(bottomLayout);
+}
+
+void MainWindow::setRegisterUser(int index)
+{
+    if (usrsInfo.size() > 0) {
+        infoAboutMe = std::make_shared<User>();
+        infoAboutMe->setName(usrsInfo[index].name);
+        infoAboutMe->setLogin(usrsInfo[index].login);
+        infoAboutMe->setPassword(usrsInfo[index].password);
+        infoAboutMe->setUserPhoto(usrsInfo[index].photoPath);
+        infoAboutMe->changeRating(usrsInfo[index].rating);
+
+        if (DEBUGDATA) qDebug() << "current user: " << infoAboutMe->getName();
+    }
 }
 
 void MainWindow::onSearchChatClicked()
@@ -182,6 +223,31 @@ void MainWindow::exitClicked()
 {
     this->close();
     //QApplication::quit();
+}
+
+void MainWindow::logoutClicked()
+{
+    QMessageBox::StandardButton reply =
+            QMessageBox::question(this, "Logout", "Если вы действительно хотите выйти из аккаунта, нажмите ОК", QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        infoAboutMe = nullptr;
+        authorizerIs->hide();
+        authorizerNo->show();
+    }
+}
+
+void MainWindow::loginClicked()
+{
+    setRegisterUser(0);
+    authorizerIs->show();
+    authorizerNo->hide();
+}
+
+void MainWindow::registrClicked()
+{
+    setRegisterUser(0);
+    authorizerIs->show();
+    authorizerNo->hide();
 }
 
 MyButton *MainWindow::createButton(const QString &text, const char *member)

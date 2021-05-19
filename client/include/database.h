@@ -12,28 +12,30 @@
 #include "../include/community.h"
 #define DEBUGDATA 0
 
-struct UserInfo {
+typedef struct {
     QString name;
     QString login;
     QString password;
     QString photoPath;
     int rating;
-};
+} UserInfo;
 
-struct MsgInfo {
+typedef struct {
     QString text;
     int chatID;
-};
+} MsgInfo;
 
-struct GameInfo {
+typedef struct {
+    int meId;
+    int opponentId;
     bool currentPlayer; // true - me, false - opponent
     bool isCheck; // true - is shax
     bool isGame; // false - quit game
     int isVictory; // 0 - draw, 1 - me, 2 - opponent
     int lastFigurePos; // [0-63]
     int newFigurePos;
-    int figuresID;
-};
+    int movesID; // доступные ходы
+} GameInfo;
 
 class IDatabase {
     virtual void setUserDataFromQuery() = 0;
@@ -50,9 +52,13 @@ public:
     std::vector<std::shared_ptr<Chat>> getChats() { return chatsInfo; }
     std::shared_ptr<User> findUser(int index);
 
+    void setGameInfoFromQuery();
+    std::shared_ptr<GameInfo> getGameInfo() { qDebug() << "gm info " << gameInfo->isCheck; return gameInfo; }
+
 private:
     std::vector<UserInfo> usrInfo;
     std::vector<std::shared_ptr<Chat>> chatsInfo;
+    std::shared_ptr<GameInfo> gameInfo;
 };
 
 struct Stats {

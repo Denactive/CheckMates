@@ -25,6 +25,7 @@ class SettingsWindow : public QWidget, public ISettingsWindow {
     Q_OBJECT
 public:
     SettingsWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, std::shared_ptr<User> user = std::make_shared<User>());
+    void addSettings(QString labelText, QString changeItem);
     void drawUserSettings() override {}
     bool changeSettings() override { return true; }
     bool saveSettings() override { return true; }
@@ -32,11 +33,15 @@ public:
 
 public slots:
     void backToMenu();
+    void changeUserName();
 private:
     QStackedWidget * main;
     std::shared_ptr<User> user;
 
     QVBoxLayout *settings;
+
+    QLabel *userName;
+    QLineEdit *changeName;
 };
 
 #endif // SETTINGSWINDOW_H

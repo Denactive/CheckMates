@@ -9,9 +9,12 @@
 #include <QGridLayout>
 #include <QWidget>
 #include <QFrame>
+#include <QStackedWidget>
+#include <QMessageBox>
 
 #include "include/cell.h"
 #include "include/figures.h"
+#include "include/database.h"
 
 class IChessBoard {
     virtual void arrangeFigures() = 0;
@@ -23,7 +26,7 @@ class ChessBoard : public QWidget,  public IChessBoard
 {
     Q_OBJECT
 public:
-    ChessBoard(bool kingUnderMat = true, bool isPlayer = true, int newSize = 0, QWidget * parent = nullptr);
+    ChessBoard(QStackedWidget * main = nullptr, std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(), int newSize = 0, QWidget * parent = nullptr);
     void arrangeFigures() override;;
     int getSize() const override { return size; }
     void setSize(int newSize) { size = newSize; }
@@ -34,13 +37,15 @@ private slots:
     void cellClicked();
 
 private:
+    QStackedWidget * main;
     QGridLayout *mainLayout;
     Cell* m_cells[64];
     Cell *clickCell;
     int size;
 
-    bool isPlayer; // true - you, false - friend
-    bool kingUnderMat;
+    // bool isPlayer; // true - you, false - friend
+    // bool kingUnderMat;
+    std::shared_ptr<GameInfo> gameInfo;
     int kingPos;
 
     Cell* createCell(const QString &color, int x, int y, const char *member);

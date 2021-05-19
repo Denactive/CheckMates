@@ -51,8 +51,9 @@ void MenuWindow::drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) {
         addChat(i, chatInfo);
     }
 
-    for (auto & chatValue : chats) {
-        chatsLayout->addWidget(chatValue);
+    for (int i = 0; i < 5; ++i) {
+        if (i < chats.size()) chatsLayout->addWidget(chats[i]);
+        else chatsLayout->addWidget(new QWidget());
     }
 
     //chatsLayoutWidget->setLayout(chatsLayout);
@@ -90,6 +91,7 @@ void MenuWindow::drawMiddle()
         QSize photoSize(playButton->width(), playButton->height());
         QPixmap preview = photo.scaled(photoSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         previewLabelImage->setPixmap(preview);
+        previewLabelImage->setStyleSheet("border: 2px solid #464545; border-radius: 10%;");
         if (DEBUG) qDebug() << "file preview set";
     }
     else {
@@ -146,7 +148,7 @@ void MenuWindow::drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) {
 
     if (DEBUG) qDebug() << "f size: " << friendsInfo.size();
 
-    for (size_t i = 0; i < friendsInfo.size(); ++i) {
+    for (size_t i = 0; i < friendsInfo.size() || i < 5; ++i) {
         addFriend(i, friendsInfo);
     }
 
@@ -182,7 +184,7 @@ void MenuWindow::chooseFriend()
 void MenuWindow::chooseChat()
 {
     qDebug() << "menu -> chat";
-    ChatButton *btn = (ChatButton*) sender();
+    FrameButton *btn = (FrameButton*) sender();
 
     ChatWindow *chatWindow = new ChatWindow(this, main, btn->getChat());
     main->insertWidget(4, chatWindow);
@@ -196,10 +198,7 @@ void MenuWindow::changeMatching()
 
 void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> friendsInfo)
 {
-    QFrame *newFriend = new QFrame();
-    newFriend->setFrameStyle(QFrame::Panel);
-    newFriend->setFrameShadow(QFrame::Raised);
-    newFriend->setLineWidth(2);
+    FrameButton *newFriend = new FrameButton();
 
     QHBoxLayout *friendLayout = new QHBoxLayout();
 
@@ -229,7 +228,7 @@ void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> frie
 
 void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatInfo)
 {
-    ChatButton *chat = new ChatButton();
+    FrameButton *chat = new FrameButton();
 
     QHBoxLayout *chatLayout = new QHBoxLayout();
 
@@ -250,7 +249,6 @@ void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatIn
     chatLayout->addWidget(lastMessage);
 
     chat->setLayout(chatLayout);
-
 
 
     chats.push_back(chat);

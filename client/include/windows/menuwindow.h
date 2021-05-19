@@ -63,8 +63,8 @@ private:
     QLineEdit *searchChatLine;
     QLineEdit *searchFriendLine;
 
-    QList<ChatButton*> chats; // info from Chat
-    QList<QFrame*> friends; // info from User
+    QList<FrameButton*> chats; // info from Chat
+    QList<FrameButton*> friends; // info from User
 
     int choosenFriendIndex;
     QCheckBox *choosenFriend;

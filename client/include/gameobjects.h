@@ -8,7 +8,12 @@
 #include <QObject>
 #include <QLabel>
 #include <QPushButton>
+#include <QPalette>
+#include <QListWidget>
+#include <QListWidgetItem>
+#include <QList>
 #include <memory>
+#include <QGraphicsDropShadowEffect>
 
 #include "community.h"
 
@@ -19,15 +24,18 @@ public:
     MyButton(const QString & text = "", QWidget *parent = nullptr);
 
     QSize sizeHint() const override;
+    void addStyle(QString newStyle);
+private:
+    QString style;
 };
 
-class ChatButton :  public QFrame
+class FrameButton :  public QFrame
 {
     Q_OBJECT
 signals:
     void clicked();
 public:
-    ChatButton(QWidget *parent = nullptr, std::shared_ptr<Chat> chat = std::make_shared<Chat>());
+    FrameButton(QWidget *parent = nullptr, std::shared_ptr<Chat> chat = std::make_shared<Chat>());
 
     void mousePressEvent(QMouseEvent *event);
     std::shared_ptr<Chat> getChat() { return chat; }
@@ -68,5 +76,13 @@ class LabelImage: public QLabel {
     QSize _size;
 };
 
+//class ChatItem : public QListWidgetItem
+//{
+//    Q_OBJECT
+//public:
+//    ChatItem(QString text = "");
+//private:
+//    QString text;
+//};
 
 #endif // GAMEOBJECTS_H

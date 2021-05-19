@@ -8,6 +8,8 @@ MyButton::MyButton(const QString &text, QWidget *parent) :QToolButton(parent)
 {
     setText(text);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    style = "background-color: #ACCCC4; border: 2px solid #464545; border-radius: 10%; ";
+    setStyleSheet(style);
 }
 
 QSize MyButton::sizeHint() const
@@ -16,6 +18,12 @@ QSize MyButton::sizeHint() const
     size.rheight() += 30;
     size.rwidth() = qMax(size.width(), size.height());
     return size;
+}
+
+void MyButton::addStyle(QString newStyle)
+{
+    style += newStyle;
+    setStyleSheet(style);
 }
 
 PhotoWidget::PhotoWidget(QPixmap photo, QSize size, QWidget *parent)
@@ -34,15 +42,16 @@ QSize PhotoWidget::sizeHint() const
     return this->size;
 }
 
-ChatButton::ChatButton(QWidget *parent, std::shared_ptr<Chat> chat)
+FrameButton::FrameButton(QWidget *parent, std::shared_ptr<Chat> chat)
     :QFrame(parent), chat(chat)
 {
-    this->setFrameStyle(QFrame::Panel);
+    this->setStyleSheet("background-color: #E2DFD8;");
+    this->setFrameStyle(QFrame::Box);
     this->setFrameShadow(QFrame::Raised);
-    this->setLineWidth(2);
+    this->setLineWidth(3);
 }
 
-void ChatButton::mousePressEvent(QMouseEvent *event)
+void FrameButton::mousePressEvent(QMouseEvent *event)
 {
     emit clicked();
 }
@@ -72,3 +81,8 @@ void LabelImage::setPixmap(const QPixmap &qPixmap, const QSize &size)
   _qPixmapScaled = _qPixmap.scaled(size, Qt::KeepAspectRatio);
   QLabel::setPixmap(_qPixmapScaled);
 }
+
+//ChatItem::ChatItem(QString text) :text(text)
+//{
+//    QListWidgetItem::setText(text);
+//}

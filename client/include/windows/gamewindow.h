@@ -16,7 +16,7 @@
 #include "include/figures.h"
 #include "include/gameobjects.h"
 #include "include/chessboard.h"
-
+#include "include/database.h"
 
 class IGameWindow {
 
@@ -33,7 +33,8 @@ class GameWindow :  public QWidget, public IGameWindow {
     Q_OBJECT
 
 public:
-    GameWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, bool isPlayer = true, bool isKingUnderMat = false);
+    GameWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>());
+    void checkGame();
     bool moveFigure(Figure *figure) override { return true; };
     QWidget* drawGameChat();
     void drawGameTop();
@@ -47,9 +48,11 @@ public slots:
     void slotTimerAlarm();
 
 private:
-    bool isPlayer; // true - action (check cell) from you, false - action (check cell) from friend
-    bool isOfferDraw; // if false -> back to menu (after action surrender or offer Draw) - тут скорее принял друг предложение о ничье или нет
-    bool isKingUnderMat;
+    std::shared_ptr<GameInfo> gameInfo;
+
+    //bool isPlayer; // true - action (check cell) from you, false - action (check cell) from friend
+    //bool isOfferDraw; // if false -> back to menu (after action surrender or offer Draw) - тут скорее принял друг предложение о ничье или нет
+    //bool isKingUnderMat;
 
     QStackedWidget * main;
     QVBoxLayout *game;
