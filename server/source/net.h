@@ -3,14 +3,11 @@
 
 #define TIMEOUT_DELAY 30  // (s)
 #define BASIC_DEBUG 0
-#define START_GAME_IMITATION 1
+#define START_GAME_IMITATION 0
 
 #ifdef _WIN64
 #define _WIN64_WINNT 0x0A00
 #endif
-
-//#ifndef BOOST_BEAST_HTTP_STRING_BODY_HPP
-//#define BOOST_BEAST_HTTP_STRING_BODY_HPP
 
 #define BOOST_DATE_TIME_NO_LIB
 
@@ -28,7 +25,7 @@
 #include <filesystem>
 
 #include <chrono>
-#include <ctime> 
+#include <ctime>
 
 #include <algorithm>
 #include <cstdlib>
@@ -299,7 +296,7 @@ public:
                 class Fields = fields>      // The type of container to store the fields
                 class message;
 
-            /* Construct a message.
+             Construct a message.
 
                 @param body_args A tuple forwarded as a parameter
                 pack to the body constructor.

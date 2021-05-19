@@ -6,8 +6,12 @@ int main() {
     
     // common data
     const std::string ServerName("SaberLion-Devs");
-    const std::string IP("127.0.0.1");
-    std::string storage_root("../../storage");
+//    const std::string IP("127.0.0.1");
+    const std::string IP("192.168.1.26");
+    std::string storage_root = "../storage";
+#ifdef _WIN64
+    storage_root = "../../storage";
+#endif
     //const std::string IP("25.40.253.246");
     
     std::string http_logger(storage_root + "/http_logs/");

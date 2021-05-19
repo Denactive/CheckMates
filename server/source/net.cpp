@@ -19,8 +19,12 @@ std::string FileLogger::serializeTimePoint(const time_point& time, const std::st
 {
     std::time_t tt = std::chrono::system_clock::to_time_t(time);
     std::tm tm;
-//    if (localtime_s(&tm, &tt)) //Locale time-zone, usually UTC by default.
-//    return "undefined_time";
+#ifdef _WIN64
+    if (localtime_s(&tm, &tt)) //Locale time-zone, usually UTC by default.
+        return "undefined_time";
+#else
+    localtime_r(&tt, &tm); //Locale time-zone, usually UTC by default.
+#endif
     char mbstr[64];
     std::stringstream ss;
 
@@ -77,7 +81,7 @@ void FileLogger::close() {
 }
 
 
-// =======================[ Затычки ]=========================
+// =======================[ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ ]=========================
 
 //template <typename Serializer>
 //void HTTP_format<Serializer>::authorize_handler() {

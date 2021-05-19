@@ -1,0 +1,8 @@
+|   s0me russian text   |
+V                       V
+
+	Это тест
+	  и да, 
+      это по-русски
+
+[  This is a test (Eng) ]

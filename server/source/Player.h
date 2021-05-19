@@ -29,11 +29,11 @@ public:
 
 class Player: public IPlayer {
 private:
-    bool wb;
+    bool wb = false;
     std::vector<std::array<size_t, M>> moves;
     std::set<std::array<size_t, K>> threats;
     ChessBoard& board;
-    King* king;
+    King* king = NULL;
 public:
     size_t try_capture(std::array<size_t, M> turn);
     std::vector<std::array<size_t, M>>& access() {
