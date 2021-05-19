@@ -17,7 +17,7 @@ void Client::getData(char const* host, int port, char const* target)
     url.setHost(host);
     url.setPort(port);
     url.setScheme("http");
-    //url.setPath(target);
+    url.setPath(target);
     qDebug() << url;
 
     QNetworkReply *reply = manager.get(QNetworkRequest(url));
@@ -39,7 +39,21 @@ void Client::readyRead()
     qInfo() << "ready to read";
 
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-    if (reply) qInfo() << reply->readAll();
+    if (reply->error()) {
+        qDebug() << "Reply error";
+    } else {
+        //qInfo() << reply->readAll();
+        QFile *file = new QFile("../../storage/getdata.txt");
+        if (file->open(QFile::WriteOnly)) {
+            file->write(reply->readAll());
+            file->close();
+        } else {
+            qDebug() << "file not open";
+        }
+    }
+
+    qDebug() << "Data is get";
+    emit onReady();
 }
 
 void Client::authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator)

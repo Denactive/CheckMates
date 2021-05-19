@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     auto const port = 8000;
     //auto const host = "25.40.253.246";
     auto const host = "127.0.0.1";
-    auto const target = "/test1.txt";
+    auto const target = "/test.txt";
 
     client->getData(host, port, target);
 

@@ -11,6 +11,7 @@
 #include <QNetworkRequest>
 #include <QAuthenticator>
 #include <QNetworkProxy>
+#include <QFile>
 
 #include "include/community.h"
 #include "include/chessboard.h"
@@ -26,6 +27,7 @@ public:
     Client(QObject *parent = nullptr);
 
 signals:
+    void onReady();
 
 public slots:
     void getData(char const* host, int port, char const* target);
