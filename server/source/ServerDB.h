@@ -22,7 +22,7 @@ public:
     void write(std::string q) {filepath_ = q;};
 private :
     std::string filepath_;
-    std::string fileDB() {return 0;};
+    std::string fileDB() { return ""; }
 };
 
 #endif //CHECKMATES_SERVERDB_H

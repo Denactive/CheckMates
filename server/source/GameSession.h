@@ -5,8 +5,6 @@
 #ifndef CHESS_GAMESESSION_H
 #define CHESS_GAMESESSION_H
 
-
-//#include "Chesspiece.h"
 #include "ChessBoard.h"
 #include "Player.h"
 
@@ -88,7 +86,7 @@ private:
     GInfo info;
 };
 
-class GameSessionComparator {
+struct GameSessionComparator {
     bool operator()(const std::shared_ptr<GameSession>& lhs, const std::shared_ptr<GameSession>& rhs) const {
         if (lhs->token < rhs->token)
             return true;

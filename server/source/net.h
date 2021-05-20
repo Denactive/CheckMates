@@ -81,7 +81,6 @@ public:
 
 // =======================[ Logger ]=========================
 
-class Session;
 
 class ILogger {
 public:
@@ -187,6 +186,7 @@ class Session : public std::enable_shared_from_this<Session>
     std::shared_ptr<IFormat> format_;
     send_lambda lambda_;
     const std::shared_ptr<ILogger> logger_;
+    std::shared_ptr<UserSet>& active_users_;
 
 public:
     size_t token = 0;
@@ -196,12 +196,14 @@ public:
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
         std::shared_ptr<std::string const> const& log_dir,
-        std::shared_ptr<IFormat>& format
+        std::shared_ptr<IFormat>& format,
+        std::shared_ptr<UserSet>& active_users
     )
         : stream_(std::move(socket))
         , doc_root_(doc_root)
         , logger_(std::make_shared<FileLogger>(log_dir))
         , format_(format)
+        , active_users_(active_users)
         , lambda_(*this)
     {
     }
@@ -210,7 +212,10 @@ public:
     //(std::string) {
     //
     //}
-
+    void expire_cookie(size_t cookie) {
+        std::cout << "\tCookie " << cookie << " expired!\n";
+        
+    }
     // Start the asynchronous operation
     void run() {
         if (BASIC_DEBUG) std::cout << "session run\n";
@@ -481,7 +486,8 @@ class HTTP_format: public IFormat {
 public:
 
     HTTP_format() = delete;
-    HTTP_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
+    //HTTP_format(asio::io_context ioc, const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
+     HTTP_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
         : serializer_(serializer) 
         , mq_(matcher_queue)
     {
@@ -494,7 +500,18 @@ public:
         , Session& session
     ) override {
         std::cout << "HTTP-handler: Got an request!" << std::endl;
+
+        std::cout << "\tTimer test!" << std::endl;
+        auto ioc_ = std::make_shared<asio::io_context>();
+        asio::steady_timer timer{ *ioc_, std::chrono::seconds{5} };
+        int val = 5;
+        timer.async_wait([&val](const boost::system::error_code& ec) {
+            std::cout << "5 seconds passed\n";
+            });
+        ioc_->run();
+
         std::string logging_data;
+
         // Returns a bad request response
         auto const bad_request =
             [&req](beast::string_view why)
@@ -651,11 +668,14 @@ public:
                 if (!session.user) {
                     // TODO send message unauthorised
                     std::cout << "unauthorised\n";
-                    session.user = std::make_shared<User>(send);
+                    session.user = std::make_shared<User>();
                     session.user->get_info();
                     mq_->push_user(session.user);
                 }
-                content = "Game start:\nplayers: Player1, Player2\n";
+                if (mq_->push_user(session.user))
+                    content = "Successfully added to matching queue\n";
+                else
+                    content = "Failed to adde to matching queue\n";
                 size = content.size();
             }
             
@@ -739,7 +759,9 @@ private:
 
     std::shared_ptr<ISerializer> serializer_;
     std::shared_ptr<IMatcherQueue> mq_;
-    const std::string type = "http";
+    std::shared_ptr<std::set<User, UserComparator>> users_;
+    const std::string type_ = "http";
+    //asio::io_context ioc_;
 };
 
 

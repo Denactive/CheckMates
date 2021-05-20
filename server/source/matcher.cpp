@@ -20,6 +20,7 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1,
     game_session->token = active_games_cnt;
     games_.insert(game_session);
 
+    // todo: send redirect message
     
     std::array<size_t, M> turn;
     GInfo info = game_session->send_info();
@@ -56,7 +57,7 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1,
     return game_session;
 }
 
-void MatcherQueue::push_user(std::shared_ptr<IUser> u) {
+bool MatcherQueue::push_user(std::shared_ptr<IUser> u) {
     std::cout << "Matcher: pushing user " << u->get_id() << ' ' << u->get_nickname() << "\n";
     q_.push(u);
 
@@ -66,10 +67,15 @@ void MatcherQueue::push_user(std::shared_ptr<IUser> u) {
         q_.pop();
         auto p2 = q_.front();
         q_.pop();
+
+        // TODO: increase player timers
         start_game(p1, p2);
     }
+
+    return true;
 }
 
-void MatcherQueue::pop_user(std::shared_ptr<IUser> u) {
+bool MatcherQueue::pop_user(std::shared_ptr<IUser> u) {
     std::cout << "Matcher: popping user " << u->get_id() << ' ' << u->get_nickname() << "\n";
+    return true;
 }

@@ -29,6 +29,10 @@ IChat* User::create_chat(std::set<uid> members) {
     return chat;
 };
 
+struct Cookie {
+    time_t expires_at = 0;
+};
+
 //
 //  Authorizer
 //

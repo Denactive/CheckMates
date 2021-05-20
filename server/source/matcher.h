@@ -9,8 +9,8 @@
 class IMatcherQueue {
 public:
     virtual std::shared_ptr<GameSession> start_game(std::shared_ptr<IUser> p1, std::shared_ptr<IUser> p2) = 0;
-    virtual void push_user(std::shared_ptr<IUser> u) = 0;
-    virtual void pop_user(std::shared_ptr<IUser> u) = 0;
+    virtual bool push_user(std::shared_ptr<IUser> u) = 0;
+    virtual bool pop_user(std::shared_ptr<IUser> u) = 0;
 };
 
 class MatcherQueue: public IMatcherQueue {
@@ -24,8 +24,8 @@ public:
     }
 
     std::shared_ptr<GameSession> start_game(std::shared_ptr<IUser> p1, std::shared_ptr<IUser> p2) override;
-    void push_user(std::shared_ptr<IUser> u) override;
-    void pop_user(std::shared_ptr<IUser> u) override;
+    bool push_user(std::shared_ptr<IUser> u) override;
+    bool pop_user(std::shared_ptr<IUser> u) override;
 
     size_t active_games_cnt = 0;
 
