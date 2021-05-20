@@ -16,6 +16,10 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1,
     //    GameSession gs = new GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
     
     auto game_session = std::make_shared<GameSession>(p1, p2);
+    active_games_cnt++;
+    game_session->token = active_games_cnt;
+    games_.insert(game_session);
+
     
     std::array<size_t, M> turn;
     GInfo info = game_session->send_info();

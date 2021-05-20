@@ -45,6 +45,7 @@ public:
     std::shared_ptr<IPlayer> wPlayer;
     std::shared_ptr<IPlayer> bPlayer;
     std::shared_ptr<ChessBoard> board;
+    size_t token = 0;
 
     GameSession (
         std::shared_ptr<IUser> player1, std::shared_ptr<IUser> player2)
@@ -87,6 +88,14 @@ private:
     GInfo info;
 };
 
+class GameSessionComparator {
+    bool operator()(const std::shared_ptr<GameSession>& lhs, const std::shared_ptr<GameSession>& rhs) const {
+        if (lhs->token < rhs->token)
+            return true;
+        else
+            return false;
+    }
+};
 
 
 #endif //CHESS_GAMESESSION_H

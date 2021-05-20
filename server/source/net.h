@@ -81,6 +81,7 @@ public:
 
 // =======================[ Logger ]=========================
 
+class Session;
 
 class ILogger {
 public:
@@ -650,7 +651,7 @@ public:
                 if (!session.user) {
                     // TODO send message unauthorised
                     std::cout << "unauthorised\n";
-                    session.user = std::make_shared<User>(session);
+                    session.user = std::make_shared<User>(send);
                     session.user->get_info();
                     mq_->push_user(session.user);
                 }

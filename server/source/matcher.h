@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <queue>
+#include <set>
 
 #include "GameSession.h"
 
@@ -26,10 +27,13 @@ public:
     void push_user(std::shared_ptr<IUser> u) override;
     void pop_user(std::shared_ptr<IUser> u) override;
 
+    size_t active_games_cnt = 0;
+
 private:
     // todo: learn more about std::queue
     //std::vector< std::queue<std::shared_ptr<IUser>> > q_;
     std::queue<std::shared_ptr<IUser>> q_;
+    std::set<std::shared_ptr<GameSession>, GameSessionComparator> games_;
 };
 
 

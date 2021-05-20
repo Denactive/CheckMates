@@ -1,11 +1,27 @@
 #ifndef SERVER_USER_H
 #define SERVER_USER_H
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/http/type_traits.hpp>
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/strand.hpp>
+#include <boost/config.hpp>
 
+namespace beast = boost::beast;          // from <boost/beast.hpp>
+namespace http = beast::http;            // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket;  // from <boost/beast/websocket.hpp>
+namespace asio = boost::asio;            // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
+using time_point = std::chrono::system_clock::time_point;
+namespace fs = std::filesystem;
 #include <vector>
+#include <functional>
 
 #define TEST_USER 1
 
-class Session;
+class WebSocketSession;
 
 //#include "net.h"
 #include "community.h"
@@ -69,8 +85,11 @@ public:
 
 class User: public IUser {
 public:
-    User(Session& session)
-        : session_(session)
+
+    std::function< void (http::message<false, http::string_body, http::fields>) > confirm_game_start_;
+
+    User(std::function<void(http::message<false, http::string_body, http::fields>)> send)
+        : confirm_game_start_(send)
     {
         if (TEST_USER) {
             id_ = 1;
@@ -96,7 +115,7 @@ public:
 
 private:
 
-    Session& session_;
+    WebSocketSession& session_;
     uid id_;
     StatsAgregator stats_getter_;
     std::string nickname_;
@@ -107,14 +126,14 @@ private:
 
 class IAuthorizer {
 public:
-    virtual IUser* authorize(Session& con, IDBServer& db) = 0;
-    virtual IUser* registrate(Session& con, IDBServer& db) = 0;
+    virtual IUser* authorize(WebSocketSession& con, IDBServer& db) = 0;
+    virtual IUser* registrate(WebSocketSession& con, IDBServer& db) = 0;
 };
 
 class Authorizer: public IAuthorizer {
 public:
-    IUser* authorize(Session& con, IDBServer& db) override;
-    IUser* registrate(Session& con, IDBServer& db) override;
+    IUser* authorize(WebSocketSession& con, IDBServer& db) override;
+    IUser* registrate(WebSocketSession& con, IDBServer& db) override;
 };
 
 #endif //SERVER_USER_H
