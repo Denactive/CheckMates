@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <functional>
-
+#include <memory>
 #define TEST_USER 1
 
 class WebSocketSession;

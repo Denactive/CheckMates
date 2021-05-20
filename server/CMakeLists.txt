@@ -30,6 +30,7 @@ add_executable(${PROGRAM_NAME}
         source/GameSession.cpp
         test/reSerializer.h
         source/Player.cpp
+        source/User.cpp
         source/King.cpp
         source/TurnControl.cpp
         source/ChessBoard.cpp
