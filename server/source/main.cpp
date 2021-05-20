@@ -22,8 +22,8 @@ int main() {
     std::shared_ptr<WS_format> ws = std::make_shared<WS_format>(js, mq);
 
     // BE CAREFUL WITH FILEPATH
-    Options opts_http(ServerName, IP, 8000, storage_root, http_logger);
-    Options opts_ws(ServerName, IP, 8001, storage_root, ws_logger);
+    Options opts_http("http", ServerName, IP, 8000, storage_root, http_logger);
+    Options opts_ws("ws", ServerName, IP, 8001, storage_root, ws_logger);
     Server s_http(opts_http, hf);
     Server s_ws(opts_ws, ws);
 

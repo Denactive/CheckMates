@@ -9,11 +9,12 @@
 
 #define TIMEOUT_DELAY 30  // (s)
 #define BASIC_DEBUG 1
-#define START_GAME_IMITATION 1
+#define START_GAME_IMITATION 0
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/beast/websocket.hpp>
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
@@ -40,6 +41,7 @@
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
 namespace http = beast::http;            // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket;  // from <boost/beast/websocket.hpp>
 namespace asio = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
 using time_point = std::chrono::system_clock::time_point;
@@ -153,17 +155,13 @@ class Session : public std::enable_shared_from_this<Session>
         {
         }
 
-        //template<bool isRequest, class Body, class Fields>
-        void
-            // operator()(http::message<isRequest, Body, Fields>&& msg) const
-            operator()(http::message<false, http::string_body, http::fields>&& msg) const
+        void  operator()(http::message<false, http::string_body, http::fields>&& msg) const
         {
             // The lifetime of the message has to extend
             // for the duration of the async operation so
             // we use a shared_ptr to manage it.
             auto sp = std::make_shared<
                 http::message<false, http::string_body, http::fields>>(std::move(msg));
-            //http::message<isRequest, Body, Fields>>(std::move(msg));
 
         // Store a type-erased version of the shared
         // pointer in the class to keep it alive.
@@ -299,6 +297,146 @@ public:
         stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
 
         // At this point the connection is closed gracefully
+    }
+};
+
+class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
+{
+    struct send_lambda
+    {
+        WebSocketSession& self_;
+
+        explicit
+            send_lambda(WebSocketSession& self)
+            : self_(self)
+        {
+        }
+
+        void operator()(http::message<false, http::string_body, http::fields>&& msg) const
+        {
+            std::cout << "ws: send\n";
+        }
+    };
+
+    beast::flat_buffer buffer_;
+    std::shared_ptr<std::string const> doc_root_;
+    std::shared_ptr<IFormat> format_;
+    send_lambda lambda_;
+    const std::shared_ptr<ILogger> logger_;
+    websocket::stream<beast::tcp_stream> stream_;
+    //beast::tcp_stream stream_;
+
+public:
+    // Take ownership of the socket
+
+    WebSocketSession(
+        tcp::socket&& socket,
+        std::shared_ptr<std::string const> const& doc_root,
+        std::shared_ptr<std::string const> const& log_dir,
+        std::shared_ptr<IFormat>& format
+    )
+        : stream_(std::move(socket))
+        , doc_root_(doc_root)
+        , logger_(std::make_shared<FileLogger>(log_dir))
+        , format_(format)
+        , lambda_(*this)
+    {
+    }
+    // Get on the correct executor
+    void run()
+    {
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        asio::dispatch(stream_.get_executor(),
+            beast::bind_front_handler(
+                &WebSocketSession::on_run,
+                shared_from_this()));
+    }
+
+    // Start the asynchronous operation
+    void  on_run()
+    {
+        // Set suggested timeout settings for the websocket
+        stream_.set_option(
+            websocket::stream_base::timeout::suggested(
+                beast::role_type::server));
+
+        // Set a decorator to change the Server of the handshake
+        stream_.set_option(websocket::stream_base::decorator(
+            [](websocket::response_type& res)
+            {
+                res.set(http::field::server,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                    " websocket-server-async");
+            }));
+        // Accept the websocket handshake
+        stream_.async_accept(
+            beast::bind_front_handler(
+                &WebSocketSession::on_accept,
+                shared_from_this()));
+    }
+
+    void on_accept(beast::error_code ec)
+    {
+        if (ec)
+            return fail(ec, "accept");
+
+        // Read a message
+        do_read();
+    }
+
+    void  do_read()
+    {
+        // Read a message into our buffer
+        stream_.async_read(
+            buffer_,
+            beast::bind_front_handler(
+                &WebSocketSession::on_read,
+                shared_from_this()));
+    }
+
+    void    on_read(
+            beast::error_code ec,
+            std::size_t bytes_transferred)
+    {
+        boost::ignore_unused(bytes_transferred);
+
+        // This indicates that the session was closed
+        if (ec == websocket::error::closed)
+            return;
+
+        if (ec)
+            fail(ec, "read");
+
+        // Echo the message
+        //std::string* recieved = (std::string*)buffer_.data().data();
+        //std::string msg = "WS Echo: " + *recieved;
+        //auto msg = asio::buffer(std::string("WS Echo: "));
+        stream_.text(stream_.got_text());
+        stream_.async_write(
+            buffer_.data(),
+            //asio::buffer(msg),
+                beast::bind_front_handler(
+                &WebSocketSession::on_write,
+                shared_from_this()));
+    }
+
+    void on_write(
+            beast::error_code ec,
+            std::size_t bytes_transferred)
+    {
+        boost::ignore_unused(bytes_transferred);
+
+        if (ec)
+            return fail(ec, "write");
+
+        // Clear the buffer
+        buffer_.consume(buffer_.size());
+
+        // Do another read
+        do_read();
     }
 };
 

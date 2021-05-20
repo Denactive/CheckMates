@@ -21,6 +21,9 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1,
     GInfo info = game_session->send_info();
 
     while (info.isGame) {
+        // отправляю Свете info
+        // принимаю turn | сейчас turn через консоль
+
         game_session->prepare_turn();
         // собираем информацию о доступных ходах текущего игрока
         // местоположении фигур и т.п.
@@ -30,7 +33,9 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1,
         if (!info.isGame) {
             break;
         }
+
         // выход из цикла, чтобы не вводить следующий ход, если мат
+        // типа получаю от светы
         turn = GetTurn();
         // получаем ход - массив из 4 целых size_t.
         // В качестве параметра передается в функцию run_turn;
