@@ -9,13 +9,15 @@ void GameSession::move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> en
 void GameSession::try_move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) {
     std::array<size_t, M> turn, reverse, capt;
     std::vector<std::array<size_t, M>>& moves = you->access();
+    if (moves.size() == 0) {
+        return;
+    }
+    std::cout << 0;
     auto i = moves.end() - 1;
-    while (i >= moves.begin()) {
+    while (i >= moves.begin() && moves.size() > 0) {
         turn = *(i);
         you->move(turn);
-        // std::cout <<you->where()[0] << you->where()[1]<< '\n';
-         //King* Kin = dynamic_cast<King *>(you->pieces[4]);
-         //std::cout <<Kin->where()[0] <<Kin->where()[1] << '\n';
+
         board->move_chess(turn);
         size_t num = enemy->try_capture(turn);
         std::array<size_t, K>fake_turn;
@@ -27,14 +29,19 @@ void GameSession::try_move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer
         capt[3] = reverse[1] = turn[3];
         reverse[2] = turn[0];
         reverse[3] = turn[1];
-
+        std::cout << 3;
         enemy->all_available_Moves();
+        std::cout << 5;
         auto thr = enemy->all_threatens();
+        std::cout << 7;
         you->KingUpdate(thr);
+        std::cout << 8;
         if (is_check(you, enemy)) {
             moves.erase(i);
         }
-        --i;
+        std::cout << 9;
+            --i;
+        std::cout << 4;
         you->move(reverse);
         board->move_chess(reverse);
         if (num != 2 * N) {
@@ -43,6 +50,7 @@ void GameSession::try_move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer
             if (info.isPlayer) {
                 Cell = Black;
             }
+            std::cout << 5;
             board->set(Cell, capt[2], capt[3]);
         }
     }
@@ -127,7 +135,9 @@ int GameSession::prepare_turn() {
     board->draw_board();
     you->print_pos();
     if (is_check(you, enemy)) {
+        std::cout << "2";
         info.isCheck = true;
+        std::cout << "3";
         try_move(you, enemy);
         std::cout << "CHECK!!";
     }

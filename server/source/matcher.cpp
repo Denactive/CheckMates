@@ -48,7 +48,7 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1,
         // совершаем ход. возвращается 0, если ход принят, 1 - если не принят
         // тогда снова получаем ход и делаем A.run_turn()
         if (!validation) {
-            info = game_session->send_info();
+           // info = game_session->send_info();
             // отправил Свете
             std::cout << "valid move\n";
         }

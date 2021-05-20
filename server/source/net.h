@@ -9,7 +9,7 @@
 
 #define TIMEOUT_DELAY 30  // (s)
 #define BASIC_DEBUG 1
-#define START_GAME_IMITATION 0
+#define START_GAME_IMITATION 1
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
