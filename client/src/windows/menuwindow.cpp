@@ -7,8 +7,9 @@
 #include <QDebug>
 #include <QMessageBox>
 
-MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo, std::vector<std::shared_ptr<User>> friendsInfo)
-    :QWidget(parent), main(main), isMatching(isMatching)
+MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo,
+                       std::vector<std::shared_ptr<User>> friendsInfo, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent, std::vector<std::shared_ptr<User>> frnsInfo)
+    :QWidget(parent), main(main), isMatching(isMatching), gameInfo(gameInfo), friendsInfo(frnsInfo), opponent(opponent)
 {
     menu = new QHBoxLayout();
     menu->setAlignment(Qt::AlignCenter);
@@ -164,6 +165,11 @@ void MenuWindow::tapPlay()
     if (!choosenFriend->isChecked() && !isMatchingBox->isChecked()) {
         QMessageBox::warning(this, "Not player to play", "Yot don't want to play with random player and you don't choose friend");
     } else {
+        qDebug() << "game info opponent id: " << gameInfo->opponentId;
+        qDebug() << "opponent: " << opponent->getName();
+
+        GameWindow *gameWindow = new GameWindow(this, main, gameInfo, opponent);
+        main->insertWidget(1, gameWindow);
         main->setCurrentIndex(1);
         qDebug() << "main -> play\n";
     }
@@ -171,16 +177,19 @@ void MenuWindow::tapPlay()
 
 void MenuWindow::chooseFriend()
 {
-    QCheckBox * clickFriend = (QCheckBox*) sender();
+    CheckBoxUser * clickFriend = (CheckBoxUser*) sender();
     if (clickFriend != choosenFriend) {
         choosenFriend->setChecked(false);
         clickFriend->setChecked(true);
         choosenFriend = clickFriend;
+
+        gameInfo->opponentId = clickFriend->getIndex();
     } else {
         choosenFriend->setChecked(choosenFriend->isChecked());
     }
-}
 
+    opponent = friendsInfo[gameInfo->opponentId];
+}
 void MenuWindow::chooseChat()
 {
     qDebug() << "menu -> chat";
@@ -211,7 +220,7 @@ void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> frie
     MyMessage fName = user->getName();
     QLabel *friendName = new QLabel(fName.getMessage());
 
-    QCheckBox *friendCheckBox = new QCheckBox("");
+    CheckBoxUser *friendCheckBox = new CheckBoxUser(this, int(index));
     if (index == 0) {
         friendCheckBox->setCheckState(Qt::CheckState::Checked);
         choosenFriend = friendCheckBox;

@@ -7,9 +7,10 @@
 
 #include "include/windows/gamewindow.h"
 
-GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo)
-    : QWidget(parent), gameInfo(gameInfo), main(main)
+GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent)
+    : QWidget(parent), gameInfo(gameInfo), opponent(opponent), main(main)
 {
+    qDebug() << "game opponent: " << opponent->getName();
     checkGame();
 
     game = new QVBoxLayout();
@@ -93,11 +94,11 @@ void GameWindow::drawGameTop()
 
     topLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
-    User user;
-    user.setName("Friend name");
-    QPixmap photo("../img/friendPhoto.png");
-    user.setUserPhoto(photo);
-    topLayout->addLayout(playerStatisticsDraw(user));
+//    User user;
+//    user.setName("Friend name");
+//    QPixmap photo("../img/friendPhoto.png");
+//    user.setUserPhoto(photo);
+    topLayout->addLayout(playerStatisticsDraw());
 
 
     topLayout->setAlignment(Qt::AlignRight);
@@ -105,18 +106,18 @@ void GameWindow::drawGameTop()
     game->addLayout(topLayout);
 }
 
-QVBoxLayout *GameWindow::playerStatisticsDraw(User &user)
+QVBoxLayout *GameWindow::playerStatisticsDraw()
 {
     QVBoxLayout * playerStatistics = new QVBoxLayout();
 
     QSize photoSize(50, 50);
-    QPixmap photo = user.getUserPhoto().scaled(photoSize, Qt::KeepAspectRatio);
+    QPixmap photo = opponent->getUserPhoto().scaled(photoSize, Qt::KeepAspectRatio);
     QLabel * playerPhotoWidget = new QLabel();
     playerPhotoWidget->setPixmap(photo);
     playerStatistics->addWidget(playerPhotoWidget);
 
-    int time = user.gameTime();
-    QLabel * playerTime = new QLabel(user.getName() + "\nTime: " + QString::number(time));
+    int time = opponent->gameTime();
+    QLabel * playerTime = new QLabel(opponent->getName() + "\nTime: " + QString::number(time));
     playerStatistics->addWidget(playerTime);
 
     return playerStatistics;

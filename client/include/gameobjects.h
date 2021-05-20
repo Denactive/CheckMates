@@ -12,6 +12,7 @@
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QList>
+#include <QCheckBox>
 #include <memory>
 #include <QGraphicsDropShadowEffect>
 
@@ -74,6 +75,16 @@ class LabelImage: public QLabel {
     void setPixmap(const QPixmap &qPixmap, const QSize &size);
 
     QSize _size;
+};
+
+class CheckBoxUser : public QCheckBox {
+    Q_OBJECT
+public:
+    CheckBoxUser(QWidget *parent = nullptr, int index = 0) :QCheckBox(parent), index(index) {};
+    int getIndex() { return index; }
+    void setIndex(int index) { this->index = index; }
+private:
+    int index;
 };
 
 //class ChatItem : public QListWidgetItem

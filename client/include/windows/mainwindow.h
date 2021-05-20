@@ -75,6 +75,10 @@ private:
 
     std::vector<UserInfo> usrsInfo;
     std::vector<UserInfo>  frnsInfo;
+
+    std::vector<std::shared_ptr<User>> friendsInfo;
+    std::shared_ptr<User> opponent;
+
     std::shared_ptr<Database> db;
 };
 

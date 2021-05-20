@@ -20,6 +20,8 @@
 
 #include "include/community.h"
 #include "include/windows/chatwindow.h"
+#include "include/database.h"
+#include "include/windows/gamewindow.h"
 
 class IMenuWindow {
 public:
@@ -35,7 +37,8 @@ class MenuWindow : public QWidget, public IMenuWindow {
     Q_OBJECT
 public:
     MenuWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, bool isMatching = false,
-               std::vector<std::shared_ptr<Chat>> chatInfo = {}, std::vector<std::shared_ptr<User>> friendsInfo = {});
+               std::vector<std::shared_ptr<Chat>> chatInfo = {}, std::vector<std::shared_ptr<User>> friendsInfo = {},
+               std::shared_ptr<GameInfo> gameInfo = {},  std::shared_ptr<User> opponent = nullptr, std::vector<std::shared_ptr<User>> frnsInfo = {});
     void drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) override;
     void drawMiddle();
     void drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) override;
@@ -66,8 +69,10 @@ private:
     QList<FrameButton*> chats; // info from Chat
     QList<FrameButton*> friends; // info from User
 
-    int choosenFriendIndex;
+    std::shared_ptr<GameInfo> gameInfo;
     QCheckBox *choosenFriend;
+    std::vector<std::shared_ptr<User>> friendsInfo;
+    std::shared_ptr<User> opponent;
     std::vector<std::shared_ptr<Chat>> chatInfo;
 
     MyButton * playButton;

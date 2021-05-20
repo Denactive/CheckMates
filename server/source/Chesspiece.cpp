@@ -9,7 +9,7 @@ std::vector<std::array<size_t, M>> Queen::available_moves() {
     std::array<size_t, M> mov;
     mov[0] = i;
     mov[1] = j;
-    auto bd = board.get_board();
+    auto bd = board->get_board();
     cell temp = bd[i][j];
     #include "bishop.h"
     #include "rook.h"
@@ -36,7 +36,7 @@ std::vector<std::array<size_t, M>> Rook::available_moves() {
     std::array<size_t, M> mov;
     mov[0] = i;
     mov[1] = j;
-    auto bd = board.get_board();
+    auto bd = board->get_board();
     cell temp = bd[i][j];
     #include "rook.h"
 
@@ -61,7 +61,7 @@ std::vector<std::array<size_t, M>> Knight::available_moves() {
     std::array<size_t, M> mov;
     mov[0] = i;
     mov[1] = j;
-    auto bd = board.get_board();
+    auto bd = board->get_board();
     cell temp = bd[i][j];
     size_t k = 0;
     size_t m = 0;
@@ -154,7 +154,7 @@ std::vector<std::array<size_t, M>> Bishop::available_moves() {
     std::array<size_t, M> mov;
     mov[0] = i;
     mov[1] = j;
-    auto bd = board.get_board();
+    auto bd = board->get_board();
     cell temp = bd[i][j];
 
 #include "bishop.h"
@@ -180,7 +180,7 @@ std::vector<std::array<size_t, M>> Pawn::available_moves() {
     std::array<size_t, M> mov;
     mov[0] = i;
     mov[1] = j;
-    auto bd = board.get_board();
+    auto bd = board->get_board();
     cell temp = bd[i][j];
     if (white) {
         if ((i == 1) && (bd[i + 2][j] == Empty)) {
@@ -235,7 +235,7 @@ std::set<std::array<size_t, K>> Pawn::threatens() {
     size_t i = position[0];
     size_t j = position[1];
     std::array<size_t, K> mov;
-    auto bd = board.get_board();
+    auto bd = board->get_board();
     if (white) {
         if ((i + 1 < 8) && (j - 1 < 8)) {
             mov[0] = i + 1;

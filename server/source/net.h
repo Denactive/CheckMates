@@ -1,18 +1,15 @@
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0A00
+#endif
+
 #ifndef CHECKMATES_NET_H
 #define CHECKMATES_NET_H
 
-#define TIMEOUT_DELAY 30  // (s)
-#define BASIC_DEBUG 0
-#define START_GAME_IMITATION 1
-
-#ifdef _WIN64
-#define _WIN64_WINNT 0x0A00
-#endif
-
-//#ifndef BOOST_BEAST_HTTP_STRING_BODY_HPP
-//#define BOOST_BEAST_HTTP_STRING_BODY_HPP
-
 #define BOOST_DATE_TIME_NO_LIB
+
+#define TIMEOUT_DELAY 30  // (s)
+#define BASIC_DEBUG 1
+#define START_GAME_IMITATION 1
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -28,7 +25,7 @@
 #include <filesystem>
 
 #include <chrono>
-#include <ctime> 
+#include <ctime>
 
 #include <algorithm>
 #include <cstdlib>
@@ -38,6 +35,8 @@
 
 #include <string>
 #include <vector>
+
+#include "matcher.h"
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
 namespace http = beast::http;            // from <boost/beast/http.hpp>
@@ -113,6 +112,7 @@ private:
     bool initialized = false;
 };
 
+
 // =======================[ Protocol Specific Handlers ]=========================
 
 class IFormat {
@@ -127,20 +127,191 @@ public:
     // caller to pass a generic lambda for receiving the response.
 
     virtual void handle_request(beast::string_view
-            , http::request<http::string_body>&&
-            , const std::shared_ptr<ILogger>& logger
+        , http::request<http::string_body>&&
+        , const std::shared_ptr<ILogger>& logger
         , std::function<void(http::message<false, http::string_body, http::fields>)>
-        , std::function<void(std::shared_ptr<std::string>, unsigned int, bool)>
-        ) = 0;
+        , Session&
+    ) = 0;
 };
+
+
+// =======================[ Session ]=========================
+
+
+// Handles an HTTP / WS server connection
+class Session : public std::enable_shared_from_this<Session>
+{
+    // This is the C++11 equivalent of a generic lambda.
+    // The function object is used to send an HTTP message.
+    struct send_lambda
+    {
+        Session& self_;
+
+        explicit
+            send_lambda(Session& self)
+            : self_(self)
+        {
+        }
+
+        //template<bool isRequest, class Body, class Fields>
+        void
+            // operator()(http::message<isRequest, Body, Fields>&& msg) const
+            operator()(http::message<false, http::string_body, http::fields>&& msg) const
+        {
+            // The lifetime of the message has to extend
+            // for the duration of the async operation so
+            // we use a shared_ptr to manage it.
+            auto sp = std::make_shared<
+                http::message<false, http::string_body, http::fields>>(std::move(msg));
+            //http::message<isRequest, Body, Fields>>(std::move(msg));
+
+        // Store a type-erased version of the shared
+        // pointer in the class to keep it alive.
+            self_.res_ = sp;
+
+            // Write the response
+            http::async_write(
+                self_.stream_,
+                *sp,
+                beast::bind_front_handler(
+                    &Session::on_write,
+                    self_.shared_from_this(),
+                    sp->need_eof()));
+        }
+    };
+
+    beast::tcp_stream stream_;
+    beast::flat_buffer buffer_;
+    std::shared_ptr<std::string const> doc_root_;
+    http::request<http::string_body> req_;
+    std::shared_ptr<void> res_;
+    std::shared_ptr<IFormat> format_;
+    send_lambda lambda_;
+    const std::shared_ptr<ILogger> logger_;
+
+public:
+    size_t token = 0;
+    std::shared_ptr<IUser> user = nullptr;
+
+    Session(
+        tcp::socket&& socket,
+        std::shared_ptr<std::string const> const& doc_root,
+        std::shared_ptr<std::string const> const& log_dir,
+        std::shared_ptr<IFormat>& format
+    )
+        : stream_(std::move(socket))
+        , doc_root_(doc_root)
+        , logger_(std::make_shared<FileLogger>(log_dir))
+        , format_(format)
+        , lambda_(*this)
+    {
+    }
+
+    //TEST
+    //(std::string) {
+    //
+    //}
+
+    // Start the asynchronous operation
+    void run() {
+        if (BASIC_DEBUG) std::cout << "session run\n";
+        beast::error_code ec;
+        logger_->init(ec);
+        if (ec)
+            fail(ec, "unable to init log");
+        else
+            // TODO: пробросить какой-нибудь айпи или типа
+            logger_->log("Connected\n");
+
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        asio::dispatch(stream_.get_executor(),
+            beast::bind_front_handler(
+                &Session::do_read,
+                shared_from_this()));
+    }
+
+    void do_read() {
+        if (BASIC_DEBUG) std::cout << "do read\n";
+        // Make the request empty before reading,
+        // otherwise the operation behavior is undefined.
+        req_ = {};
+
+        // Set the timeout.
+        stream_.expires_after(std::chrono::seconds(TIMEOUT_DELAY));
+
+        // Read a request
+        http::async_read(stream_, buffer_, req_,
+            beast::bind_front_handler(
+                &Session::on_read,
+                shared_from_this()));
+    }
+
+    void on_read(beast::error_code ec, std::size_t bytes_transferred) {
+        if (BASIC_DEBUG) std::cout << "on read\n";
+        boost::ignore_unused(bytes_transferred);
+        // This means they closed the connection
+        std::string logging_data;
+        if (ec == http::error::end_of_stream) {
+            logger_->log("Connection refused by client\n");
+            return do_close();
+        }
+
+        if (ec) {
+            logger_->log("Read failed: " + ec.message() + '\n');
+            return fail(ec, "read");
+        }
+
+        // Send the response
+        format_->handle_request(*doc_root_, std::move(req_), logger_, lambda_, *this);
+    }
+
+    void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) {
+        if (BASIC_DEBUG) std::cout << "on write\n";
+        boost::ignore_unused(bytes_transferred);
+
+        if (ec) {
+            logger_->log("Write failed: " + ec.message() + '\n');
+            return fail(ec, "write");
+        }
+
+        if (close)
+        {
+            // This means we should close the connection, usually because
+            // the response indicated the "Connection: close" semantic.
+            return do_close();
+        }
+
+        // We're done with the response so delete it
+        res_ = nullptr;
+
+        // Read another request
+        do_read();
+    }
+
+    void do_close() {
+        if (BASIC_DEBUG) std::cout << "do close\n";
+        // Send a TCP shutdown
+        logger_->log("Connection closed successfully\n");
+        beast::error_code ec;
+        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
+
+        // At this point the connection is closed gracefully
+    }
+};
+
+
 // =======================[ WS ]=========================
 
 
 class WS_format : public IFormat {
 public:
     WS_format() = delete;
-    WS_format(const std::shared_ptr<ISerializer>& serializer)
-    : serializer_(serializer)
+    WS_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
+        : serializer_(serializer)
+        , mq_(matcher_queue)
     {
     }
 
@@ -152,13 +323,15 @@ public:
         , http::request<http::string_body>&& req
         , const std::shared_ptr<ILogger>& logger
         , std::function<void(http::message<false, http::string_body, http::fields>)> send
-        , std::function<void(std::shared_ptr<std::string>, unsigned int, bool)> start_game) override {
+        , Session& session
+    ) override {
         std::cout << "WS format handler" << std::endl;
     }
     
 
 private:
     std::shared_ptr<ISerializer> serializer_;
+    std::shared_ptr<IMatcherQueue> mq_;
     const std::string type = "ws";
 };
 
@@ -169,8 +342,9 @@ class HTTP_format: public IFormat {
 public:
 
     HTTP_format() = delete;
-    HTTP_format(const std::shared_ptr<ISerializer>& serializer)
-        : serializer_(serializer)
+    HTTP_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
+        : serializer_(serializer) 
+        , mq_(matcher_queue)
     {
     }
 
@@ -178,7 +352,8 @@ public:
         , http::request<http::string_body>&& req
         , const std::shared_ptr<ILogger>& logger
         , std::function<void(http::message<false, http::string_body, http::fields>)> send
-        , std::function<void(std::shared_ptr<std::string>, unsigned int, bool)> start_game) override {
+        , Session& session
+    ) override {
         std::cout << "HTTP-handler: Got an request!" << std::endl;
         std::string logging_data;
         // Returns a bad request response
@@ -273,7 +448,7 @@ public:
             }
 
             // Cache the size since we need it after the move
-            auto const size = body.size();
+            auto size = body.size();
 
             // Respond to HEAD request
             if (req.method() == http::verb::head)
@@ -287,10 +462,6 @@ public:
                 return send(std::move(res));
             }
 
-            if (START_GAME_IMITATION) {
-                return start_game(std::make_shared<std::string>("Game started\nPlayers: 1, 2\n"), req.version(), req.keep_alive());
-            }
-
             // Respond to GET request
 
             /*template<
@@ -299,7 +470,7 @@ public:
                 class Fields = fields>      // The type of container to store the fields
                 class message;
 
-            /* Construct a message.
+             Construct a message.
 
                 @param body_args A tuple forwarded as a parameter
                 pack to the body constructor.
@@ -321,7 +492,7 @@ public:
             };
 
             size_t bytes_read = 1;
-            std::string content;//  (res_file.body().file().size(ec));
+            std::string content;
 
             char* block = new char [1024];
             while (bytes_read) {
@@ -336,10 +507,21 @@ public:
                 content += block_string;
             }
             delete[] block;
+
+            if (START_GAME_IMITATION) {
+                if (!session.user) {
+                    // TODO send message unauthorised
+                    std::cout << "unauthorised\n";
+                    session.user = std::make_shared<User>(session);
+                    session.user->get_info();
+                    mq_->push_user(session.user);
+                }
+                content = "Game start:\nplayers: Player1, Player2\n";
+                size = content.size();
+            }
             
             http::response<http::string_body> res{
                 std::piecewise_construct,
-                //std::make_tuple(std::move(content_ptr)),
                 std::make_tuple(content),
                 std::make_tuple(http::status::ok, req.version())
             };
@@ -417,204 +599,9 @@ private:
     void register_handler();
 
     std::shared_ptr<ISerializer> serializer_;
+    std::shared_ptr<IMatcherQueue> mq_;
     const std::string type = "http";
 };
 
 
-// =======================[ Session ]=========================
-
-
-// ������ Net
-// Handles an HTTP / WS server connection
-class Session : public std::enable_shared_from_this<Session>
-{
-    // This is the C++11 equivalent of a generic lambda.
-    // The function object is used to send an HTTP message.
-    struct send_lambda
-    {
-        Session& self_;
-
-        explicit
-            send_lambda(Session& self)
-            : self_(self)
-        {
-        }
-
-        //template<bool isRequest, class Body, class Fields>
-        void
-            // operator()(http::message<isRequest, Body, Fields>&& msg) const
-            operator()(http::message<false, http::string_body, http::fields>&& msg) const
-        {
-            // The lifetime of the message has to extend
-            // for the duration of the async operation so
-            // we use a shared_ptr to manage it.
-            auto sp = std::make_shared<
-                http::message<false, http::string_body, http::fields>>(std::move(msg));
-            //http::message<isRequest, Body, Fields>>(std::move(msg));
-
-        // Store a type-erased version of the shared
-        // pointer in the class to keep it alive.
-            self_.res_ = sp;
-
-            // Write the response
-            http::async_write(
-                self_.stream_,
-                *sp,
-                beast::bind_front_handler(
-                    &Session::on_write,
-                    self_.shared_from_this(),
-                    sp->need_eof()));
-        }
-    };
-    
-    struct start_game_lambda
-    {
-        Session& self_;
-
-        explicit
-            start_game_lambda(Session& self)
-            : self_(self)
-        {
-        }
-
-        void
-            operator()(std::shared_ptr<std::string> game_data, unsigned int protocol_version, bool keep_alive) const
-        {
-            http::message<false, http::string_body, http::fields> res{ http::status::ok, protocol_version };
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(http::field::content_type, "text/html");
-            res.keep_alive(keep_alive);
-            res.body() = std::string("Game ready:\n\tgame ID: 12\n\topponent: player1");
-            res.prepare_payload();
-
-            auto sp = std::shared_ptr<http::message<false, http::string_body, http::fields>>(&res);
-            self_.res_ = sp;
-
-            http::async_write(
-                self_.stream_,
-                *sp,
-                beast::bind_front_handler(
-                    &Session::on_write,
-                    self_.shared_from_this(),
-                    sp->need_eof()));
-        }
-    };
-
-    beast::tcp_stream stream_;
-    beast::flat_buffer buffer_;
-    std::shared_ptr<std::string const> doc_root_;
-    http::request<http::string_body> req_;
-    std::shared_ptr<void> res_;
-    std::shared_ptr<IFormat> format_;
-    send_lambda lambda_;
-    start_game_lambda start_game_;
-    const std::shared_ptr<ILogger> logger_;
-
-public:
-    // Take ownership of the stream
-    // TODO: ������� http / ws ������� ���������
-    Session(
-        tcp::socket&& socket,
-        std::shared_ptr<std::string const> const& doc_root,
-        std::shared_ptr<std::string const> const& log_dir,
-        std::shared_ptr<IFormat>& format
-        )
-        : stream_(std::move(socket))
-        , doc_root_(doc_root)
-        , logger_(std::make_shared<FileLogger>(log_dir))
-        , format_(format)
-        , lambda_(*this)
-        , start_game_(*this)
-    {
-    }
-
-    // Start the asynchronous operation
-    void run() {
-        if (BASIC_DEBUG) std::cout << "session run\n";
-        beast::error_code ec;
-        logger_->init(ec);
-        if (ec)
-            fail(ec, "unable to init log");
-        else
-            // TODO: пробросить какой-нибудь айпи или типа
-            logger_->log("Connected\n");
-
-        // We need to be executing within a strand to perform async operations
-        // on the I/O objects in this session. Although not strictly necessary
-        // for single-threaded contexts, this example code is written to be
-        // thread-safe by default.
-        asio::dispatch(stream_.get_executor(),
-            beast::bind_front_handler(
-                &Session::do_read,
-                shared_from_this()));
-    }
-
-    void do_read() {
-        if (BASIC_DEBUG) std::cout << "do read\n";
-        // Make the request empty before reading,
-        // otherwise the operation behavior is undefined.
-        req_ = {};
-
-        // Set the timeout.
-        stream_.expires_after(std::chrono::seconds(TIMEOUT_DELAY));
-
-        // Read a request
-        http::async_read(stream_, buffer_, req_,
-            beast::bind_front_handler(
-                &Session::on_read,
-                shared_from_this()));
-    }
-
-    void on_read(beast::error_code ec, std::size_t bytes_transferred) {
-        if (BASIC_DEBUG) std::cout << "on read\n";
-        boost::ignore_unused(bytes_transferred);
-        // This means they closed the connection
-        std::string logging_data;
-        if (ec == http::error::end_of_stream) {
-            logger_->log("Connection refused by client\n");
-            return do_close();
-        }
-
-        if (ec) {
-            logger_->log("Read failed: " + ec.message() + '\n');
-            return fail(ec, "read");
-        }
-
-        // Send the response
-        format_->handle_request(*doc_root_, std::move(req_), logger_, lambda_, start_game_);
-    }
-
-    void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) {
-        if (BASIC_DEBUG) std::cout << "on write\n";
-        boost::ignore_unused(bytes_transferred);
-
-        if (ec) {
-            logger_->log("Write failed: " + ec.message() + '\n');
-            return fail(ec, "write");
-        }
-
-        if (close)
-        {
-            // This means we should close the connection, usually because
-            // the response indicated the "Connection: close" semantic.
-            return do_close();
-        }
-
-        // We're done with the response so delete it
-        res_ = nullptr;
-
-        // Read another request
-        do_read();
-    }
-
-    void do_close() {
-        if (BASIC_DEBUG) std::cout << "do close\n";
-        // Send a TCP shutdown
-        logger_->log("Connection closed successfully\n");
-        beast::error_code ec;
-        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
-
-        // At this point the connection is closed gracefully
-    }
-};
 #endif //CHECKMATES_NET_H

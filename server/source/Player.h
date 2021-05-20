@@ -6,7 +6,9 @@
 
 
 #include "User.h"
-#include "GameSession.h"
+//#include "GameSession.h"
+#include "ChessBoard.h"
+#include "Chesspiece.h"
 
 
 
@@ -20,7 +22,7 @@ public:
     virtual size_t GetUserId() = 0;
     virtual void set_pieces() = 0;
     virtual void print_pos() = 0;
-    virtual ChessBoard& getboard () = 0;
+    virtual std::shared_ptr<ChessBoard> getboard () = 0;
     virtual void KingUpdate(std::set<std::array<size_t, K>> thr) = 0;
     virtual const size_t* where() = 0;
     virtual std::vector<std::array<size_t, M>>& access() = 0;
@@ -29,27 +31,37 @@ public:
 
 class Player: public IPlayer {
 private:
-    bool wb;
+    bool wb = false;
     std::vector<std::array<size_t, M>> moves;
     std::set<std::array<size_t, K>> threats;
-    ChessBoard& board;
-    King* king;
+    std::shared_ptr<ChessBoard> board;
+    King* king = NULL;
+    std::shared_ptr<IUser> user_;
+
 public:
+
+    Player(std::shared_ptr<IUser> user, std::shared_ptr<ChessBoard> board, bool wb)
+        : user_(user)
+        , board(board)
+        , king(nullptr), wb(wb)
+    {
+        Player::set_pieces();
+        king = static_cast<King*>(pieces[4]);
+    };
+
     size_t try_capture(std::array<size_t, M> turn);
+
     std::vector<std::array<size_t, M>>& access() {
         std::vector<std::array<size_t, M>>& temp = moves;
         return temp;
     }
-    ChessBoard& getboard () {
-        return board;
-    };
-    void KingUpdate(std::set<std::array<size_t, K>> thr) {
-        king->Update_King(thr);
-    }
-    const size_t* where() {
-        return king->where();
-    }
-    Player(ChessBoard& board, bool wb);
+
+    std::shared_ptr<ChessBoard> getboard () { return board; }
+
+    void KingUpdate(std::set<std::array<size_t, K>> thr) { king->Update_King(thr); }
+
+    const size_t* where() { return king->where(); }
+
     std::array<ChessPiece*, 2*N> pieces;
     std::vector<std::array<size_t, M>>  all_available_Moves();
     std::set<std::array<size_t, K>>  all_threatens();

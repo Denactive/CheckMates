@@ -12,6 +12,8 @@
 #include <QAuthenticator>
 #include <QNetworkProxy>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include "include/community.h"
 #include "include/chessboard.h"
@@ -35,6 +37,7 @@ public slots:
 
 private slots:
     void readyRead();
+    void parseJSON(std::shared_ptr<QFile> file, bool isGet);
     void authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator);
     void encrypted(QNetworkReply *reply);
     void finished(QNetworkReply *reply);

@@ -12,7 +12,6 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
     std::shared_ptr<GameInfo> gameInfo = db->getGameInfo();
     qDebug() << "point" << gameInfo->isCheck;
 
-    std::vector<std::shared_ptr<User>> friendsInfo;
     std::vector<std::shared_ptr<Chat>> chatsInfo = db->getChats();
 
     for (int i = 0; i < int(usrsInfo.size()); ++i) {
@@ -38,16 +37,16 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
     }
 
     setRegisterUser(gameInfo->meId);
+    opponent = friendsInfo[gameInfo->opponentId];
     // end of get data
 
-    GameWindow *gameWindow = new GameWindow(this, main, gameInfo);
-    MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo);
+    MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo, gameInfo, opponent, friendsInfo);
 
     SettingsWindow *settingsWindow = new SettingsWindow(this, main, infoAboutMe);
     AuthorizerWindow *authorizerWindow = new AuthorizerWindow(this, main, true);
 
     main->insertWidget(0, menuWindow);
-    main->insertWidget(1, gameWindow);
+
     main->insertWidget(2, settingsWindow);
     main->insertWidget(3, authorizerWindow);
 

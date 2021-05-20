@@ -1,7 +1,8 @@
 #include "Chesspiece.h"
 #include "iostream"
 
-King::King(size_t i,size_t j, ChessBoard& board): board(board) {
+King::King(size_t i,size_t j, std::shared_ptr<ChessBoard> board):
+    board(board) {
     position[0] = i;
     position[1] = j;
 };
@@ -25,7 +26,7 @@ std::vector<std::array<size_t, M>> King::available_moves() {
     std::array<size_t, K> tries;
     mov[0] = i;
     mov[1] = j;
-    auto bd = board.get_board();
+    auto bd = board->get_board();
     cell temp = bd[i][j];
     for (size_t k = (i > 0) ? i - 1 : i; k <= i + 1 && k < 8; ++k) {
         for (size_t m = (j > 0) ? j - 1 : j; m <= j + 1 && m < 8; ++m) {
@@ -49,7 +50,7 @@ std::set<std::array<size_t, K>> King::threatens() {
     size_t i = position[0];
     size_t j = position[1];
     std::array<size_t, K> mov;
-    auto bd = board.get_board();
+    auto bd = board->get_board();
     cell temp = bd[i][j];
     for (size_t k = (i > 0) ? i - 1 : i; (k <= i + 1) && (k < 8); k++) {
         for (size_t m = (j > 0) ? j - 1 : j; (m <= j + 1) && (m < 8); m++) {
