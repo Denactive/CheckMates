@@ -21,12 +21,14 @@
 class Options {
 public:
     Options(
+        const  std::string& type,
         std::string owner,
         std::string ip_host,
         unsigned short port,
         const std::string& doc_root,
         const  std::string& log_dir)
-        : owner_(owner)
+        : type_(std::make_shared<std::string>(type))
+        , owner_(owner)
         , ip_(asio::ip::make_address(ip_host))
         , port_(port)
         , doc_root_(std::make_shared<std::string>(doc_root))
@@ -34,8 +36,9 @@ public:
     {
     }
 
-    std::string get_info() { return "owner: " + owner_ + " | ip: " + ip_.to_string() + ":" + std::to_string(port_) + "(http)\ndoc dir:" + *doc_root_ + "\nlog dir: " + *log_dir_ + '\n'; }
+    std::string get_info() { return "protocol: " + *type_ + "owner: " + owner_ + " | ip: " + ip_.to_string() + ":" + std::to_string(port_) + "(http)\ndoc dir:" + *doc_root_ + "\nlog dir: " + *log_dir_ + '\n'; }
 
+    std::shared_ptr<std::string> type_;
     const std::string owner_;
     const unsigned short port_;
     asio::ip::address const ip_;
@@ -79,6 +82,7 @@ class Listener : public std::enable_shared_from_this<Listener>
     tcp::acceptor acceptor_;
     std::shared_ptr<std::string const> doc_root_;
     std::shared_ptr<std::string const> log_dir_;
+    std::shared_ptr<std::string const> type_;
     std::shared_ptr<IFormat> format_;
 
 public:
@@ -88,11 +92,13 @@ public:
     Listener(
         asio::io_context& ioc,
         tcp::endpoint endpoint,
+        std::shared_ptr<std::string const> const& type,
         std::shared_ptr<std::string const> const& doc_root,
         std::shared_ptr<std::string const> const& log_dir,
         std::shared_ptr<IFormat>& format)
         : ioc_(ioc)
         , acceptor_(asio::make_strand(ioc))
+        , type_(type)
         , doc_root_(doc_root)
         , format_(format)
         , log_dir_(log_dir)
@@ -162,7 +168,15 @@ private:
         else
         {
             // Create the session and run it
-            std::make_shared<Session>(
+            if (*type_ == "http")
+                std::make_shared<Session>(
+                    std::move(socket),
+                    doc_root_,
+                    log_dir_,
+                    format_
+                    )->run();
+            if (*type_ == "ws")
+            std::make_shared<WebSocketSession>(
                 std::move(socket),
                 doc_root_,
                 log_dir_,
