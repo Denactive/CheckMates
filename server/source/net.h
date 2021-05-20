@@ -10,6 +10,7 @@
 #define TIMEOUT_DELAY 30  // (s)
 #define BASIC_DEBUG 1
 #define START_GAME_IMITATION 1
+#define REGESTRY_IMITATION 1
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -24,9 +25,6 @@
 #include <sstream>
 #include <fstream>
 #include <filesystem>
-
-#include <chrono>
-#include <ctime>
 
 #include <algorithm>
 #include <cstdlib>
@@ -60,6 +58,27 @@ std::string static cast_filepath(const std::string& path) {
             c = '\\';
 #endif
     return res;
+}
+
+std::string static serializeTimePoint(const time_point& time, const std::string& format)
+{
+    std::time_t tt = std::chrono::system_clock::to_time_t(time);
+    std::tm tm;
+#ifdef _WIN32
+    if (localtime_s(&tm, &tt)) //Locale time-zone, usually UTC by default.
+        return "undefined_time";
+#else
+    localtime_r(&tt, &tm); //Locale time-zone, usually UTC by default.
+#endif
+    char mbstr[64];
+    std::stringstream ss;
+
+    if (std::strftime(mbstr, 64, format.c_str(), &tm))
+        ss << mbstr;
+    else
+        ss << "undefined_time";
+
+    return ss.str();
 }
 
 
@@ -106,7 +125,7 @@ public:
 
 private:
 
-    std::string serializeTimePoint(const time_point& time, const std::string& format);
+    //std::string serializeTimePoint(const time_point& time, const std::string& format);
 
     std::shared_ptr<std::string const> const& log_dir_;
     std::ofstream log_stream_;
@@ -186,18 +205,18 @@ class Session : public std::enable_shared_from_this<Session>
     std::shared_ptr<IFormat> format_;
     send_lambda lambda_;
     const std::shared_ptr<ILogger> logger_;
-    std::shared_ptr<UserSet>& active_users_;
 
 public:
     size_t token = 0;
     std::shared_ptr<IUser> user = nullptr;
+    std::shared_ptr<UserMap>& active_users_;
 
     Session(
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
         std::shared_ptr<std::string const> const& log_dir,
         std::shared_ptr<IFormat>& format,
-        std::shared_ptr<UserSet>& active_users
+        std::shared_ptr<UserMap>& active_users
     )
         : stream_(std::move(socket))
         , doc_root_(doc_root)
@@ -214,7 +233,7 @@ public:
     //}
     void expire_cookie(size_t cookie) {
         std::cout << "\tCookie " << cookie << " expired!\n";
-        
+        //active_users_->find(cookie);
     }
     // Start the asynchronous operation
     void run() {
@@ -663,13 +682,21 @@ public:
                 content += block_string;
             }
             delete[] block;
+            if (REGESTRY_IMITATION) {
+                session.user = std::make_shared<User>();
+                std::cout << "user №" << serializeTimePoint(session.user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
+                // TODO run this shit
+                const auto [user, success] = session.active_users_->insert({session.user->get_token(), session.user});
+                if (success)
+                    std::cout << "added to be map successfully" << std::endl;
+                else
+                    std::cout << "has not be added to the map | FAIL" << std::endl;
+            }
 
             if (START_GAME_IMITATION) {
                 if (!session.user) {
                     // TODO send message unauthorised
                     std::cout << "unauthorised\n";
-                    session.user = std::make_shared<User>();
-                    session.user->get_info();
                     mq_->push_user(session.user);
                 }
                 if (mq_->push_user(session.user))

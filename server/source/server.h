@@ -54,7 +54,7 @@ class Server {
 public:
     Server(Options opts,
         std::shared_ptr<IFormat> format,
-        std::shared_ptr<UserSet>& active_users
+        std::shared_ptr<UserMap>& active_users
     )
         : opts_(opts)
         , format_(format)
@@ -73,7 +73,7 @@ private:
     Options opts_;
     std::shared_ptr<IFormat> format_;
     bool started_ = false;
-    std::shared_ptr<UserSet>& active_users_;
+    std::shared_ptr<UserMap>& active_users_;
 };
 
 
@@ -89,7 +89,7 @@ class Listener : public std::enable_shared_from_this<Listener>
     std::shared_ptr<std::string const> log_dir_;
     std::shared_ptr<std::string const> type_;
     std::shared_ptr<IFormat> format_;
-    std::shared_ptr<UserSet>& active_users_;
+    std::shared_ptr<UserMap>& active_users_;
 
 public:
     // TODO: mutex
@@ -102,7 +102,7 @@ public:
         std::shared_ptr<std::string const> const& doc_root,
         std::shared_ptr<std::string const> const& log_dir,
         std::shared_ptr<IFormat>& format,
-        std::shared_ptr<UserSet>& active_users
+        std::shared_ptr<UserMap>& active_users
     )
         : ioc_(ioc)
         , acceptor_(asio::make_strand(ioc))

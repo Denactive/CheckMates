@@ -21,7 +21,7 @@ int main() {
     std::string ws_logger(storage_root + "/ws_logs/");
     std::shared_ptr<JSON_serializer> js = std::make_shared<JSON_serializer>();
     std::shared_ptr<MatcherQueue> mq = std::make_shared<MatcherQueue>();
-    auto active_users = std::make_shared<UserSet>();
+    auto active_users = std::make_shared<UserMap>();
 
     std::shared_ptr<HTTP_format> hf = std::make_shared<HTTP_format>(js, mq);
     std::shared_ptr<WS_format> ws = std::make_shared<WS_format>(js, mq);
