@@ -12,7 +12,9 @@ Database::Database()
     if (!bd.isOpen())
         qDebug() << "database not open";
 
+    gameInfo = make_shared<GameInfo>();
 
+    setGameInfoFromQuery();
     setUserDataFromQuery();
     fillChats();
 }
@@ -103,4 +105,17 @@ std::shared_ptr<User> Database::findUser(int index)
     std::shared_ptr<User> usr = std::make_shared<User>();
 
     return usr;
+}
+
+void Database::setGameInfoFromQuery()
+{
+    gameInfo->meId = 0;
+    gameInfo->opponentId = 1;
+    gameInfo->currentPlayer = true;
+    gameInfo->isCheck = true;
+    gameInfo->isGame = true;
+    gameInfo->isVictory = 0;
+    gameInfo->lastFigurePos = 8;
+    gameInfo->newFigurePos = 16;
+    gameInfo->movesID = 0;
 }

@@ -43,17 +43,41 @@ void Client::readyRead()
         qDebug() << "Reply error";
     } else {
         //qInfo() << reply->readAll();
-        QFile *file = new QFile("../../storage/getdata.txt");
+        std::shared_ptr<QFile> file = std::make_shared<QFile>("../../storage/getdata.txt");
         if (file->open(QFile::WriteOnly)) {
             file->write(reply->readAll());
+
+            parseJSON(file, true);
+
             file->close();
         } else {
             qDebug() << "file not open";
         }
     }
 
+
     qDebug() << "Data is get";
     emit onReady();
+}
+
+void Client::parseJSON(std::shared_ptr<QFile> file, bool isGet)
+{
+    // заглушка
+    if (isGet) {
+        file->close();
+        file->open(QFile::ReadOnly);
+        QByteArray data = file->readAll();
+        QJsonDocument document;
+        document = document.fromJson(data);
+        QString value = document.object()["name"].toString();
+    } else {
+        // post
+        QJsonObject obj = QJsonDocument::fromJson(file->readAll()).object();
+        obj["name"] = "New name";
+        file->close();
+        file->open(QFile::WriteOnly);
+        file->write(QJsonDocument(obj).toJson());
+    }
 }
 
 void Client::authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator)

@@ -7,8 +7,9 @@
 #include <QDebug>
 #include <QMessageBox>
 
-MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo, std::vector<std::shared_ptr<User>> friendsInfo)
-    :QWidget(parent), main(main), isMatching(isMatching)
+MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo,
+                       std::vector<std::shared_ptr<User>> friendsInfo, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent, std::vector<std::shared_ptr<User>> frnsInfo)
+    :QWidget(parent), main(main), isMatching(isMatching), gameInfo(gameInfo), friendsInfo(frnsInfo), opponent(opponent)
 {
     menu = new QHBoxLayout();
     menu->setAlignment(Qt::AlignCenter);
@@ -51,8 +52,9 @@ void MenuWindow::drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) {
         addChat(i, chatInfo);
     }
 
-    for (auto & chatValue : chats) {
-        chatsLayout->addWidget(chatValue);
+    for (int i = 0; i < 5; ++i) {
+        if (i < chats.size()) chatsLayout->addWidget(chats[i]);
+        else chatsLayout->addWidget(new QWidget());
     }
 
     //chatsLayoutWidget->setLayout(chatsLayout);
@@ -90,6 +92,7 @@ void MenuWindow::drawMiddle()
         QSize photoSize(playButton->width(), playButton->height());
         QPixmap preview = photo.scaled(photoSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         previewLabelImage->setPixmap(preview);
+        previewLabelImage->setStyleSheet("border: 2px solid #464545; border-radius: 10%;");
         if (DEBUG) qDebug() << "file preview set";
     }
     else {
@@ -146,7 +149,7 @@ void MenuWindow::drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) {
 
     if (DEBUG) qDebug() << "f size: " << friendsInfo.size();
 
-    for (size_t i = 0; i < friendsInfo.size(); ++i) {
+    for (size_t i = 0; i < friendsInfo.size() || i < 5; ++i) {
         addFriend(i, friendsInfo);
     }
 
@@ -162,6 +165,11 @@ void MenuWindow::tapPlay()
     if (!choosenFriend->isChecked() && !isMatchingBox->isChecked()) {
         QMessageBox::warning(this, "Not player to play", "Yot don't want to play with random player and you don't choose friend");
     } else {
+        qDebug() << "game info opponent id: " << gameInfo->opponentId;
+        qDebug() << "opponent: " << opponent->getName();
+
+        GameWindow *gameWindow = new GameWindow(this, main, gameInfo, opponent);
+        main->insertWidget(1, gameWindow);
         main->setCurrentIndex(1);
         qDebug() << "main -> play\n";
     }
@@ -169,20 +177,23 @@ void MenuWindow::tapPlay()
 
 void MenuWindow::chooseFriend()
 {
-    QCheckBox * clickFriend = (QCheckBox*) sender();
+    CheckBoxUser * clickFriend = (CheckBoxUser*) sender();
     if (clickFriend != choosenFriend) {
         choosenFriend->setChecked(false);
         clickFriend->setChecked(true);
         choosenFriend = clickFriend;
+
+        gameInfo->opponentId = clickFriend->getIndex();
     } else {
         choosenFriend->setChecked(choosenFriend->isChecked());
     }
-}
 
+    opponent = friendsInfo[gameInfo->opponentId];
+}
 void MenuWindow::chooseChat()
 {
     qDebug() << "menu -> chat";
-    ChatButton *btn = (ChatButton*) sender();
+    FrameButton *btn = (FrameButton*) sender();
 
     ChatWindow *chatWindow = new ChatWindow(this, main, btn->getChat());
     main->insertWidget(4, chatWindow);
@@ -196,10 +207,7 @@ void MenuWindow::changeMatching()
 
 void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> friendsInfo)
 {
-    QFrame *newFriend = new QFrame();
-    newFriend->setFrameStyle(QFrame::Panel);
-    newFriend->setFrameShadow(QFrame::Raised);
-    newFriend->setLineWidth(2);
+    FrameButton *newFriend = new FrameButton();
 
     QHBoxLayout *friendLayout = new QHBoxLayout();
 
@@ -212,7 +220,7 @@ void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> frie
     MyMessage fName = user->getName();
     QLabel *friendName = new QLabel(fName.getMessage());
 
-    QCheckBox *friendCheckBox = new QCheckBox("");
+    CheckBoxUser *friendCheckBox = new CheckBoxUser(this, int(index));
     if (index == 0) {
         friendCheckBox->setCheckState(Qt::CheckState::Checked);
         choosenFriend = friendCheckBox;
@@ -229,7 +237,7 @@ void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> frie
 
 void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatInfo)
 {
-    ChatButton *chat = new ChatButton();
+    FrameButton *chat = new FrameButton();
 
     QHBoxLayout *chatLayout = new QHBoxLayout();
 
@@ -250,7 +258,6 @@ void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatIn
     chatLayout->addWidget(lastMessage);
 
     chat->setLayout(chatLayout);
-
 
 
     chats.push_back(chat);

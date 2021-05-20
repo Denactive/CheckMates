@@ -7,25 +7,49 @@
 
 #include "include/windows/gamewindow.h"
 
-GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, bool isPlayer, bool isKingUnderMat) : QWidget(parent), isPlayer(isPlayer), isKingUnderMat(isKingUnderMat), main(main)
+GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent)
+    : QWidget(parent), gameInfo(gameInfo), opponent(opponent), main(main)
 {
+    qDebug() << "game opponent: " << opponent->getName();
+    checkGame();
+
     game = new QVBoxLayout();
 
     drawGameTop();
 
     QHBoxLayout *middle = new QHBoxLayout();
-    ChessBoard * board = new ChessBoard(isKingUnderMat, isPlayer);
+    ChessBoard * board = new ChessBoard(main, gameInfo);
+
     middle->addWidget(board);
     middle->addWidget(drawGameChat());
 
     game->addLayout(middle);
 
+    setStyleSheet("QListWidget::item { color: #464545; padding: 5px; background:  #E2DFD8; } ");
+
     setLayout(game);
+}
+
+void GameWindow::checkGame () {
+    if (!gameInfo->isGame) {
+        if (gameInfo->isVictory == 1) {
+            QMessageBox::information(this, "Завершение игры", "Поздравляем, вы одержали победу!");
+        } else if (gameInfo->isVictory == 2) {
+            QMessageBox::information(this, "Завершение игры", "К сожалению, вы проиграли :(");
+        } else {
+            QMessageBox::information(this, "Завершение игры", "Игра завершилась с ничьей");
+        }
+
+        main->setCurrentIndex(0);
+        qDebug() << "game -> main\n";
+    }
 }
 
 QWidget* GameWindow::drawGameChat()
 {
     QWidget *chatWidget = new QWidget();
+    chatWidget->setStyleSheet("background: #E2DFD8; border-radius: 20%; border: 2px solid #464545;");
+
     QVBoxLayout *bottomLayout = new QVBoxLayout();
 
     bottomLayout->addLayout(drawChat());
@@ -64,17 +88,17 @@ void GameWindow::drawGameTop()
     topLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
     gameMessage = new QLabel("");
-    if (isKingUnderMat) gameMessage->setText("King under Mat!");
+    if (gameInfo->isCheck) gameMessage->setText("King under Mat!");
     gameMessage->setStyleSheet("color: lightred; font-size: bold; ");
     topLayout->addWidget(gameMessage);
 
     topLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
-    User user;
-    user.setName("Friend name");
-    QPixmap photo("../img/friendPhoto.png");
-    user.setUserPhoto(photo);
-    topLayout->addLayout(playerStatisticsDraw(user));
+//    User user;
+//    user.setName("Friend name");
+//    QPixmap photo("../img/friendPhoto.png");
+//    user.setUserPhoto(photo);
+    topLayout->addLayout(playerStatisticsDraw());
 
 
     topLayout->setAlignment(Qt::AlignRight);
@@ -82,18 +106,18 @@ void GameWindow::drawGameTop()
     game->addLayout(topLayout);
 }
 
-QVBoxLayout *GameWindow::playerStatisticsDraw(User &user)
+QVBoxLayout *GameWindow::playerStatisticsDraw()
 {
     QVBoxLayout * playerStatistics = new QVBoxLayout();
 
     QSize photoSize(50, 50);
-    QPixmap photo = user.getUserPhoto().scaled(photoSize, Qt::KeepAspectRatio);
+    QPixmap photo = opponent->getUserPhoto().scaled(photoSize, Qt::KeepAspectRatio);
     QLabel * playerPhotoWidget = new QLabel();
     playerPhotoWidget->setPixmap(photo);
     playerStatistics->addWidget(playerPhotoWidget);
 
-    int time = user.gameTime();
-    QLabel * playerTime = new QLabel(user.getName() + "\nTime: " + QString::number(time));
+    int time = opponent->gameTime();
+    QLabel * playerTime = new QLabel(opponent->getName() + "\nTime: " + QString::number(time));
     playerStatistics->addWidget(playerTime);
 
     return playerStatistics;
@@ -102,10 +126,12 @@ QVBoxLayout *GameWindow::playerStatisticsDraw(User &user)
 QVBoxLayout* GameWindow::drawChat(Chat *chat)  {
     QVBoxLayout *chatLayout = new QVBoxLayout();
     gameChat = new QListWidget();
+    gameChat->setStyleSheet("background: #EDECEA; border-radius: 0%;");
     chatLayout->addWidget(gameChat);
 
     writeMessage = new QLineEdit;
     writeMessage->setVisible(true);
+    writeMessage->setStyleSheet("background: #EDECEA; border: 2px solid #464545; height: 40px; padding-left: 20px;");
     chatLayout->addWidget(writeMessage);
 
     return chatLayout;
@@ -114,7 +140,12 @@ QVBoxLayout* GameWindow::drawChat(Chat *chat)  {
 void GameWindow::sendClicked()
 {
     qDebug() << "send: " << writeMessage->text();
-    gameChat->addItem(writeMessage->text());
+
+    QListWidgetItem *item = new QListWidgetItem(writeMessage->text());
+    QFont font("Helvetica [Cronyx]", 20);
+    item->setFont(font);
+
+    gameChat->addItem(item);
     gameChat->item(gameChat->count() - 1)->setTextAlignment(Qt::AlignRight);
 
     writeMessage->clear();
@@ -140,7 +171,12 @@ void GameWindow::surrender()
 
 void GameWindow::offerDraw()
 {
-   QMessageBox::question(this, "Окончание игры", "Была предложена ничья. Допустим, игрок согласился", QMessageBox::Yes | QMessageBox::No);
-   main->setCurrentIndex(0);
-   qDebug() << "game -> main\n";
+   QMessageBox::StandardButton reply = QMessageBox::question(this, "Окончание игры", "Была предложена ничья", QMessageBox::Yes | QMessageBox::No);
+   if (reply == QMessageBox::Yes) {
+       main->setCurrentIndex(0);
+       qDebug() << "Оппонент принял предложение о ничье";
+       qDebug() << "game -> main\n";
+   } else {
+       qDebug() << "Оппонент не согласен на ничью";
+   }
 }

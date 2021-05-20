@@ -43,7 +43,8 @@ public:
     void drawUserIcon(User * user);
     void changeSettings(User & user);
     void printTopUsers(User * users);
-    void GameInfo();
+
+    void setRegisterUser(int index);
 
 private slots:
     void onSearchChatClicked();
@@ -55,6 +56,9 @@ private slots:
     void donateClicked();
     void contactsClicked();
     void exitClicked();
+    void logoutClicked();
+    void loginClicked();
+    void registrClicked();
 private:
     QStackedWidget * main;
     QVBoxLayout *mainLayout;
@@ -65,7 +69,15 @@ private:
     std::vector<std::shared_ptr<User>> topUsersInfo;
     QComboBox *topUsers;
 
+    QWidget *authorizerIs;
+    QWidget *authorizerNo;
     std::shared_ptr<User> infoAboutMe;
+
+    std::vector<UserInfo> usrsInfo;
+    std::vector<UserInfo>  frnsInfo;
+
+    std::vector<std::shared_ptr<User>> friendsInfo;
+    std::shared_ptr<User> opponent;
 
     std::shared_ptr<Database> db;
 };

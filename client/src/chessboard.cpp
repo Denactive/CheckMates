@@ -9,8 +9,8 @@
 #include  "include/chessboard.h"
 #include "include/cell.h"
 
-ChessBoard::ChessBoard(bool kingUnderMat, bool isPlayer, int newSize, QWidget *parent)
-    :QWidget(parent), size(newSize),  isPlayer(isPlayer), kingUnderMat(kingUnderMat) {
+ChessBoard::ChessBoard(QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, int newSize, QWidget *parent)
+    :QWidget(parent), main(main), size(newSize), gameInfo(gameInfo) {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     mainLayout = new QGridLayout();
@@ -19,7 +19,7 @@ ChessBoard::ChessBoard(bool kingUnderMat, bool isPlayer, int newSize, QWidget *p
     initBoard();
     drawBoardLabels();
     arrangeFigures();
-    if (kingUnderMat) isKingUnderMat();
+    if (gameInfo->isCheck) isKingUnderMat();
 
     mainLayout->setSpacing(0);
     setLayout(mainLayout);
@@ -66,7 +66,7 @@ void ChessBoard::arrangeFigures() {
     m_cells[makeIndex(7, 6)]->setFigure(whorse2);
     m_cells[makeIndex(7, 7)]->setFigure(wrook2);
 
-    if (isPlayer) kingPos = makeIndex(7, 3);
+    if (gameInfo->currentPlayer) kingPos = makeIndex(7, 3);
     else kingPos = makeIndex(0, 3);
 }
 
@@ -103,7 +103,7 @@ void ChessBoard::cellClicked()
     if (DEBUGCHESS) qDebug() << "In cell: " << cell;
     if (DEBUGCHESS) qDebug() << "Pos: " << btn->getPosition().first << " " << btn->getPosition().second;
 
-    if (kingUnderMat) isKingUnderMat();
+    if (gameInfo->isCheck) isKingUnderMat();
 
     if (clickCell == nullptr) {
         btn->cellClick(true);
@@ -114,22 +114,24 @@ void ChessBoard::cellClicked()
             clickCell = nullptr;
         } else {
             if (clickCell->isHasFigure()/*!btn->isHasFigure()*/) {
-               if (kingUnderMat && makeIndex(clickCell->getPosition().first, clickCell->getPosition().second) != kingPos) return;
+               // if (kingUnderMat && makeIndex(clickCell->getPosition().first, clickCell->getPosition().second) != kingPos) return;
 
                clickCell->cellClick(false);
                btn->setFigure(clickCell->getFigure());
 
                if (makeIndex(clickCell->getPosition().first, clickCell->getPosition().second) == kingPos)
-                    kingPos = makeIndex(btn->getPosition().first, btn->getPosition().second);
+                   kingPos = makeIndex(btn->getPosition().first, btn->getPosition().second);
 
                clickCell->setFigure(nullptr);
                clickCell = nullptr;
             } else {
-                clickCell->cellClick(false);
-                clickCell = nullptr;
+               clickCell->cellClick(false);
+               clickCell = nullptr;
             }
         }
     }
+
+    // здесь нужно отправить данные Юре о сделанном ходе
 }
 
 Cell* ChessBoard::createCell(const QString &color, int x, int y, const char *member)
