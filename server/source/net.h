@@ -267,11 +267,10 @@ public:
                 shared_from_this()));
     }
 
-    void on_cookie_timer () {
+    void on_cookie_timer() {
         if (BASIC_DEBUG) std::cout << "on cookie timer\n";
-        asio::steady_timer cookie_timer{ ioc_Singleton::instance().get(), std::chrono::seconds{ 5 } };
-        int val = 5;
-        cookie_timer.async_wait([&val](const boost::system::error_code& ec) {
+        auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::seconds{ 5 });// , std::chrono::seconds{ 5 }
+        cookie_timer->async_wait([cookie_timer](const boost::system::error_code& ec) mutable {
             std::cout << "5 seconds passed | errors: \n" << ec.message();
             //&Session::expire_cookie(228);
         });
@@ -565,11 +564,11 @@ public:
         std::cout << "HTTP-handler: Got an request!" << std::endl;
 
         
-        asio::steady_timer cookie_timer{ ioc_Singleton::instance().get(), std::chrono::minutes{ 5 } };
-        int val = 5;
-        cookie_timer.async_wait([&val](const boost::system::error_code& ec) {
-            std::cout << "shitty timer\n";
-            });
+        //asio::steady_timer cookie_timer{ ioc_Singleton::instance().get(), std::chrono::minutes{ 5 } };
+        //int val = 5;
+        //cookie_timer.async_wait([&val](const boost::system::error_code& ec) {
+        //    std::cout << "shitty timer\n";
+        //    });
         session.start_cookie_timer();
         std::string logging_data;
 

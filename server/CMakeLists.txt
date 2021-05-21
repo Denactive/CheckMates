@@ -19,6 +19,8 @@ IF (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
     ADD_DEFINITIONS("-DHAS_BOOST")
 ENDIF()
+add_executable(client ${SOURCE_DIR}/BoostExampleClient.cpp)
+target_link_libraries (client ${Boost_LIBRARIES} -lpthread)
 
 add_executable(${PROGRAM_NAME}
         ${SOURCE_DIR}/main.cpp
@@ -30,6 +32,7 @@ add_executable(${PROGRAM_NAME}
         source/GameSession.cpp
         test/reSerializer.h
         source/Player.cpp
+        source/User.cpp
         source/King.cpp
         source/TurnControl.cpp
         source/ChessBoard.cpp
