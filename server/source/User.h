@@ -12,12 +12,12 @@
 
 #include <chrono>
 #include <ctime>
+#include <memory>
 
 #include <vector>
 #include <map>
 
 #include <functional>
-
 
 #define TEST_USER 1
 
@@ -49,6 +49,8 @@ typedef struct {
 } Stats;
 
 typedef size_t uid;
+typedef std::chrono::system_clock::time_point timepoint;
+typedef std::chrono::system_clock::time_point Cookie;
 
 typedef struct {
     uid id;
@@ -82,17 +84,13 @@ public:
     virtual ICommunity* create_community() = 0;
     virtual IChat* create_chat(std::set<uid> members) = 0;
     virtual void set_http_session(std::shared_ptr<Session>& s) = 0;
-    virtual std::chrono::system_clock::time_point get_token() = 0;
+    virtual Cookie get_token() = 0;
     virtual bool is_http_session_valid() = 0;
 };
 
 class User: public IUser {
 public:
-    //std::function< void(http::message<false, http::string_body, http::fields>) > confirm_game_start_;
-    //asio::steady_timer cookie_timer;
-
     User()
-    //   : confirm_game_start_(send)
         : token_(std::chrono::system_clock::now())
     {
         if (TEST_USER) {
@@ -100,16 +98,6 @@ public:
             rating_ = 15;
             nickname_ = "Sveta";
         }
-        /*
-        std::cout << "\tUser Timer test!" << std::endl;
-        auto ioc_ = std::make_shared<boost::asio::io_context>();
-        cookie_timer.expires_after(/*ws_.get_executor().context(),
-            std::chrono::seconds{ 5 });
-        int val = 5;
-        //cookie_timer->async_wait([&val](const boost::system::error_code& ec) {
-            //std::cout << "5 seconds passed\n";
-            //});
-        ioc_->run();*/
     }
 
     ~User() {};
@@ -120,7 +108,7 @@ public:
     int get_rating() override { return rating_; }
     Stats get_full_stats(IDBServer& db) override;
     bool is_http_session_valid() override { return http_session != nullptr;  }
-    std::chrono::system_clock::time_point get_token() override { return token_; };
+    Cookie get_token() override { return token_; };
 
     // test
     void set_user_data(uid id, std::string nickame, int new_rating) override { rating_ = new_rating; id_ = id; nickname_ = nickame; }
@@ -141,7 +129,7 @@ private:
     std::vector<IChat*> chat_list_;
     UserStatus status_;
     std::shared_ptr<Session> http_session = nullptr;
-    const std::chrono::system_clock::time_point token_;
+    const Cookie token_;
 };
 
 // Unrequired
@@ -151,7 +139,7 @@ struct UserComparator {
     }
 };
 
-typedef std::map< std::chrono::system_clock::time_point, std::shared_ptr<IUser> > UserMap;
+typedef std::map< Cookie, std::shared_ptr<IUser> > UserMap;
 
 class IAuthorizer {
 public:

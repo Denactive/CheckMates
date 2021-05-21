@@ -8,11 +8,12 @@
 #define CHECKMATES_NET_H
 
 #define TIMEOUT_DELAY 30  // (s)
+#define COOKIE_LIFETIME 15
 #define THREADS_NUM 1
 
 #define BASIC_DEBUG 1
-#define START_GAME_IMITATION 0
-#define REGESTRY_IMITATION 0
+#define START_GAME_IMITATION 1
+#define REGESTRY_IMITATION 1
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -44,7 +45,6 @@ namespace http = beast::http;            // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket;  // from <boost/beast/websocket.hpp>
 namespace asio = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
-using time_point = std::chrono::system_clock::time_point;
 namespace fs = std::filesystem;
 
 class ioc_Singleton
@@ -83,7 +83,7 @@ std::string static cast_filepath(const std::string& path) {
     return res;
 }
 
-std::string static serializeTimePoint(const time_point& time, const std::string& format)
+std::string static serializeTimePoint(const timepoint& time, const std::string& format = "%y-%m-%d-%H_%M_%S")
 {
     std::time_t tt = std::chrono::system_clock::to_time_t(time);
     std::tm tm;
@@ -250,29 +250,32 @@ public:
     {
     }
 
-    //TEST
-    //(std::string) {
-    //
-    //}
     void expire_cookie(size_t cookie) {
         std::cout << "\tCookie " << cookie << " expired!\n";
         //active_users_->find(cookie);
     }
 
-    void start_cookie_timer() {
+    void start_cookie_timer(Cookie c, int value) {
         if (BASIC_DEBUG) std::cout << "start cookie timer\n";
-        asio::dispatch(ioc_Singleton::instance().get(),
-            beast::bind_front_handler(
-                &Session::on_cookie_timer,
-                shared_from_this()));
-    }
+        auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::seconds{ value });
+        auto active_users = active_users_;
+        cookie_timer->async_wait([cookie_timer, c, value, active_users](const boost::system::error_code& ec) mutable {
+            std::cout << value << " seconds passed";
+            if (ec)
+                std::cout << " | errors: " << ec.message() << std::endl;
+            else
+                std::cout << '\n';
 
-    void on_cookie_timer() {
-        if (BASIC_DEBUG) std::cout << "on cookie timer\n";
-        auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::seconds{ 5 });// , std::chrono::seconds{ 5 }
-        cookie_timer->async_wait([cookie_timer](const boost::system::error_code& ec) mutable {
-            std::cout << "5 seconds passed | errors: \n" << ec.message();
-            //&Session::expire_cookie(228);
+            std::cout << "Cookie " << serializeTimePoint(c) << " is not active more\n";
+
+            auto search = active_users->find(c);
+            if (search != active_users->end()) {
+                std::cout << "User = { token: " << serializeTimePoint(search->first) << ", name: " << search->second->get_nickname() << " } has been deleted from the user map" << '\n';
+                active_users->erase(search);
+            }
+            else {
+                std::cout << "Cookie " << serializeTimePoint(c) << " not found in the active users map\n";
+            }
         });
     }
 
@@ -548,7 +551,6 @@ class HTTP_format: public IFormat {
 public:
 
     HTTP_format() = delete;
-    //HTTP_format(asio::io_context ioc, const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
      HTTP_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
         : serializer_(serializer) 
         , mq_(matcher_queue)
@@ -563,13 +565,6 @@ public:
     ) override {
         std::cout << "HTTP-handler: Got an request!" << std::endl;
 
-        
-        //asio::steady_timer cookie_timer{ ioc_Singleton::instance().get(), std::chrono::minutes{ 5 } };
-        //int val = 5;
-        //cookie_timer.async_wait([&val](const boost::system::error_code& ec) {
-        //    std::cout << "shitty timer\n";
-        //    });
-        session.start_cookie_timer();
         std::string logging_data;
 
         // Returns a bad request response
@@ -732,6 +727,7 @@ public:
                     std::cout << "added to be map successfully" << std::endl;
                 else
                     std::cout << "has not be added to the map | FAIL" << std::endl;
+                session.start_cookie_timer(session.user->get_token(), COOKIE_LIFETIME);
             }
 
             if (START_GAME_IMITATION) {

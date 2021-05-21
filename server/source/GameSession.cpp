@@ -9,15 +9,12 @@ void GameSession::move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> en
 void GameSession::try_move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) {
     std::array<size_t, M> turn, reverse, capt;
     std::vector<std::array<size_t, M>>& moves = you->access();
-    if (moves.size() == 0) {
+    if (moves.empty()) {
         return;
     }
-    std::cout << 0;
-    auto i = moves.end() - 1;
-    while (i >= moves.begin() && moves.size() > 0) {
-        turn = *(i);
+    for (size_t i = 0; i < moves.size(); ++i) {
+        turn = moves[i];
         you->move(turn);
-
         board->move_chess(turn);
         size_t num = enemy->try_capture(turn);
         std::array<size_t, K>fake_turn;
@@ -29,19 +26,13 @@ void GameSession::try_move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer
         capt[3] = reverse[1] = turn[3];
         reverse[2] = turn[0];
         reverse[3] = turn[1];
-        std::cout << 3;
         enemy->all_available_Moves();
-        std::cout << 5;
         auto thr = enemy->all_threatens();
-        std::cout << 7;
         you->KingUpdate(thr);
-        std::cout << 8;
         if (is_check(you, enemy)) {
-            moves.erase(i);
-        }
-        std::cout << 9;
+            moves.erase(moves.begin() + i);
             --i;
-        std::cout << 4;
+        }
         you->move(reverse);
         board->move_chess(reverse);
         if (num != 2 * N) {
@@ -135,9 +126,7 @@ int GameSession::prepare_turn() {
     board->draw_board();
     you->print_pos();
     if (is_check(you, enemy)) {
-        std::cout << "2";
         info.isCheck = true;
-        std::cout << "3";
         try_move(you, enemy);
         std::cout << "CHECK!!";
     }
