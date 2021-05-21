@@ -2,15 +2,17 @@
 #define _WIN32_WINNT 0x0A00
 #endif
 
+#define BOOST_DATE_TIME_NO_LIB
+
 #ifndef CHECKMATES_NET_H
 #define CHECKMATES_NET_H
 
-#define BOOST_DATE_TIME_NO_LIB
-
 #define TIMEOUT_DELAY 30  // (s)
+#define THREADS_NUM 1
+
 #define BASIC_DEBUG 1
-#define START_GAME_IMITATION 1
-#define REGESTRY_IMITATION 1
+#define START_GAME_IMITATION 0
+#define REGESTRY_IMITATION 0
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -45,10 +47,31 @@ using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
 using time_point = std::chrono::system_clock::time_point;
 namespace fs = std::filesystem;
 
+class ioc_Singleton
+{
+public:
+    static ioc_Singleton& instance()
+    {
+        static ioc_Singleton singleton;
+        return singleton;
+    }
+
+    asio::io_context& get() { return ioc_; }
+
+    // Other non-static member functions
+private:
+    ioc_Singleton() {}                                  // Private constructor
+    ~ioc_Singleton() {}
+    ioc_Singleton(const ioc_Singleton&);                 // Prevent copy-construction
+    ioc_Singleton& operator=(const ioc_Singleton&);      // Prevent assignment
+    asio::io_context ioc_{ THREADS_NUM };
+};
+
 // global error function
 void static fail(beast::error_code ec, char const* what) {
     std::cerr << what << ": " << ec.message() << "\n";
 }
+
 // casting windows / linux filepaths
 std::string static cast_filepath(const std::string& path) {
     std::string res(path);
@@ -235,6 +258,27 @@ public:
         std::cout << "\tCookie " << cookie << " expired!\n";
         //active_users_->find(cookie);
     }
+
+    void start_cookie_timer() {
+        if (BASIC_DEBUG) std::cout << "start cookie timer\n";
+        asio::dispatch(ioc_Singleton::instance().get(),
+            beast::bind_front_handler(
+                &Session::on_cookie_timer,
+                shared_from_this()));
+    }
+
+    void on_cookie_timer () {
+        if (BASIC_DEBUG) std::cout << "on cookie timer\n";
+        asio::steady_timer cookie_timer{ ioc_Singleton::instance().get(), std::chrono::seconds{ 5 } };
+        int val = 5;
+        cookie_timer.async_wait([&val](const boost::system::error_code& ec) {
+            std::cout << "5 seconds passed | errors: \n" << ec.message();
+            //&Session::expire_cookie(228);
+        });
+    }
+
+
+
     // Start the asynchronous operation
     void run() {
         if (BASIC_DEBUG) std::cout << "session run\n";
@@ -520,15 +564,13 @@ public:
     ) override {
         std::cout << "HTTP-handler: Got an request!" << std::endl;
 
-        std::cout << "\tTimer test!" << std::endl;
-        auto ioc_ = std::make_shared<asio::io_context>();
-        asio::steady_timer timer{ *ioc_, std::chrono::seconds{5} };
+        
+        asio::steady_timer cookie_timer{ ioc_Singleton::instance().get(), std::chrono::minutes{ 5 } };
         int val = 5;
-        timer.async_wait([&val](const boost::system::error_code& ec) {
-            std::cout << "5 seconds passed\n";
+        cookie_timer.async_wait([&val](const boost::system::error_code& ec) {
+            std::cout << "shitty timer\n";
             });
-        ioc_->run();
-
+        session.start_cookie_timer();
         std::string logging_data;
 
         // Returns a bad request response
@@ -719,6 +761,7 @@ public:
             logger->log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
             return send(std::move(res));
         }
+
         // TODO: common value res
         //return send(std::move(res));
     }

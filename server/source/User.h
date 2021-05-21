@@ -1,5 +1,14 @@
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0A00
+#endif
+
 #ifndef SERVER_USER_H
 #define SERVER_USER_H
+#define BOOST_DATE_TIME_NO_LIB
+
+//#include<boost/asio/steady_timer.hpp>
+//#include <boost/asio/dispatch.hpp>
+//#include <boost/asio/strand.hpp>
 
 #include <chrono>
 #include <ctime>
@@ -8,6 +17,7 @@
 #include <map>
 
 #include <functional>
+
 
 #define TEST_USER 1
 
@@ -79,6 +89,7 @@ public:
 class User: public IUser {
 public:
     //std::function< void(http::message<false, http::string_body, http::fields>) > confirm_game_start_;
+    //asio::steady_timer cookie_timer;
 
     User()
     //   : confirm_game_start_(send)
@@ -89,6 +100,16 @@ public:
             rating_ = 15;
             nickname_ = "Sveta";
         }
+        /*
+        std::cout << "\tUser Timer test!" << std::endl;
+        auto ioc_ = std::make_shared<boost::asio::io_context>();
+        cookie_timer.expires_after(/*ws_.get_executor().context(),
+            std::chrono::seconds{ 5 });
+        int val = 5;
+        //cookie_timer->async_wait([&val](const boost::system::error_code& ec) {
+            //std::cout << "5 seconds passed\n";
+            //});
+        ioc_->run();*/
     }
 
     ~User() {};
