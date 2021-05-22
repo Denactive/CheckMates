@@ -176,6 +176,8 @@ public:
         , std::function<void(http::message<false, http::string_body, http::fields>)>
         , Session&
     ) = 0;
+
+    virtual std::shared_ptr<IMatcherQueue> get_mq() = 0;
 };
 
 
@@ -250,11 +252,6 @@ public:
     {
     }
 
-    void expire_cookie(size_t cookie) {
-        std::cout << "\tCookie " << cookie << " expired!\n";
-        //active_users_->find(cookie);
-    }
-
     void start_cookie_timer(Cookie c, int value) {
         if (BASIC_DEBUG) std::cout << "start cookie timer\n";
         auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::seconds{ value });
@@ -279,7 +276,36 @@ public:
         });
     }
 
+    void on_queue() {
+        if (BASIC_DEBUG) std::cout << "on queue | Session-Timer set to 2 minutes\n";
+        stream_.expires_after(std::chrono::minutes{ 2 }); //expires_after(std::chrono::seconds(TIMEOUT_DELAY));
 
+        if (format_->get_mq()->push_user(user)) {
+            // если запушили и для него сразу нашелся оппонент
+
+            // Read a request
+            //void  operator()(http::message<false, http::string_body, http::fields> && msg) const
+
+                // The lifetime of the message has to extend
+                // for the duration of the async operation so
+                // we use a shared_ptr to manage it.
+            auto sp = std::make_shared<
+                http::message<false, http::string_body, http::fields>>(std::move(msg));
+
+            // Store a type-erased version of the shared
+            // pointer in the class to keep it alive.
+            self_.res_ = sp;
+
+            // Write the response
+            http::async_write(
+                self_.stream_,
+                *sp,
+                beast::bind_front_handler(
+                    &Session::on_write,
+                    self_.shared_from_this(),
+                    sp->need_eof()));
+        }
+    }
 
     // Start the asynchronous operation
     void run() {
@@ -527,6 +553,7 @@ public:
     void game_request_handler();
     void game_response_handler();
     void chat_handler();
+    std::shared_ptr<IMatcherQueue> get_mq() override { return mq_; }
 
     virtual void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
@@ -551,11 +578,14 @@ class HTTP_format: public IFormat {
 public:
 
     HTTP_format() = delete;
-     HTTP_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
+    HTTP_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
         : serializer_(serializer) 
         , mq_(matcher_queue)
     {
     }
+
+    std::shared_ptr<IMatcherQueue> get_mq() override { return mq_; }
+
 
     void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
@@ -734,12 +764,11 @@ public:
                 if (!session.user) {
                     // TODO send message unauthorised
                     std::cout << "unauthorised\n";
-                    mq_->push_user(session.user);
                 }
                 if (mq_->push_user(session.user))
                     content = "Successfully added to matching queue\n";
                 else
-                    content = "Failed to adde to matching queue\n";
+                    content = "Failed to add to matching queue\n";
                 size = content.size();
             }
             

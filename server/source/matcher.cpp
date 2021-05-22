@@ -62,13 +62,11 @@ bool MatcherQueue::push_user(std::shared_ptr<IUser> u) {
     q_.push(u);
 
     if (q_.size() == 2) {
-        // startgame
         auto p1 = q_.front();
         q_.pop();
         auto p2 = q_.front();
         q_.pop();
 
-        // TODO: increase player timers
         start_game(p1, p2);
     }
 
