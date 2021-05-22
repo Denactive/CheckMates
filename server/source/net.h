@@ -15,6 +15,14 @@
 #define START_GAME_IMITATION 1
 #define REGESTRY_IMITATION 1
 
+#define START_GAME_RESPONSE \
+"{\n\
+  game_token: %s,\n\
+  uid: %zu,\n\
+  side: %s,\n\
+  opponent:\n  {\n    name: %s,\n    rating: %s,\n    avatar: %s\n  }\n\
+}"
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -23,6 +31,7 @@
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
+#include <boost/format.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -81,27 +90,6 @@ std::string static cast_filepath(const std::string& path) {
             c = '\\';
 #endif
     return res;
-}
-
-std::string static serializeTimePoint(const timepoint& time, const std::string& format = "%y-%m-%d-%H_%M_%S")
-{
-    std::time_t tt = std::chrono::system_clock::to_time_t(time);
-    std::tm tm;
-#ifdef _WIN32
-    if (localtime_s(&tm, &tt)) //Locale time-zone, usually UTC by default.
-        return "undefined_time";
-#else
-    localtime_r(&tt, &tm); //Locale time-zone, usually UTC by default.
-#endif
-    char mbstr[64];
-    std::stringstream ss;
-
-    if (std::strftime(mbstr, 64, format.c_str(), &tm))
-        ss << mbstr;
-    else
-        ss << "undefined_time";
-
-    return ss.str();
 }
 
 
@@ -263,47 +251,57 @@ public:
             else
                 std::cout << '\n';
 
-            std::cout << "Cookie " << serializeTimePoint(c) << " is not active more\n";
+            auto cookie = serializeTimePoint(c);
+            std::cout << "Cookie " << cookie << " is not active more\n";
 
-            auto search = active_users->find(c);
+            auto search = active_users->find(cookie);
             if (search != active_users->end()) {
-                std::cout << "User = { token: " << serializeTimePoint(search->first) << ", name: " << search->second->get_nickname() << " } has been deleted from the user map" << '\n';
+                std::cout << "User = { token: " << search->first << ", name: " << search->second->get_nickname() << " } has been deleted from the user map" << '\n';
                 active_users->erase(search);
             }
             else {
-                std::cout << "Cookie " << serializeTimePoint(c) << " not found in the active users map\n";
+                std::cout << "Cookie " << cookie << " not found in the active users map\n";
             }
         });
     }
 
-    void on_queue() {
+    void on_queue(std::string&& logging_data, const std::shared_ptr<ILogger>& logger, unsigned short version) {
         if (BASIC_DEBUG) std::cout << "on queue | Session-Timer set to 2 minutes\n";
-        stream_.expires_after(std::chrono::minutes{ 2 }); //expires_after(std::chrono::seconds(TIMEOUT_DELAY));
-
-        if (format_->get_mq()->push_user(user)) {
+        stream_.expires_after(std::chrono::minutes{ 2 });
+        auto push_result = format_->get_mq()->push_user(user);
+        if (push_result != nullptr) {
             // если запушили и для него сразу нашелся оппонент
+            /*
+            game_token:% s, \
+            uid : % zu, \
+            side : % s\
+            opponent : { name:% s, rating : % s, avatar : % s }*/
+            bool is_first_white = false;
+            if (push_result->wPlayer->get_user()->get_token() == user->get_token())
+                is_first_white = true;
 
-            // Read a request
-            //void  operator()(http::message<false, http::string_body, http::fields> && msg) const
+            std::string content = (boost::format(START_GAME_RESPONSE) 
+                % push_result->get_token_string()
+                % user->get_id() 
+                % (is_first_white ? "white" : "black")
+                % push_result->bPlayer->get_user()->get_nickname()
+                % push_result->bPlayer->get_user()->get_rating()
+                % push_result->bPlayer->get_user()->get_avatar()
+            ).str();
+            
 
-                // The lifetime of the message has to extend
-                // for the duration of the async operation so
-                // we use a shared_ptr to manage it.
-            auto sp = std::make_shared<
-                http::message<false, http::string_body, http::fields>>(std::move(msg));
+            http::response<http::string_body> res{
+                std::piecewise_construct,
+                std::make_tuple(content),
+                std::make_tuple(http::status::ok, version)
+            };
 
-            // Store a type-erased version of the shared
-            // pointer in the class to keep it alive.
-            self_.res_ = sp;
-
-            // Write the response
-            http::async_write(
-                self_.stream_,
-                *sp,
-                beast::bind_front_handler(
-                    &Session::on_write,
-                    self_.shared_from_this(),
-                    sp->need_eof()));
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, "text / html");
+            res.content_length(content.size());
+            res.keep_alive(true);
+            logger->log(logging_data += "OK\nCreating a response of " + std::to_string(content.size()) + " bytes:\n\n" + content + "\n\n");
+            return lambda_(std::move(res));
         }
     }
 
@@ -422,6 +420,7 @@ class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
     const std::shared_ptr<ILogger> logger_;
     websocket::stream<beast::tcp_stream> stream_;
     //beast::tcp_stream stream_;
+
 
 public:
     // Take ownership of the socket
@@ -751,12 +750,13 @@ public:
             if (REGESTRY_IMITATION) {
                 session.user = std::make_shared<User>();
                 std::cout << "user №" << serializeTimePoint(session.user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
-                // TODO run this shit
-                const auto [user, success] = session.active_users_->insert({session.user->get_token(), session.user});
+
+                const auto [user, success] = session.active_users_->insert({session.user->get_token_string(), session.user});
                 if (success)
-                    std::cout << "added to be map successfully" << std::endl;
+                    std::cout << "added to the User Map successfully" << std::endl;
                 else
-                    std::cout << "has not be added to the map | FAIL" << std::endl;
+                    std::cout << "has not been added to the map | FAIL" << std::endl;
+
                 session.start_cookie_timer(session.user->get_token(), COOKIE_LIFETIME);
             }
 
@@ -765,11 +765,8 @@ public:
                     // TODO send message unauthorised
                     std::cout << "unauthorised\n";
                 }
-                if (mq_->push_user(session.user))
-                    content = "Successfully added to matching queue\n";
-                else
-                    content = "Failed to add to matching queue\n";
-                size = content.size();
+                //auto logging_data_ptr = std::make_shared<std::string>(&logging_data);
+                return session.on_queue(std::move(logging_data), logger, req.version());
             }
             
             http::response<http::string_body> res{

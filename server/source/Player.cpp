@@ -28,9 +28,6 @@ std::set<std::array<size_t, K>>  Player::all_threatens() {
 };
 
 
-size_t Player::GetUserId(){
-    return 0;
-};
 
 void Player::set_pieces() {
     size_t i = 7;

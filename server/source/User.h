@@ -27,6 +27,31 @@ class Session;
 #include "community.h"
 #include "ServerDB.h"
 
+typedef size_t uid;
+typedef std::chrono::system_clock::time_point timepoint;
+typedef std::chrono::system_clock::time_point Cookie;
+typedef std::chrono::system_clock::time_point GameToken;
+
+std::string static serializeTimePoint(const timepoint& time, const std::string& format = "%y-%m-%d-%H_%M_%S")
+{
+    std::time_t tt = std::chrono::system_clock::to_time_t(time);
+    std::tm tm;
+#ifdef _WIN32
+    if (localtime_s(&tm, &tt)) //Locale time-zone, usually UTC by default.
+        return "undefined_time";
+#else
+    localtime_r(&tt, &tm);
+#endif
+    char mbstr[64];
+    std::stringstream ss;
+
+    if (std::strftime(mbstr, 64, format.c_str(), &tm))
+        ss << mbstr;
+    else
+        ss << "undefined_time";
+
+    return ss.str();
+}
 
 typedef enum {
     unqualified,
@@ -48,9 +73,6 @@ typedef struct {
     double give_up_percentage;
 } Stats;
 
-typedef size_t uid;
-typedef std::chrono::system_clock::time_point timepoint;
-typedef std::chrono::system_clock::time_point Cookie;
 
 typedef struct {
     uid id;
@@ -83,9 +105,9 @@ public:
     virtual Stats get_full_stats(IDBServer&) = 0;
     virtual ICommunity* create_community() = 0;
     virtual IChat* create_chat(std::set<uid> members) = 0;
-    virtual void set_http_session(std::shared_ptr<Session>& s) = 0;
     virtual Cookie get_token() = 0;
-    virtual bool is_http_session_valid() = 0;
+    virtual std::string get_token_string() = 0;
+    virtual std::string get_avatar() = 0;
 };
 
 class User: public IUser {
@@ -97,6 +119,7 @@ public:
             id_ = 1;
             rating_ = 15;
             nickname_ = "Sveta";
+            avatar_ = "/users/avatars/sveta.png";
         }
     }
 
@@ -105,15 +128,15 @@ public:
     UserInfo get_info() override;
     uid get_id() override { return id_; }
     std::string get_nickname() override { return nickname_; }
+    std::string get_avatar() override { return avatar_; }
     int get_rating() override { return rating_; }
     Stats get_full_stats(IDBServer& db) override;
-    bool is_http_session_valid() override { return http_session != nullptr;  }
     Cookie get_token() override { return token_; };
+    std::string get_token_string() override { return serializeTimePoint(token_); }
 
     // test
     void set_user_data(uid id, std::string nickame, int new_rating) override { rating_ = new_rating; id_ = id; nickname_ = nickame; }
     void set_rating(int new_rating) override { rating_ = new_rating; }
-    void set_http_session(std::shared_ptr<Session>& s) override { http_session = s; }
    
 
     ICommunity* create_community() override;
@@ -121,14 +144,14 @@ public:
 
 private:
 
-    std::shared_ptr<WebSocketSession> session_ = nullptr;
-    uid id_;
     StatsAgregator stats_getter_;
+    
+    uid id_;
     std::string nickname_;
     int rating_;
+    std::string avatar_;
     std::vector<IChat*> chat_list_;
     UserStatus status_;
-    std::shared_ptr<Session> http_session = nullptr;
     const Cookie token_;
 };
 
@@ -139,7 +162,16 @@ struct UserComparator {
     }
 };
 
-typedef std::map< Cookie, std::shared_ptr<IUser> > UserMap;
+struct StringTokenComparator {
+    bool operator () (const std::string& a, const std::string& b) const {
+        return a > b;
+    }
+    static std::string max_value() {
+        return "";
+    }
+};
+
+typedef std::map< std::string, std::shared_ptr<IUser>, StringTokenComparator > UserMap;
 
 class IAuthorizer {
 public:

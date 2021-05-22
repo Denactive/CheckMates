@@ -3,7 +3,7 @@
 //
 #include "matcher.h"
 
-std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1, std::shared_ptr<IUser> p2) {
+std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> pw, std::shared_ptr<IUser> pb) {
     auto GetTurn = []() {
         std::array<size_t, M> turn;
         std::cout << "\nenter input\n";
@@ -11,19 +11,22 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1,
         return turn;
     };
 
-    std::cout << "Matcher: starting a game\n";
+    std::cout << "Matcher: ";
     // TODO fill the constructor correctly
     //    GameSession gs = new GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
     
-    auto game_session = std::make_shared<GameSession>(p1, p2);
-    active_games_cnt++;
-    game_session->token = active_games_cnt;
-    games_.insert(game_session);
-
-    // todo: send redirect message
+    auto game_session = std::make_shared<GameSession>(pw, pb);
+    const auto [game, success] = games_->insert({ game_session->get_token_string(), game_session });
+    if (success) {
+        std::cout << "the game № " + game->first + " added to the Game Map successfully" << std::endl;
+    }
+    else {
+        std::cout << "the game " + game->first + " has not been added to the map | FAIL" << std::endl;
+        return nullptr;
+    }
     
+    /*
     std::array<size_t, M> turn;
-    GInfo info = game_session->send_info();
 
     while (info.isGame) {
         // отправляю Свете info
@@ -52,12 +55,11 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> p1,
             // отправил Свете
             std::cout << "valid move\n";
         }
-
-    }
+    }*/
     return game_session;
 }
 
-bool MatcherQueue::push_user(std::shared_ptr<IUser> u) {
+std::shared_ptr<GameSession> MatcherQueue::push_user(std::shared_ptr<IUser> u) {
     std::cout << "Matcher: pushing user " << u->get_id() << ' ' << u->get_nickname() << "\n";
     q_.push(u);
 
@@ -67,10 +69,19 @@ bool MatcherQueue::push_user(std::shared_ptr<IUser> u) {
         auto p2 = q_.front();
         q_.pop();
 
-        start_game(p1, p2);
-    }
+        std::shared_ptr<GameSession> new_game;
+        bool is_first_white = std::chrono::system_clock::now().time_since_epoch().count() % 2;
+        if (is_first_white)
+            new_game = start_game(p1, p2);
+        else
+            new_game = start_game(p2, p1);
+        
+        std::cout << "MatcherQueue::push_user | white player is: " << new_game->wPlayer->get_user()->get_token_string() << " (" << new_game->wPlayer->get_user()->get_nickname() << ")\n";
+        std::cout << "                        | black player is: " << new_game->bPlayer->get_user()->get_token_string() << " (" << new_game->bPlayer->get_user()->get_nickname() << ")\n";
 
-    return true;
+        return new_game;
+    }
+    return nullptr;
 }
 
 bool MatcherQueue::pop_user(std::shared_ptr<IUser> u) {
