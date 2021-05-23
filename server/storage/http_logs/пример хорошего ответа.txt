@@ -1,6 +1,0 @@
-Connected
-GET-req file: /1108_syms_pass.txt
-OK
-Creating a response of 1108 bytes
-Connection refused by client
-Connection closed successfully
