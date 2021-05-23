@@ -110,7 +110,7 @@ std::shared_ptr<User> Database::findUser(int index)
 void Database::setGameInfoFromQuery()
 {
     QSqlQuery query = QSqlQuery(this->database());
-    if (!query.exec("SELECT _id, isVictory, currentPlayer, isCheck, isGame, newFigurePos, lastFigurePos, meID, opponentID" )) {
+    if (!query.exec("SELECT _id, isVictory, currentPlayer, isCheck, isGame, newFigurePos, lastFigurePos, meID, opponentID from GameInfo" )) {
         qDebug() << query.lastError().databaseText();
         qDebug() << query.lastError().driverText();
     }

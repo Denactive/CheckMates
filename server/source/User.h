@@ -18,6 +18,7 @@
 #include <map>
 
 #include <functional>
+#include <sstream>
 
 #define TEST_USER 1
 

@@ -20,6 +20,14 @@
 #include "include/figures.h"
 #include "include/windows/mainwindow.h"
 #include "include/database.h"
+#include <unistd.h>
+
+#include <../boost/beast/http.hpp>
+#include <../boost/asio/strand.hpp>
+
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace net = boost::asio;
 
 // QNetworkAccessManager - инкапсулирует HTTP протокол, включает SSL
 

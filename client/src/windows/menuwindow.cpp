@@ -165,8 +165,8 @@ void MenuWindow::tapPlay()
     if (!choosenFriend->isChecked() && !isMatchingBox->isChecked()) {
         QMessageBox::warning(this, "Not player to play", "Yot don't want to play with random player and you don't choose friend");
     } else {
-        qDebug() << "game info opponent id: " << gameInfo->opponentId;
-        qDebug() << "opponent: " << opponent->getName();
+        if (DEBUG) qDebug() << "game info opponent id: " << gameInfo->opponentId;
+        if (DEBUG) qDebug() << "opponent: " << opponent->getName();
 
         GameWindow *gameWindow = new GameWindow(this, main, gameInfo, opponent);
         main->insertWidget(1, gameWindow);

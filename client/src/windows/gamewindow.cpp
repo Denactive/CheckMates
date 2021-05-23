@@ -10,7 +10,28 @@
 GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent)
     : QWidget(parent), gameInfo(gameInfo), opponent(opponent), main(main)
 {
-    qDebug() << "game opponent: " << opponent->getName();
+//    net::io_context ioc;
+//    ioc.run();
+
+//    std::unique_ptr<Client> client(new Client);
+
+//    auto const port = 8000;
+//    // auto const host = "25.40.253.246";
+//    auto const host = "127.0.0.1";
+//    auto const target = "/test.txt";
+
+//    // QByteArray name;
+//    // name.append("Sergey");
+//    // client->post(host, port, target, name);
+
+//    client->getData(host, port, target);
+
+    drawGame();
+}
+
+void GameWindow::drawGame()
+{
+    if (DEBUG) qDebug() << "game opponent: " << opponent->getName();
     checkGame();
 
     game = new QVBoxLayout();

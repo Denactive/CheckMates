@@ -39,7 +39,9 @@ void Client::readyRead()
         // qInfo() << reply->readAll();
         std::shared_ptr<QFile> file = std::make_shared<QFile>("../../server/storage/getdata.txt");
         if (file->open(QFile::WriteOnly)) {
-            file->write(reply->readAll());
+            QByteArray rp = reply->readAll();
+            qDebug() << "reply: " << rp;
+            file->write(rp);
             file->close();
         } else {
             qDebug() << "file not open";
@@ -80,7 +82,6 @@ void Client::authenticationRequired(QNetworkReply *reply, QAuthenticator *authen
     Q_UNUSED(authenticator);
 
     qInfo() << "authenticationRequired";
-
 }
 
 void Client::encrypted(QNetworkReply *reply)

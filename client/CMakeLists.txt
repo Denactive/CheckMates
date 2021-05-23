@@ -47,6 +47,7 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Core Quick Sql Network Lin
 set(PROJECT_SOURCES
         main.cpp
 
+        src/serverconnection.cpp
         src/graphics.cpp
         src/chessboard.cpp
         src/cell.cpp
@@ -62,6 +63,7 @@ set(PROJECT_SOURCES
         src/windows/settingswindow.cpp
         src/windows/authorizerwindow.cpp
 
+        include/serverconnection.h
         include/graphics.h
         include/chessboard.h
         include/cell.h

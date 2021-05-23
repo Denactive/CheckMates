@@ -17,6 +17,7 @@
 #include "include/gameobjects.h"
 #include "include/chessboard.h"
 #include "include/database.h"
+#include "include/graphics.h"
 
 class IGameWindow {
 
@@ -41,6 +42,7 @@ public:
     void drawGameTop();
     QVBoxLayout* playerStatisticsDraw();
     QVBoxLayout* drawChat(Chat *chat = nullptr) override;
+    void drawGame();
 
 public slots:
     void surrender() override;

@@ -57,7 +57,7 @@ public:
     std::shared_ptr<User> findUser(int index);
 
     void setGameInfoFromQuery();
-    std::shared_ptr<GameInfo> getGameInfo() { qDebug() << "gm info " << gameInfo->isCheck; return gameInfo; }
+    std::shared_ptr<GameInfo> getGameInfo() { return gameInfo; }
 
 private:
     std::vector<UserInfo> usrInfo;
