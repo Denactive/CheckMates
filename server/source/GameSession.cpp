@@ -41,7 +41,6 @@ void GameSession::try_move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer
             if (info.isPlayer) {
                 Cell = Black;
             }
-            std::cout << 5;
             board->set(Cell, capt[2], capt[3]);
         }
     }
@@ -146,6 +145,7 @@ int GameSession::prepare_turn() {
         std::cout << "CHECKMATE!!";
         return 0;
     }
+    you->castling();
     print_moves(you);
     for (auto i = thr.begin(); i != thr.end(); ++i) {
         std::cout << (*i)[0] << ' ' << (*i)[1] << '\n';
@@ -157,14 +157,17 @@ int GameSession::run_turn(std::array<size_t, M> turn) {
 
     std::shared_ptr<IPlayer> you = bPlayer;
     std::shared_ptr<IPlayer> enemy = wPlayer;
+    size_t horiz = 7;
     if (info.isPlayer) {
         you = wPlayer;
+        horiz = 0;
         enemy = bPlayer;
     }
     std::vector<std::array<size_t, M>> moves = you->access();
     for (auto i = moves.begin(); i != moves.end(); ++i) {
         if (*i == turn) {
             move_accepted = true;
+            you->flag_castl(turn);
             std::cout << "true\n";
             break;
         }

@@ -17,6 +17,7 @@ void King::Update_King(std::set<std::array<size_t, K>> input) {
 
 
 void King::castling() {
+   // std::cout <<"\n^^" <<castle <<leftrook <<rightrook;
     if(castle && leftrook) {
         std::array<size_t, M> king;
         size_t i = position[0];
@@ -75,11 +76,11 @@ std::vector<std::array<size_t, M>> King::available_moves() {
         for (size_t m = (j > 0) ? j - 1 : j; m <= j + 1 && m < 8; ++m) {
             if (!(k == i && m == j)) {
                 if (bd[k][m] != temp) {
-                    mov[2]  = k;
+                    mov[2] = k;
                     tries[0] = k;
-                    mov[3]  = m;
+                    mov[3] = m;
                     tries[1] = m;
-                    if(threat.find(tries) == threat.end()) {
+                    if (threat.find(tries) == threat.end()) {
                         avail_moves.push_back(mov);
                     }
                 }
