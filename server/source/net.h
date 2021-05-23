@@ -379,6 +379,7 @@ public:
             const auto [item, success] = SessionsSingleton::instance().get().insert({ user->get_token_string(), shared_from_this() });
             if (success) {
                 logger->log("User № " + item->first + " is placed to the matching queue\n");
+                logger->close();
             }
             else {
                 logger->log("An error occured while putting User № " + user->get_token_string() + " to the matching queue. The Session will be aborted\n");
