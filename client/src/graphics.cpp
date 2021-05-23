@@ -13,21 +13,15 @@ Client::Client(QObject *parent) :QObject(parent)
 void Client::getData(char const* host, int port, char const* target)
 {
     qInfo() << "Get data from server";
-    QUrl url;
-    url.setHost(host);
-    url.setPort(port);
-    url.setScheme("http");
-    url.setPath(target);
-    qDebug() << url;
 
-    QNetworkReply *reply = manager.get(QNetworkRequest(url));
+    QNetworkReply *reply = manager.get(QNetworkRequest(setUrl(host, port, target)));
     connect(reply, &QNetworkReply::readyRead, this, &Client::readyRead);
 }
 
-void Client::post(QString location, QByteArray data)
+void Client::post(char const* host, int port, char const* target, QByteArray data)
 {
     qInfo() << "Post data to server";
-    QNetworkRequest request = QNetworkRequest(QUrl(location));
+    QNetworkRequest request = QNetworkRequest(setUrl(host, port, target));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
 
     QNetworkReply *reply = manager.post(request, data);
@@ -42,42 +36,42 @@ void Client::readyRead()
     if (reply->error()) {
         qDebug() << "Reply error";
     } else {
-        //qInfo() << reply->readAll();
-        std::shared_ptr<QFile> file = std::make_shared<QFile>("../../storage/getdata.txt");
+        // qInfo() << reply->readAll();
+        std::shared_ptr<QFile> file = std::make_shared<QFile>("../../server/storage/getdata.txt");
         if (file->open(QFile::WriteOnly)) {
             file->write(reply->readAll());
-
-            parseJSON(file, true);
-
             file->close();
         } else {
             qDebug() << "file not open";
         }
-    }
 
+        // просто тест - после того, как записали в файл считываем с него и переводим с json формата
+        parseFromJSON(file);
+        parseToJSON(file);
+    }
 
     qDebug() << "Data is get";
     emit onReady();
 }
 
-void Client::parseJSON(std::shared_ptr<QFile> file, bool isGet)
+void Client::parseFromJSON(std::shared_ptr<QFile> file)
 {
     // заглушка
-    if (isGet) {
-        file->close();
-        file->open(QFile::ReadOnly);
-        QByteArray data = file->readAll();
-        QJsonDocument document;
-        document = document.fromJson(data);
-        QString value = document.object()["name"].toString();
-    } else {
-        // post
-        QJsonObject obj = QJsonDocument::fromJson(file->readAll()).object();
-        obj["name"] = "New name";
-        file->close();
-        file->open(QFile::WriteOnly);
-        file->write(QJsonDocument(obj).toJson());
-    }
+    file->open(QFile::ReadOnly);
+    QByteArray data = file->readAll();
+    QJsonDocument document;
+    document = document.fromJson(data);
+    QString value = document.object()["name"].toString();
+    qDebug() << "value: " << value;
+}
+
+void Client::parseToJSON(std::shared_ptr<QFile> file) {
+    file->open(QFile::ReadOnly);
+    QJsonObject obj = QJsonDocument::fromJson(file->readAll()).object();
+    obj["name"] = "Anton";
+    file->close();
+    file->open(QFile::WriteOnly);
+    file->write(QJsonDocument(obj).toJson());
 }
 
 void Client::authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator)
@@ -132,4 +126,16 @@ void Client::sslErrors(QNetworkReply *reply, const QList<QSslError> &errors)
     Q_UNUSED(errors);
 
     qInfo() << "sslErrors";
+}
+
+QUrl Client::setUrl(char const* host, int port, char const* target)
+{
+    QUrl url;
+    url.setHost(host);
+    url.setPort(port);
+    url.setScheme("http");
+    url.setPath(target);
+    qDebug() << url;
+
+    return url;
 }

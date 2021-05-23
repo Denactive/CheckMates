@@ -10,6 +10,7 @@
 #include <array>
 #include <set>
 #include "ChessBoard.h"
+#include <memory>
 #define M 4
 #define K 2
 

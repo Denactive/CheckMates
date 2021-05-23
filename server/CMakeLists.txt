@@ -36,8 +36,6 @@ add_executable(${PROGRAM_NAME}
         source/Chesspiece.cpp)
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
 
-
-
 enable_testing()
 find_package(GTest REQUIRED)
 include_directories(${INCLUDE_DIRECTORIES})

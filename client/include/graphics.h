@@ -33,11 +33,14 @@ signals:
 
 public slots:
     void getData(char const* host, int port, char const* target);
-    void post(QString location, QByteArray data);
+    void post(char const* host, int port, char const* target, QByteArray data);
 
 private slots:
     void readyRead();
-    void parseJSON(std::shared_ptr<QFile> file, bool isGet);
+
+    void parseFromJSON(std::shared_ptr<QFile> file);
+    void parseToJSON(std::shared_ptr<QFile> file);
+
     void authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator);
     void encrypted(QNetworkReply *reply);
     void finished(QNetworkReply *reply);
@@ -47,6 +50,8 @@ private slots:
     void sslErrors(QNetworkReply *reply, const QList<QSslError> &errors);
 
 private:
+    QUrl setUrl(char const* host, int port, char const* target);
+
     QNetworkAccessManager manager;
 };
 

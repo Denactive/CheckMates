@@ -26,6 +26,10 @@ typedef struct {
 } MsgInfo;
 
 typedef struct {
+    int move;
+} MovesInfo;
+
+typedef struct {
     int meId;
     int opponentId;
     bool currentPlayer; // true - me, false - opponent

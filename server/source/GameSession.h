@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <memory>
 
 //class IPlayer;
 

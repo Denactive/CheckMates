@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <queue>
+#include <memory>
 
 #include "GameSession.h"
 

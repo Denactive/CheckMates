@@ -9,7 +9,7 @@
 //#include "GameSession.h"
 #include "ChessBoard.h"
 #include "Chesspiece.h"
-
+#include <memory>
 
 
 class IPlayer {

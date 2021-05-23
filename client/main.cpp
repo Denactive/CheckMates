@@ -21,17 +21,15 @@ int main(int argc, char *argv[])
     std::unique_ptr<Client> client(new Client);
 
     auto const port = 8000;
-    //auto const host = "25.40.253.246";
+    // auto const host = "25.40.253.246";
     auto const host = "127.0.0.1";
     auto const target = "/test.txt";
 
-    client->getData(host, port, target);
+    QByteArray name;
+    name.append("Sergey");
+    client->post(host, port, target, name);
 
-    QByteArray data;
-    data.append("param1=hello");
-    data.append("&");
-    data.append("param2=foo");
-    client->post("https://postman-echo.com/post", data);
+    client->getData(host, port, target);
 
     std::shared_ptr<Database> db = std::make_shared<Database>();
     MainWindow w(db);
