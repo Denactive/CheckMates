@@ -8,6 +8,10 @@ std::vector<std::array<size_t, M>>  Player::all_available_Moves() {
         moves.reserve(v1.size() + moves.size());
         moves.insert(moves.end(), v1.begin(), v1.end());
     }
+    if(king->castle) {
+        std::array<size_t, M> king_move, rookk, rookq;
+        if()
+    }
     return moves;
 };
 
@@ -63,6 +67,7 @@ void Player::move(std::array<size_t, M> turn) {
     size_t num = 0;
     if (turn[0] == where()[0] && turn[1] == where()[1]) {
         king->move(turn);
+        king->castle = false;
     }
     for (int i = 0; i < 2 * N; ++i) {
         auto a = pieces[i]->where();
@@ -72,8 +77,10 @@ void Player::move(std::array<size_t, M> turn) {
         }
     }
         if (num != 2 * N) {
-
             pieces[num]->move(turn);
+            if(num == 0 || num == 4 || num == 7) {
+                king->castle = false;
+            }
         }
 
 }

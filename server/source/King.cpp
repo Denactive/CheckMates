@@ -3,6 +3,7 @@
 
 King::King(size_t i,size_t j, std::shared_ptr<ChessBoard> board):
     board(board) {
+    castle = true;
     position[0] = i;
     position[1] = j;
 };
