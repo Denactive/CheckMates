@@ -186,13 +186,12 @@ private:
                     active_users_
                     )->run();
             if (*type_ == "ws")
-            std::make_shared<WebSocketSession>(
-                std::move(socket),
-                doc_root_,
-                log_dir_,
-                format_
-                // TODO: active_users
-                )->run();
+                std::make_shared<WebSocketSession>(
+                    std::move(socket),
+                    doc_root_,
+                    log_dir_,
+                    format_
+                    )->run();
         }
 
         // Accept another connection

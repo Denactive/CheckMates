@@ -76,6 +76,28 @@ private:
     asio::io_context ioc_{ THREADS_NUM };
 };
 
+class Session;
+
+class SessionsSingleton
+{
+public:
+    static SessionsSingleton& instance()
+    {
+        static SessionsSingleton singleton;
+        return singleton;
+    }
+
+    std::map<std::string, std::shared_ptr<Session>, StringTokenComparator>& get() { return session_map; }
+
+    // Other non-static member functions
+private:
+    SessionsSingleton() {}
+    ~SessionsSingleton() {}
+    SessionsSingleton(const SessionsSingleton&);
+    SessionsSingleton& operator=(const SessionsSingleton&);
+    std::map<std::string, std::shared_ptr<Session>, StringTokenComparator> session_map;
+};
+
 // global error function
 void static fail(beast::error_code ec, char const* what) {
     std::cerr << what << ": " << ec.message() << "\n";
@@ -266,9 +288,28 @@ public:
     }
 
     void on_queue(std::string&& logging_data, const std::shared_ptr<ILogger>& logger, unsigned short version) {
+        auto const error_res = [&version, &logger](std::string msg) {
+            http::response<http::string_body> res{
+            std::piecewise_construct,
+            std::make_tuple(msg),
+            std::make_tuple(http::status::ok, version)
+            };
+
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, "text/html");
+            res.content_length(msg.size());
+            res.keep_alive(true);
+            res.prepare_payload();
+            logger->log("ERROR\nCreating an response of " + std::to_string(msg.size()) + " bytes:\n\n" + msg + "\n\n");
+            return res;
+        };
+
         if (BASIC_DEBUG) std::cout << "on queue | Session-Timer set to 2 minutes\n";
+        logger->log(logging_data);
+
         stream_.expires_after(std::chrono::minutes{ 2 });
         auto push_result = format_->get_mq()->push_user(user);
+
         if (push_result != nullptr) {
             // если запушили и для него сразу нашелся оппонент
             /*
@@ -280,16 +321,46 @@ public:
             if (push_result->wPlayer->get_user()->get_token() == user->get_token())
                 is_first_white = true;
 
-            std::string content = (boost::format(START_GAME_RESPONSE) 
+            auto opponent = is_first_white ? push_result->bPlayer->get_user() : push_result->wPlayer->get_user();
+
+            // message to opponent
+        std::string content = (boost::format(START_GAME_RESPONSE)
+                % push_result->get_token_string()
+                % opponent->get_id()
+                % (!is_first_white ? "white" : "black")
+                % user->get_nickname()
+                % user->get_rating()
+                % user->get_avatar()
+                ).str();
+
+            auto opponent_session = SessionsSingleton::instance().get().find(opponent->get_token_string());
+            if (opponent_session == SessionsSingleton::instance().get().end()) {
+                std::cout << "failed to get the opponent session!\n";
+                lambda_(error_res("failed to get the opponent session\n"));
+            }
+
+            http::response<http::string_body> res_to_opponent{
+                std::piecewise_construct,
+                std::make_tuple(content),
+                std::make_tuple(http::status::ok, version)
+            };
+            res_to_opponent.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res_to_opponent.set(http::field::content_type, "application/json");
+            res_to_opponent.content_length(content.size());
+            res_to_opponent.keep_alive(true);
+            logger->log("Creating a response to opponent: " + opponent->get_token_string() + " of " + std::to_string(content.size()) + " bytes:\n\n" + content + "\n\n");
+            opponent_session->second->lambda_(std::move(res_to_opponent));
+
+            // message to current user
+            content = (boost::format(START_GAME_RESPONSE) 
                 % push_result->get_token_string()
                 % user->get_id() 
                 % (is_first_white ? "white" : "black")
-                % push_result->bPlayer->get_user()->get_nickname()
-                % push_result->bPlayer->get_user()->get_rating()
-                % push_result->bPlayer->get_user()->get_avatar()
+                % opponent->get_nickname()
+                % opponent->get_rating()
+                % opponent->get_avatar()
             ).str();
             
-
             http::response<http::string_body> res{
                 std::piecewise_construct,
                 std::make_tuple(content),
@@ -297,11 +368,22 @@ public:
             };
 
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(http::field::content_type, "text / html");
+            res.set(http::field::content_type, "application/json");
             res.content_length(content.size());
             res.keep_alive(true);
-            logger->log(logging_data += "OK\nCreating a response of " + std::to_string(content.size()) + " bytes:\n\n" + content + "\n\n");
+            logger->log("OK\nCreating a response to this player: " + user->get_token_string() + " of " + std::to_string(content.size()) + " bytes:\n\n" + content + "\n\n");
             return lambda_(std::move(res));
+        }
+        else {
+            // save session to hold the connection until the opponent apearance
+            const auto [item, success] = SessionsSingleton::instance().get().insert({ user->get_token_string(), shared_from_this() });
+            if (success) {
+                logger->log("User № " + item->first + " is placed to the matching queue\n");
+            }
+            else {
+                logger->log("An error occured while putting User № " + user->get_token_string() + " to the matching queue. The Session will be aborted\n");
+                return lambda_(error_res("Fail to add to the matcher queue\n"));
+            }
         }
     }
 
