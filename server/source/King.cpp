@@ -86,7 +86,8 @@ std::vector<std::array<size_t, M>> King::available_moves() {
             }
         }
     }
-    avail_moves;
+    castling();
+    return avail_moves;
 }
 std::set<std::array<size_t, K>> King::threatens() {
     threat.clear();

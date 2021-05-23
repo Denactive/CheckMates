@@ -3,6 +3,10 @@
 
 std::vector<std::array<size_t, M>>  Player::all_available_Moves() {
     moves.clear();
+    auto v1 = king->available_moves();
+    moves.reserve(v1.size() + moves.size());
+    moves.insert(moves.end(), v1.begin(), v1.end());
+
     for (int i = 0; i < 2 * N; ++i) {
         auto v1 = pieces[i]->available_moves();
         moves.reserve(v1.size() + moves.size());

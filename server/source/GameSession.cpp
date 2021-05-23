@@ -171,6 +171,16 @@ int GameSession::run_turn(std::array<size_t, M> turn) {
     }
     if (move_accepted) {
         move(you, enemy, turn);
+        if((turn[0] == 0 || turn[0] == 7) && (turn[1] == 4) && (turn[3] == turn [1] - 2)) {
+            turn[1] = 0;
+            turn[3] = 3;
+            move(you, enemy, turn);
+        }
+        if((turn[0] == 0 || turn[0] == 7) && (turn[1] == 4) && (turn[3] == turn [1] + 2)) {
+            turn[1] = 7;
+            turn[3] = 5;
+            move(you, enemy, turn);
+        }
         info.turn = turn;
         return 0;
     }
