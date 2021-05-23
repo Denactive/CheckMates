@@ -124,6 +124,7 @@ int GameSession::prepare_turn() {
     you->all_available_Moves();
     you->KingUpdate(thr);
     board->draw_board();
+    try_move(you, enemy);
     you->print_pos();
     if (is_check(you, enemy)) {
         info.isCheck = true;
@@ -145,7 +146,6 @@ int GameSession::prepare_turn() {
         std::cout << "CHECKMATE!!";
         return 0;
     }
-    //you->castling();
     print_moves(you);
     for (auto i = thr.begin(); i != thr.end(); ++i) {
         std::cout << (*i)[0] << ' ' << (*i)[1] << '\n';
