@@ -8,10 +8,6 @@ std::vector<std::array<size_t, M>>  Player::all_available_Moves() {
         moves.reserve(v1.size() + moves.size());
         moves.insert(moves.end(), v1.begin(), v1.end());
     }
-    if(king->castle) {
-        std::array<size_t, M> king_move, rookk, rookq;
-        if()
-    }
     return moves;
 };
 
@@ -78,8 +74,14 @@ void Player::move(std::array<size_t, M> turn) {
     }
         if (num != 2 * N) {
             pieces[num]->move(turn);
-            if(num == 0 || num == 4 || num == 7) {
+            if(num == 4) {
                 king->castle = false;
+            }
+            if(num == 0) {
+                king->leftrook = false;
+            }
+            if(num == 4) {
+                king->rightrook = false;
             }
         }
 
