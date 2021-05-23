@@ -19,7 +19,7 @@ public:
     virtual void move(std::array<size_t, M> turn) = 0;
     virtual void is_captured(std::array<size_t, M> turn) = 0;
     virtual size_t try_capture(std::array<size_t, M> turn) = 0;
-    virtual size_t GetUserId() = 0;
+    virtual std::shared_ptr<IUser> get_user() = 0;
     virtual void set_pieces() = 0;
     virtual void print_pos() = 0;
     virtual std::shared_ptr<ChessBoard> getboard () = 0;
@@ -68,7 +68,7 @@ public:
     void move(std::array<size_t, M> turn);
     void is_captured(std::array<size_t, M> turn);
     void print_pos();
-    size_t GetUserId();
+    std::shared_ptr<IUser> get_user() override { return user_; }
     void set_pieces();
 };
 

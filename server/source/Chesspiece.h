@@ -4,7 +4,7 @@
 
 #ifndef CHESS_CHESSPIECE_H
 #define CHESS_CHESSPIECE_H
-
+#include <memory>
 #include <vector>
 #include <string>
 #include <array>

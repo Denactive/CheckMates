@@ -1,9 +1,9 @@
-
 #include "server.h"
 
 
 int main() {
-    
+    setlocale(LC_ALL, "rus");
+
     // common data
     const std::string ServerName("SaberLion-Devs");
     const std::string IP("127.0.0.1");
@@ -13,36 +13,27 @@ int main() {
     storage_root = "../../storage";
 #endif
     //const std::string IP("25.40.253.246");
-    
     std::string http_logger(storage_root + "/http_logs/");
     std::string ws_logger(storage_root + "/ws_logs/");
     std::shared_ptr<JSON_serializer> js = std::make_shared<JSON_serializer>();
     std::shared_ptr<MatcherQueue> mq = std::make_shared<MatcherQueue>();
+    auto active_users = std::make_shared<UserMap>();
+
     std::shared_ptr<HTTP_format> hf = std::make_shared<HTTP_format>(js, mq);
     std::shared_ptr<WS_format> ws = std::make_shared<WS_format>(js, mq);
 
     // BE CAREFUL WITH FILEPATH
     Options opts_http("http", ServerName, IP, 8000, storage_root, http_logger);
     Options opts_ws("ws", ServerName, IP, 8001, storage_root, ws_logger);
-    Server s_http(opts_http, hf);
-    Server s_ws(opts_ws, ws);
+    Server s_http(opts_http, hf, active_users);
+    Server s_ws(opts_ws, ws, active_users);
 
-    const unsigned short threads_num = 1;
-    asio::io_context ioc{ threads_num };
+    ioc_Singleton::instance();
 
-    s_http.run(ioc);
-    s_ws.run(ioc);
+    s_http.run(ioc_Singleton::instance().get());
+    s_ws.run(ioc_Singleton::instance().get());
 
-    // Run the I/O service on the requested number of threads
-    std::vector<std::thread> v;
-    v.reserve(threads_num - 1);
-    for (auto i = threads_num - 1; i > 0; --i)
-        v.emplace_back(
-            [&ioc]
-            {
-                ioc.run();
-            });
-    ioc.run();
+    ioc_Singleton::instance().get().run();
 
     return 0;
 }

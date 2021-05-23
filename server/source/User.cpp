@@ -1,6 +1,7 @@
 //
 // Created by denactive on 24.04.2021.
 //
+
 #include "User.h"
 
 UserInfo User::get_info() {
@@ -34,7 +35,7 @@ IChat* User::create_chat(std::set<uid> members) {
 
 
 // this function allocates memory!
-IUser* Authorizer::authorize(Session& con, IDBServer& db) {
+IUser* Authorizer::authorize(WebSocketSession& con, IDBServer& db) {
     // TODO: tuples
     std::string user_data = db.query("SELECT username... FROM db.users");
     User* res = nullptr; //new User();;
@@ -42,7 +43,7 @@ IUser* Authorizer::authorize(Session& con, IDBServer& db) {
 }
 
 // this function allocates memory!
-IUser* Authorizer::registrate(Session& con, IDBServer& db) {
+IUser* Authorizer::registrate(WebSocketSession& con, IDBServer& db) {
     std::string user_data = db.query("SELECT username... FROM db.users");
     User* res = nullptr; //new User();;
     return res;

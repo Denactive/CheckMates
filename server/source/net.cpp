@@ -14,28 +14,6 @@ std::string JSON_serializer::deserialize(std::string s) {
 
 // =======================[ Logger ]=========================
 
-
-std::string FileLogger::serializeTimePoint(const time_point& time, const std::string& format)
-{
-    std::time_t tt = std::chrono::system_clock::to_time_t(time);
-    std::tm tm;
-#ifdef _WIN32
-    if (localtime_s(&tm, &tt)) //Locale time-zone, usually UTC by default.
-        return "undefined_time";
-#else
-    localtime_r(&tt, &tm); //Locale time-zone, usually UTC by default.
-#endif
-    char mbstr[64];
-    std::stringstream ss;
-
-    if (std::strftime(mbstr, 64, format.c_str(), &tm))
-        ss << mbstr;
-    else
-        ss << "undefined_time";
-    
-    return ss.str();
-}
-
 void FileLogger::log(const std::string& data) {
     beast::error_code ec;
     try {

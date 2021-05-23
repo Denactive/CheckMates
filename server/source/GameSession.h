@@ -5,8 +5,6 @@
 #ifndef CHESS_GAMESESSION_H
 #define CHESS_GAMESESSION_H
 
-
-//#include "Chesspiece.h"
 #include "ChessBoard.h"
 #include "Player.h"
 
@@ -14,6 +12,7 @@
 #include <string>
 #include <array>
 #include <memory>
+#include <map>
 
 //class IPlayer;
 
@@ -38,6 +37,8 @@ public:
     virtual void send_move(std::array<size_t, M> turn) = 0;
     virtual GInfo send_info() = 0;
     virtual int prepare_turn() = 0;
+    virtual GameToken get_token() = 0;
+    virtual std::string get_token_string() = 0;
 };
 
 class GameSession: public IGameSession {
@@ -46,9 +47,11 @@ public:
     std::shared_ptr<IPlayer> wPlayer;
     std::shared_ptr<IPlayer> bPlayer;
     std::shared_ptr<ChessBoard> board;
+    
 
-    GameSession (
+    GameSession(
         std::shared_ptr<IUser> player1, std::shared_ptr<IUser> player2)
+        : token_(std::chrono::system_clock::now())
     {
         board = std::make_shared<ChessBoard>();
 
@@ -84,10 +87,23 @@ public:
     }
     void try_move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy);
 
+    GameToken get_token() override { return token_; }
+    std::string get_token_string() override { return serializeTimePoint(token_); }
+
 private:
     GInfo info;
+    GameToken token_;
 };
 
+struct GameSessionComparator {
+    bool operator()(const std::shared_ptr<GameSession>& lhs, const std::shared_ptr<GameSession>& rhs) const {
+        if (lhs->get_token() < rhs->get_token())
+            return true;
+        else
+            return false;
+    }
+};
 
+typedef std::map< std::string, std::shared_ptr<GameSession>, StringTokenComparator > GameSessionMap;
 
 #endif //CHESS_GAMESESSION_H

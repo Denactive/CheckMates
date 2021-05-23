@@ -2,14 +2,26 @@
 #define _WIN32_WINNT 0x0A00
 #endif
 
+#define BOOST_DATE_TIME_NO_LIB
+
 #ifndef CHECKMATES_NET_H
 #define CHECKMATES_NET_H
 
-#define BOOST_DATE_TIME_NO_LIB
-
 #define TIMEOUT_DELAY 30  // (s)
+#define COOKIE_LIFETIME 15
+#define THREADS_NUM 1
+
 #define BASIC_DEBUG 1
-#define START_GAME_IMITATION 0
+#define START_GAME_IMITATION 1
+#define REGESTRY_IMITATION 1
+
+#define START_GAME_RESPONSE \
+"{\n\
+  game_token: %s,\n\
+  uid: %zu,\n\
+  side: %s,\n\
+  opponent:\n  {\n    name: %s,\n    rating: %s,\n    avatar: %s\n  }\n\
+}"
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -19,14 +31,12 @@
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
+#include <boost/format.hpp>
 
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <filesystem>
-
-#include <chrono>
-#include <ctime>
 
 #include <algorithm>
 #include <cstdlib>
@@ -44,13 +54,33 @@ namespace http = beast::http;            // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket;  // from <boost/beast/websocket.hpp>
 namespace asio = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
-using time_point = std::chrono::system_clock::time_point;
 namespace fs = std::filesystem;
+
+class ioc_Singleton
+{
+public:
+    static ioc_Singleton& instance()
+    {
+        static ioc_Singleton singleton;
+        return singleton;
+    }
+
+    asio::io_context& get() { return ioc_; }
+
+    // Other non-static member functions
+private:
+    ioc_Singleton() {}                                  // Private constructor
+    ~ioc_Singleton() {}
+    ioc_Singleton(const ioc_Singleton&);                 // Prevent copy-construction
+    ioc_Singleton& operator=(const ioc_Singleton&);      // Prevent assignment
+    asio::io_context ioc_{ THREADS_NUM };
+};
 
 // global error function
 void static fail(beast::error_code ec, char const* what) {
     std::cerr << what << ": " << ec.message() << "\n";
 }
+
 // casting windows / linux filepaths
 std::string static cast_filepath(const std::string& path) {
     std::string res(path);
@@ -106,7 +136,7 @@ public:
 
 private:
 
-    std::string serializeTimePoint(const time_point& time, const std::string& format);
+    //std::string serializeTimePoint(const time_point& time, const std::string& format);
 
     std::shared_ptr<std::string const> const& log_dir_;
     std::ofstream log_stream_;
@@ -134,6 +164,8 @@ public:
         , std::function<void(http::message<false, http::string_body, http::fields>)>
         , Session&
     ) = 0;
+
+    virtual std::shared_ptr<IMatcherQueue> get_mq() = 0;
 };
 
 
@@ -190,25 +222,88 @@ class Session : public std::enable_shared_from_this<Session>
 public:
     size_t token = 0;
     std::shared_ptr<IUser> user = nullptr;
+    std::shared_ptr<UserMap>& active_users_;
 
     Session(
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
         std::shared_ptr<std::string const> const& log_dir,
-        std::shared_ptr<IFormat>& format
+        std::shared_ptr<IFormat>& format,
+        std::shared_ptr<UserMap>& active_users
     )
         : stream_(std::move(socket))
         , doc_root_(doc_root)
         , logger_(std::make_shared<FileLogger>(log_dir))
         , format_(format)
+        , active_users_(active_users)
         , lambda_(*this)
     {
     }
 
-    //TEST
-    //(std::string) {
-    //
-    //}
+    void start_cookie_timer(Cookie c, int value) {
+        if (BASIC_DEBUG) std::cout << "start cookie timer\n";
+        auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::seconds{ value });
+        auto active_users = active_users_;
+        cookie_timer->async_wait([cookie_timer, c, value, active_users](const boost::system::error_code& ec) mutable {
+            std::cout << value << " seconds passed";
+            if (ec)
+                std::cout << " | errors: " << ec.message() << std::endl;
+            else
+                std::cout << '\n';
+
+            auto cookie = serializeTimePoint(c);
+            std::cout << "Cookie " << cookie << " is not active more\n";
+
+            auto search = active_users->find(cookie);
+            if (search != active_users->end()) {
+                std::cout << "User = { token: " << search->first << ", name: " << search->second->get_nickname() << " } has been deleted from the user map" << '\n';
+                active_users->erase(search);
+            }
+            else {
+                std::cout << "Cookie " << cookie << " not found in the active users map\n";
+            }
+        });
+    }
+
+    void on_queue(std::string&& logging_data, const std::shared_ptr<ILogger>& logger, unsigned short version) {
+        if (BASIC_DEBUG) std::cout << "on queue | Session-Timer set to 2 minutes\n";
+        stream_.expires_after(std::chrono::minutes{ 2 });
+        auto push_result = format_->get_mq()->push_user(user);
+        if (push_result != nullptr) {
+            // если запушили и для него сразу нашелся оппонент
+            /*
+            game_token:% s, \
+            uid : % zu, \
+            side : % s\
+            opponent : { name:% s, rating : % s, avatar : % s }*/
+            bool is_first_white = false;
+            if (push_result->wPlayer->get_user()->get_token() == user->get_token())
+                is_first_white = true;
+
+            std::string content = (boost::format(START_GAME_RESPONSE) 
+                % push_result->get_token_string()
+                % user->get_id() 
+                % (is_first_white ? "white" : "black")
+                % push_result->bPlayer->get_user()->get_nickname()
+                % push_result->bPlayer->get_user()->get_rating()
+                % push_result->bPlayer->get_user()->get_avatar()
+            ).str();
+            
+
+            http::response<http::string_body> res{
+                std::piecewise_construct,
+                std::make_tuple(content),
+                std::make_tuple(http::status::ok, version)
+            };
+
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, "text / html");
+            res.content_length(content.size());
+            res.keep_alive(true);
+            logger->log(logging_data += "OK\nCreating a response of " + std::to_string(content.size()) + " bytes:\n\n" + content + "\n\n");
+            return lambda_(std::move(res));
+        }
+    }
 
     // Start the asynchronous operation
     void run() {
@@ -325,6 +420,7 @@ class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
     const std::shared_ptr<ILogger> logger_;
     websocket::stream<beast::tcp_stream> stream_;
     //beast::tcp_stream stream_;
+
 
 public:
     // Take ownership of the socket
@@ -456,6 +552,7 @@ public:
     void game_request_handler();
     void game_response_handler();
     void chat_handler();
+    std::shared_ptr<IMatcherQueue> get_mq() override { return mq_; }
 
     virtual void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
@@ -486,6 +583,9 @@ public:
     {
     }
 
+    std::shared_ptr<IMatcherQueue> get_mq() override { return mq_; }
+
+
     void handle_request(beast::string_view doc_root
         , http::request<http::string_body>&& req
         , const std::shared_ptr<ILogger>& logger
@@ -493,7 +593,9 @@ public:
         , Session& session
     ) override {
         std::cout << "HTTP-handler: Got an request!" << std::endl;
+
         std::string logging_data;
+
         // Returns a bad request response
         auto const bad_request =
             [&req](beast::string_view why)
@@ -645,17 +747,26 @@ public:
                 content += block_string;
             }
             delete[] block;
+            if (REGESTRY_IMITATION) {
+                session.user = std::make_shared<User>();
+                std::cout << "user №" << serializeTimePoint(session.user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
+
+                const auto [user, success] = session.active_users_->insert({session.user->get_token_string(), session.user});
+                if (success)
+                    std::cout << "added to the User Map successfully" << std::endl;
+                else
+                    std::cout << "has not been added to the map | FAIL" << std::endl;
+
+                session.start_cookie_timer(session.user->get_token(), COOKIE_LIFETIME);
+            }
 
             if (START_GAME_IMITATION) {
                 if (!session.user) {
                     // TODO send message unauthorised
                     std::cout << "unauthorised\n";
-                    session.user = std::make_shared<User>(session);
-                    session.user->get_info();
-                    mq_->push_user(session.user);
                 }
-                content = "Game start:\nplayers: Player1, Player2\n";
-                size = content.size();
+                //auto logging_data_ptr = std::make_shared<std::string>(&logging_data);
+                return session.on_queue(std::move(logging_data), logger, req.version());
             }
             
             http::response<http::string_body> res{
@@ -671,6 +782,7 @@ public:
             logger->log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
             return send(std::move(res));
         }
+
         // TODO: common value res
         //return send(std::move(res));
     }
@@ -738,7 +850,9 @@ private:
 
     std::shared_ptr<ISerializer> serializer_;
     std::shared_ptr<IMatcherQueue> mq_;
-    const std::string type = "http";
+    std::shared_ptr<std::set<User, UserComparator>> users_;
+    const std::string type_ = "http";
+    //asio::io_context ioc_;
 };
 
 

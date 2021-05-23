@@ -10,6 +10,9 @@ std::vector<std::array<size_t, M>> Queen::available_moves() {
     mov[0] = i;
     mov[1] = j;
     auto bd = board->get_board();
+    if (i > 7 || j > 7) {
+        return avail_moves;
+    }
     cell temp = bd[i][j];
     #include "bishop.h"
     #include "rook.h"
@@ -37,6 +40,9 @@ std::vector<std::array<size_t, M>> Rook::available_moves() {
     mov[0] = i;
     mov[1] = j;
     auto bd = board->get_board();
+    if (i > 7 || j > 7) {
+        return avail_moves;
+    }
     cell temp = bd[i][j];
     #include "rook.h"
 
@@ -62,6 +68,9 @@ std::vector<std::array<size_t, M>> Knight::available_moves() {
     mov[0] = i;
     mov[1] = j;
     auto bd = board->get_board();
+    if (i > 7 || j > 7) {
+        return avail_moves;
+    }
     cell temp = bd[i][j];
     size_t k = 0;
     size_t m = 0;
@@ -155,6 +164,9 @@ std::vector<std::array<size_t, M>> Bishop::available_moves() {
     mov[0] = i;
     mov[1] = j;
     auto bd = board->get_board();
+    if (i > 7 || j > 7) {
+        return avail_moves;
+    }
     cell temp = bd[i][j];
 
 #include "bishop.h"
@@ -181,6 +193,9 @@ std::vector<std::array<size_t, M>> Pawn::available_moves() {
     mov[0] = i;
     mov[1] = j;
     auto bd = board->get_board();
+    if (i > 7 || j > 7) {
+        return avail_moves;
+    }
     cell temp = bd[i][j];
     if (white) {
         if ((i == 1) && (bd[i + 2][j] == Empty)) {
