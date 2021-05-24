@@ -8,7 +8,10 @@ int main() {
     const std::string ServerName("SaberLion-Devs");
     const std::string IP("127.0.0.1");
 //    const std::string IP("192.168.1.26");
-//    const std::string IP("25.40.253.246");
+    // додик, юзай свой собсвенный айпи
+    // V ЭТОТ V
+    // const std::string IP("25.34.102.253");
+    // ^ ЭТОТ ^ 
     std::string storage_root = "../storage";
 #ifdef _WIN32
     storage_root = "../../storage";
@@ -19,9 +22,6 @@ int main() {
     std::shared_ptr<JSON_serializer> js = std::make_shared<JSON_serializer>();
     MQSingleton::instance();
     auto active_users = std::make_shared<UserMap>();
-
-    //std::shared_ptr<HTTP_format> hf = std::make_shared<HTTP_format>(js, mq);
-    //std::shared_ptr<WS_format> ws = std::make_shared<WS_format>(js, mq);
 
     // BE CAREFUL WITH FILEPATH
     Options opts_http("http", ServerName, IP, 8000, storage_root, http_logger);

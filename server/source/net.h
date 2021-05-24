@@ -12,6 +12,7 @@
 #define THREADS_NUM 1
 
 #define BASIC_DEBUG 1
+#define BASIC_DEBUG_WS 1
 #define START_GAME_IMITATION 1
 #define REGESTRY_IMITATION 1
 
@@ -752,13 +753,12 @@ class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
     };
 
     beast::flat_buffer buffer_;
+    std::string buffer_str_;
     std::shared_ptr<std::string const> doc_root_;
     send_lambda lambda_;
     const std::shared_ptr<ILogger> logger_;
     websocket::stream<beast::tcp_stream> stream_;
-    //beast::tcp_stream stream_;
     std::string msg = "Hello";
-    asio::dynamic_string_buffer b(msg);
 
 public:
     // Take ownership of the socket
@@ -777,6 +777,7 @@ public:
     // Get on the correct executor
     void run()
     {
+        if (BASIC_DEBUG_WS) std::cout << "WS: run\n";
         // We need to be executing within a strand to perform async operations
         // on the I/O objects in this session. Although not strictly necessary
         // for single-threaded contexts, this example code is written to be
@@ -790,6 +791,8 @@ public:
     // Start the asynchronous operation
     void  on_run()
     {
+        if (BASIC_DEBUG_WS) std::cout << "WS: on run\n";
+
         // Set suggested timeout settings for the websocket
         stream_.set_option(
             websocket::stream_base::timeout::suggested(
@@ -812,6 +815,7 @@ public:
 
     void on_accept(beast::error_code ec)
     {
+        if (BASIC_DEBUG_WS) std::cout << "WS: on accept\n";
         if (ec)
             return fail(ec, "accept");
 
@@ -821,6 +825,7 @@ public:
 
     void  do_read()
     {
+        if (BASIC_DEBUG_WS) std::cout << "WS: do read\n";
         // Read a message into our buffer
         stream_.async_read(
             buffer_,
@@ -833,6 +838,7 @@ public:
             beast::error_code ec,
             std::size_t bytes_transferred)
     {
+        if (BASIC_DEBUG_WS) std::cout << "WS: on read\n";
         boost::ignore_unused(bytes_transferred);
 
         // This indicates that the session was closed
@@ -842,29 +848,23 @@ public:
         if (ec)
             fail(ec, "read");
 
-        
-        //auto bytes_transferred2 = stream_.read_some(b.prepare(1024));
-        //std::cout << "bytes_transferred: " << bytes_transferred2 << '\n';
-        //b.commit(bytes_transferred2);
-
-        // Echo the message
-        //std::string* recieved = (std::string*)buffer_.data().data();
-        //std::string msg = "WS Echo: " + *recieved;
-        //auto msg = asio::buffer(std::string("WS Echo: "));
+    
+        auto msg = std::make_shared<std::string>("WS Echo: ");// +*recieved;
         stream_.text(stream_.got_text());
         stream_.async_write(
-            //buffer_.data(),
-            b.data(),
-            //asio::buffer(msg),
-                beast::bind_front_handler(
-                &WebSocketSession::on_write,
-                shared_from_this()));
+            asio::buffer(*msg),
+            [s = shared_from_this(), msg] (beast::error_code ec, size_t bytes_transferred) mutable {
+                s->on_write(ec, msg->size());
+            }
+        );
     }
 
     void on_write(
             beast::error_code ec,
             std::size_t bytes_transferred)
     {
+        if (BASIC_DEBUG_WS) std::cout << "WS: on write\n";
+
         boost::ignore_unused(bytes_transferred);
 
         if (ec)

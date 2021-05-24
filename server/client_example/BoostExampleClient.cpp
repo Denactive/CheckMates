@@ -8,6 +8,9 @@
 #define _WIN32_WINNT 0x0A00
 #endif
 
+#define CYCLE 1
+#define DELAY 10000
+
 #define BOOST_DATE_TIME_NO_LIB
 
 #include <boost/beast/core.hpp>
@@ -90,7 +93,7 @@ public:
             return fail(ec, "resolve");
 
         // Set a timeout on the operation
-        stream_.expires_after(std::chrono::seconds(120));
+        stream_.expires_after(std::chrono::seconds(30));
 
         // Make the connection on the IP address we get from a lookup
         stream_.async_connect(
@@ -144,14 +147,14 @@ public:
             return fail(ec, "read");
 
         // Write the message to standard out
-        std::cout << res_ << std::endl;
+        std::cout << "\n\n[" << i+1 << ']' << res_ << std::endl;
 
         // Gracefully close the socket
-        if (i == 5)
+        if (i == CYCLE)
             stream_.socket().shutdown(tcp::socket::shutdown_both, ec);
 
         i++;
-        Sleep(2000);
+        Sleep(DELAY);
 
         // not_connected happens sometimes so don't bother reporting it.
         if (ec && ec != beast::errc::not_connected)
@@ -209,5 +212,6 @@ int main(int argc, char** argv)
     // the get operation is complete.
     ioc.run();
 
+    system("pause");
     return EXIT_SUCCESS;
 }
