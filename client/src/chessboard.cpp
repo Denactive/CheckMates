@@ -18,7 +18,10 @@ ChessBoard::ChessBoard(QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo
 
     initBoard();
     drawBoardLabels();
-    arrangeFigures();
+
+    srand(time(NULL));
+    int i = rand() % 2;
+    arrangeFigures(bool(i));
     if (gameInfo->isCheck) isKingUnderMat();
 
     mainLayout->setSpacing(0);
@@ -27,7 +30,7 @@ ChessBoard::ChessBoard(QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo
     clickCell = nullptr;
 }
 
-void ChessBoard::arrangeFigures() {
+void ChessBoard::arrangeFigures(bool isWhite) {
     King *wking = new King("white"), *bking = new King("black");
     Queen *wqueen = new Queen("white"), *bqueen = new Queen("black");
     Horse *whorse = new Horse("white"), *bhorse = new Horse("black");
@@ -43,28 +46,34 @@ void ChessBoard::arrangeFigures() {
        bpawns[i] =  new Pawn("black");
     }
 
-    m_cells[makeIndex(0, 0)]->setFigure(brook);
-    m_cells[makeIndex(0, 1)]->setFigure(bhorse);
-    m_cells[makeIndex(0, 2)]->setFigure(bbishop);
-    m_cells[makeIndex(0, 3)]->setFigure(bking);
-    m_cells[makeIndex(0, 4)]->setFigure(bqueen);
-    m_cells[makeIndex(0, 5)]->setFigure(bbishop2);
-    m_cells[makeIndex(0, 6)]->setFigure(bhorse2);
-    m_cells[makeIndex(0, 7)]->setFigure(brook2);
+    int blackInd = 0;
+    int whiteInd = 7;
+    if (!isWhite) {
+        blackInd = 7;
+        whiteInd = 0;
+    }
+    m_cells[makeIndex(blackInd, 0)]->setFigure(brook);
+    m_cells[makeIndex(blackInd, 1)]->setFigure(bhorse);
+    m_cells[makeIndex(blackInd, 2)]->setFigure(bbishop);
+    m_cells[makeIndex(blackInd, 3)]->setFigure(bking);
+    m_cells[makeIndex(blackInd, 4)]->setFigure(bqueen);
+    m_cells[makeIndex(blackInd, 5)]->setFigure(bbishop2);
+    m_cells[makeIndex(blackInd, 6)]->setFigure(bhorse2);
+    m_cells[makeIndex(blackInd, 7)]->setFigure(brook2);
 
     for (size_t i = 0; i < 8; ++i) {
-       m_cells[makeIndex(1, i)]->setFigure(bpawns[i]);
-       m_cells[makeIndex(6, i)]->setFigure(wpawns[i]);
+       m_cells[makeIndex(blackInd == 0 ? 1 : 6, i)]->setFigure(bpawns[i]);
+       m_cells[makeIndex(whiteInd == 0 ? 1 : 6, i)]->setFigure(wpawns[i]);
     }
 
-    m_cells[makeIndex(7, 0)]->setFigure(wrook);
-    m_cells[makeIndex(7, 1)]->setFigure(whorse);
-    m_cells[makeIndex(7, 2)]->setFigure(wbishop);
-    m_cells[makeIndex(7, 3)]->setFigure(wking);
-    m_cells[makeIndex(7, 4)]->setFigure(wqueen);
-    m_cells[makeIndex(7, 5)]->setFigure(wbishop2);
-    m_cells[makeIndex(7, 6)]->setFigure(whorse2);
-    m_cells[makeIndex(7, 7)]->setFigure(wrook2);
+    m_cells[makeIndex(whiteInd, 0)]->setFigure(wrook);
+    m_cells[makeIndex(whiteInd, 1)]->setFigure(whorse);
+    m_cells[makeIndex(whiteInd, 2)]->setFigure(wbishop);
+    m_cells[makeIndex(whiteInd, 3)]->setFigure(wking);
+    m_cells[makeIndex(whiteInd, 4)]->setFigure(wqueen);
+    m_cells[makeIndex(whiteInd, 5)]->setFigure(wbishop2);
+    m_cells[makeIndex(whiteInd, 6)]->setFigure(whorse2);
+    m_cells[makeIndex(whiteInd, 7)]->setFigure(wrook2);
 
     if (gameInfo->currentPlayer) kingPos = makeIndex(7, 3);
     else kingPos = makeIndex(0, 3);

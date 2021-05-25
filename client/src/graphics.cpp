@@ -8,27 +8,26 @@ Client::Client(QObject *parent) :QObject(parent)
     connect(&manager, &QNetworkAccessManager::preSharedKeyAuthenticationRequired, this, &Client::preSharedKeyAuthenticationRequired);
     connect(&manager, &QNetworkAccessManager::proxyAuthenticationRequired, this, &Client::proxyAuthenticationRequired);
     connect(&manager, &QNetworkAccessManager::sslErrors, this, &Client::sslErrors);
+    connect(&manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
+
+    cookieJar = new MyCookieJar();
+    manager.setCookieJar(cookieJar);
 }
 
 void Client::getData(char const* host, int port, char const* target)
 {
     qInfo() << "Get data from server";
-    QUrl url;
-    url.setHost(host);
-    url.setPort(port);
-    url.setScheme("http");
-    url.setPath(target);
-    qDebug() << url;
 
-    QNetworkReply *reply = manager.get(QNetworkRequest(url));
+    QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(setUrl(host, port, target))));
     connect(reply, &QNetworkReply::readyRead, this, &Client::readyRead);
 }
 
-void Client::post(QString location, QByteArray data)
+void Client::post(char const* host, int port, char const* target, QByteArray data)
 {
     qInfo() << "Post data to server";
-    QNetworkRequest request = QNetworkRequest(QUrl(location));
+    QNetworkRequest request = QNetworkRequest(setUrl(host, port, target));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
+    request.setRawHeader(QByteArray("Cookie"), QByteArray("TS015810ea_76=088fa"));
 
     QNetworkReply *reply = manager.post(request, data);
     connect(reply, &QNetworkReply::readyRead, this, &Client::readyRead);
@@ -42,42 +41,44 @@ void Client::readyRead()
     if (reply->error()) {
         qDebug() << "Reply error";
     } else {
-        //qInfo() << reply->readAll();
-        std::shared_ptr<QFile> file = std::make_shared<QFile>("../../storage/getdata.txt");
+        // qInfo() << reply->readAll();
+        std::shared_ptr<QFile> file = std::make_shared<QFile>("../../server/storage/getdata.txt");
         if (file->open(QFile::WriteOnly)) {
-            file->write(reply->readAll());
-
-            parseJSON(file, true);
-
+            QByteArray rp = reply->readAll();
+            qDebug() << "reply: " << rp;
+            file->write(rp);
             file->close();
         } else {
             qDebug() << "file not open";
         }
-    }
 
+        // просто тест - после того, как записали в файл считываем с него и переводим с json формата
+        parseFromJSON(file);
+        parseToJSON(file);
+    }
 
     qDebug() << "Data is get";
     emit onReady();
 }
 
-void Client::parseJSON(std::shared_ptr<QFile> file, bool isGet)
+void Client::parseFromJSON(std::shared_ptr<QFile> file)
 {
     // заглушка
-    if (isGet) {
-        file->close();
-        file->open(QFile::ReadOnly);
-        QByteArray data = file->readAll();
-        QJsonDocument document;
-        document = document.fromJson(data);
-        QString value = document.object()["name"].toString();
-    } else {
-        // post
-        QJsonObject obj = QJsonDocument::fromJson(file->readAll()).object();
-        obj["name"] = "New name";
-        file->close();
-        file->open(QFile::WriteOnly);
-        file->write(QJsonDocument(obj).toJson());
-    }
+    file->open(QFile::ReadOnly);
+    QByteArray data = file->readAll();
+    QJsonDocument document;
+    document = document.fromJson(data);
+    QString value = document.object()["name"].toString();
+    qDebug() << "value: " << value;
+}
+
+void Client::parseToJSON(std::shared_ptr<QFile> file) {
+    file->open(QFile::ReadOnly);
+    QJsonObject obj = QJsonDocument::fromJson(file->readAll()).object();
+    obj["name"] = "Anton";
+    file->close();
+    file->open(QFile::WriteOnly);
+    file->write(QJsonDocument(obj).toJson());
 }
 
 void Client::authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator)
@@ -86,7 +87,6 @@ void Client::authenticationRequired(QNetworkReply *reply, QAuthenticator *authen
     Q_UNUSED(authenticator);
 
     qInfo() << "authenticationRequired";
-
 }
 
 void Client::encrypted(QNetworkReply *reply)
@@ -98,9 +98,13 @@ void Client::encrypted(QNetworkReply *reply)
 
 void Client::finished(QNetworkReply *reply)
 {
-    Q_UNUSED(reply);
-
     qInfo() << "finished";
+    qDebug() << reply->readAll();
+    qDebug() << "getAllCookies: " << cookieJar->getAllCookies();
+    QList<QByteArray> headerList = reply->rawHeaderList();
+        foreach(QByteArray head, headerList) {
+            qDebug() << head << ":" << reply->rawHeader(head);
+        }
 }
 
 void Client::networkAccessibleChanged(QNetworkAccessManager::NetworkAccessibility accessible)
@@ -133,3 +137,63 @@ void Client::sslErrors(QNetworkReply *reply, const QList<QSslError> &errors)
 
     qInfo() << "sslErrors";
 }
+
+QUrl Client::setUrl(char const* host, int port, char const* target)
+{
+    QUrl url;
+    url.setHost(host);
+    url.setPort(port);
+    url.setScheme("http");
+    url.setPath(target);
+    qDebug() << url;
+
+    return url;
+}
+
+void Client::download(QString url)
+{
+    _download(QUrl(url));
+}
+
+void Client::_download(QUrl url)
+{
+    //enters event loop, simulate blocking io
+    QEventLoop q;
+    QTimer t;
+    t.setSingleShot(true);
+    connect(&t, SIGNAL(timeout()), &q, SLOT(quit()));
+
+    QNetworkReply *reply = manager.get(QNetworkRequest(url));
+    connect(reply, SIGNAL(finished()), &q, SLOT(quit()));
+
+    t.start(5000);
+    q.exec();
+
+    if (t.isActive()) {
+        t.stop();
+        QByteArray response = reply->readAll();
+        qDebug() << response;
+
+        QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+        if (reply->error()) {
+            qDebug()<< "Download failed" <<  reply->errorString();
+        } else if (!redirectionTarget.isNull()) {
+            QUrl newUrl = url.resolved(redirectionTarget.toUrl());
+            qDebug()<< "Redirect to" <<  newUrl.toString();
+            url = newUrl;
+            // reply->deleteLater();
+            _download(url);
+        } else {
+            qDebug() << "Finish! ";
+        }
+
+        reply->deleteLater();
+
+    } else {
+        qDebug() << "Timeout";
+    }
+
+    cookiesList = cookieJar->getAllCookies();
+    qDebug() << "getAllCookies: " << cookiesList;
+}
+

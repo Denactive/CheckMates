@@ -17,7 +17,7 @@
 #include "include/database.h"
 
 class IChessBoard {
-    virtual void arrangeFigures() = 0;
+    virtual void arrangeFigures(bool isWhite) = 0;
     virtual int getSize() const = 0;
     virtual void isKingUnderMat() = 0;
 };
@@ -27,7 +27,7 @@ class ChessBoard : public QWidget,  public IChessBoard
     Q_OBJECT
 public:
     ChessBoard(QStackedWidget * main = nullptr, std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(), int newSize = 0, QWidget * parent = nullptr);
-    void arrangeFigures() override;;
+    void arrangeFigures(bool isWhite) override;;
     int getSize() const override { return size; }
     void setSize(int newSize) { size = newSize; }
     void isKingUnderMat() override;

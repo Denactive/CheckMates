@@ -10,7 +10,6 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
     usrsInfo = db->getUsersData(); // все пользователи для регистрации, получаем отсортированных по рейтингу
     frnsInfo = db->getUsersData(); // друзья регистрируемого игрока, должен заполниться после login, пока заглушка
     std::shared_ptr<GameInfo> gameInfo = db->getGameInfo();
-    qDebug() << "point" << gameInfo->isCheck;
 
     std::vector<std::shared_ptr<Chat>> chatsInfo = db->getChats();
 

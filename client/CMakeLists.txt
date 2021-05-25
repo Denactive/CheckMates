@@ -41,12 +41,21 @@ ENDIF()
 enable_testing()
 #add_subdirectory(tests)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Core Quick Sql Network LinguistTools REQUIRED)
+find_package(QT NAMES Qt6 Qt5 Qt4 Qt3D COMPONENTS 3rdparty Widgets Core Quick Sql Network WebSockets LinguistTools REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Core Quick Sql Network LinguistTools REQUIRED)
+
+set(Qt4_SOURCES
+   serverconnection.h
+   serverconnection.cpp
+)
 
 set(PROJECT_SOURCES
         main.cpp
 
+        include/wsclient.h
+
+        src/wsclient.cpp
+        src/serverconnection.cpp
         src/graphics.cpp
         src/chessboard.cpp
         src/cell.cpp
@@ -62,6 +71,8 @@ set(PROJECT_SOURCES
         src/windows/settingswindow.cpp
         src/windows/authorizerwindow.cpp
 
+
+        include/serverconnection.h
         include/graphics.h
         include/chessboard.h
         include/cell.h
@@ -82,13 +93,14 @@ set(PROJECT_SOURCES
 
 add_library(clientlib SHARED ${PROJECT_SOURCES})
 target_link_libraries(clientlib Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Network GTest::GTest GTest::Main)
+    Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Network
+    GTest::GTest GTest::Main)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(client ${PROJECT_SOURCES})
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
-    add_executable(client ${PROJECT_SOURCES})
+    add_executable(client ${PROJECT_SOURCES}})
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 

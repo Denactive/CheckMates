@@ -26,6 +26,10 @@ typedef struct {
 } MsgInfo;
 
 typedef struct {
+    int move;
+} MovesInfo;
+
+typedef struct {
     int meId;
     int opponentId;
     bool currentPlayer; // true - me, false - opponent
@@ -53,7 +57,7 @@ public:
     std::shared_ptr<User> findUser(int index);
 
     void setGameInfoFromQuery();
-    std::shared_ptr<GameInfo> getGameInfo() { qDebug() << "gm info " << gameInfo->isCheck; return gameInfo; }
+    std::shared_ptr<GameInfo> getGameInfo() { return gameInfo; }
 
 private:
     std::vector<UserInfo> usrInfo;

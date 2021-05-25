@@ -109,10 +109,18 @@ std::shared_ptr<User> Database::findUser(int index)
 
 void Database::setGameInfoFromQuery()
 {
+    QSqlQuery query = QSqlQuery(this->database());
+    if (!query.exec("SELECT _id, isVictory, currentPlayer, isCheck, isGame, newFigurePos, lastFigurePos, meID, opponentID from GameInfo" )) {
+        qDebug() << query.lastError().databaseText();
+        qDebug() << query.lastError().driverText();
+    }
+    std::shared_ptr<User> usr = std::make_shared<User>();
+
+
     gameInfo->meId = 0;
     gameInfo->opponentId = 1;
     gameInfo->currentPlayer = true;
-    gameInfo->isCheck = true;
+    gameInfo->isCheck = false;
     gameInfo->isGame = true;
     gameInfo->isVictory = 0;
     gameInfo->lastFigurePos = 8;

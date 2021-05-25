@@ -19,7 +19,7 @@ IF (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
     ADD_DEFINITIONS("-DHAS_BOOST")
 ENDIF()
-add_executable(client ${SOURCE_DIR}/BoostExampleClient.cpp)
+add_executable(client client_example/WSClient.cpp)  #BoostExampleClient.cpp)
 target_link_libraries (client ${Boost_LIBRARIES} -lpthread)
 
 add_executable(${PROGRAM_NAME}
@@ -38,8 +38,6 @@ add_executable(${PROGRAM_NAME}
         source/ChessBoard.cpp
         source/Chesspiece.cpp)
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
-
-
 
 enable_testing()
 find_package(GTest REQUIRED)

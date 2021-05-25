@@ -262,7 +262,7 @@ int main(int argc, char** argv)
 
     // Run the I/O service. The call will return when
     // the socket is closed.
-    
+
 
     std::cout << "==========\nw - write\nc - close\nr - reconnect\nCtrl + C - exit\n==========\n";
 
