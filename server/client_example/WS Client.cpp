@@ -7,6 +7,7 @@
 
 #define BOOST_DATE_TIME_NO_LIB
 #include <boost/beast/core.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/strand.hpp>
 #include <cstdlib>
@@ -38,6 +39,8 @@ class session : public std::enable_shared_from_this<session>
     beast::flat_buffer buffer_;
     std::string host_;
     std::string text_;
+    bool need_close = false;
+    std::string close_str = "NEED_CLOSE";
 
 public:
     // Resolver and socket require an io_context
@@ -52,13 +55,12 @@ public:
     void
         run(
             char const* host,
-            char const* port,
-            char const* text)
+            char const* port)
     {
         if (BASIC_DEBUG) std::cout << "run\n";
         // Save these for later
         host_ = host;
-        text_ = text;
+        need_close = false;
 
         // Look up the domain name
         resolver_.async_resolve(
@@ -122,6 +124,7 @@ public:
         // Perform the websocket handshake
         ws_.async_handshake(host_, "/",
             beast::bind_front_handler(
+                // call handler
                 &session::on_handshake,
                 shared_from_this()));
     }
@@ -133,79 +136,104 @@ public:
         if (ec)
             return fail(ec, "handshake");
 
-        // Send the message
-        ws_.async_write(
-            net::buffer(text_),
-            beast::bind_front_handler(
-                &session::on_write,
-                shared_from_this()));
+        // Start reading
+        do_read();
     }
 
-    void
-        on_write(
-            beast::error_code ec,
-            std::size_t bytes_transferred)
-    {
-        if (BASIC_DEBUG) std::cout << "on write\n";
-        boost::ignore_unused(bytes_transferred);
+    ////////
+    // read
+    ////////
 
-        if (ec)
-            return fail(ec, "write");
-
-        // Read a message into our buffer
+    void do_read() {
         ws_.async_read(
             buffer_,
             beast::bind_front_handler(
+                // call handler when done
                 &session::on_read,
                 shared_from_this()));
     }
 
-    void
-        on_read(
-            beast::error_code ec,
-            std::size_t bytes_transferred)
+    void on_read(beast::error_code ec, std::size_t bytes_transferred)
     {
+        // if we are here - then reading operation is done
         if (BASIC_DEBUG) std::cout << "on read\n";
         boost::ignore_unused(bytes_transferred);
 
         if (ec)
             return fail(ec, "read");
 
-        // Close the WebSocket connection
-        /*ws_.async_close(websocket::close_code::normal,
+        if (need_close)
+            do_close();
+        else
+            do_some_work(ec, bytes_transferred);
+    }
+
+    ////////////////////
+    // handle the answer
+    ////////////////////
+
+    void do_some_work(beast::error_code ec, std::size_t bytes_transferred) {
+        //Sleep(2000);
+        //std::cout << "LOGIC HERE | Server send to me: ";
+        // 
+        // if there is some data from server    
+        if (bytes_transferred)
+            std::cout << "The server send you: " << beast::make_printable(buffer_.data()) << std::endl;
+
+        // clear the buffer!
+        buffer_.consume(bytes_transferred);
+
+        // we have read some data -> then read again
+        do_read();
+    }
+
+    ////////
+    // send
+    ////////
+
+    void write(std::string& msg)
+    {
+        if (BASIC_DEBUG) std::cout << "write\n";
+
+        // Send the message
+        ws_.async_write(
+            net::buffer(msg),
+            [sp = shared_from_this(), &msg](beast::error_code ec, std::size_t bytes_transferred) {
+            // call handler
+            sp->on_write(ec, bytes_transferred, msg);
+        });
+    }
+
+    void on_write(beast::error_code ec, std::size_t bytes_transferred, std::string& msg) {
+        if (ec)
+            fail(ec, "failed while writing (write)");
+        std::cout << "You have sent: " << msg << " to server. " << bytes_transferred << " bytes were delivered\n";
+    }
+
+    ////////
+    // close
+    ////////
+
+    void close() {
+        need_close = true;
+        write(close_str); // kostil to destroy read - on_read loop
+    }
+
+    void do_close() {
+        ws_.async_close(websocket::close_code::normal,
             beast::bind_front_handler(
                 &session::on_close,
                 shared_from_this()));
-        */
-        do_some_work();
-
     }
 
-    void do_some_work() {
-        Sleep(2000);
-        //std::cin >> text_;
-        std::cout << "LOGIC HERE | Server send to me: ";
-        std::cout << beast::make_printable(buffer_.data()) << std::endl;
-
-
-        ws_.async_write(
-            net::buffer(text_),
-            beast::bind_front_handler(
-                &session::on_write,
-                shared_from_this()));
-    }
-
-    void
-        on_close(beast::error_code ec)
+    void on_close(beast::error_code ec)
     {
         if (BASIC_DEBUG) std::cout << "on close\n";
         if (ec)
             return fail(ec, "close");
 
         // If we get here then the connection is closed gracefully
-
-        // The make_printable() function helps print a ConstBufferSequence
-        std::cout << beast::make_printable(buffer_.data()) << std::endl;
+        std::cout << "Connection is closed gracefully\n" << std::endl;
     }
 };
 
@@ -218,17 +246,50 @@ int main(int argc, char** argv)
 
     auto const host = "127.0.0.1";
     auto const port = "8001";
-    auto const text = "it is a test";
 
     // The io_context is required for all I/O
     net::io_context ioc;
 
     // Launch the asynchronous operation
-    std::make_shared<session>(ioc)->run(host, port, text);
+    auto connection = std::make_shared<session>(ioc);
+    connection->run(host, port);
+
+    // create a thread to maintain communication
+    std::thread t(
+        [&ioc]() { ioc.run(); }
+    );
+    t.detach();
 
     // Run the I/O service. The call will return when
     // the socket is closed.
-    ioc.run();
+    
+
+    std::cout << "==========\nw - write\nc - close\nr - reconnect\nCtrl + C - exit\n==========\n";
+
+    char cmd = '\0';
+
+    // long-living string!!!
+    std::string buffer;
+
+    while (std::cin >> cmd) {
+        std::cout << '[' << cmd << ']' << ' ';
+        switch (cmd) {
+        case 'w':
+            std::cout << " write a message >> ";
+            std::cin >> buffer;
+            connection->write(buffer);
+            break;
+
+        case 'c':
+            connection->close();
+            break;
+
+        case 'r':
+            //connection->run(host, port);
+            connection->write(buffer);
+            break;
+        }
+    }
 
     return EXIT_SUCCESS;
 }

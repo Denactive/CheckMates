@@ -842,20 +842,34 @@ public:
         boost::ignore_unused(bytes_transferred);
 
         // This indicates that the session was closed
-        if (ec == websocket::error::closed)
+        if (ec == websocket::error::closed) {
+            if (BASIC_DEBUG_WS) std::cout << "WS: client closed connection\n";
             return;
+        }
 
         if (ec)
             fail(ec, "read");
 
-    
-        auto msg = std::make_shared<std::string>("WS Echo: ");// +*recieved;
+        handle_request();
+    }
+
+    void handle_request() {
+        auto msg = std::make_shared<std::string>("WS Echo: ");
+        auto recieved = beast::buffers_to_string(buffer_.data());
+        
+        if (BASIC_DEBUG_WS) std::cout << "Got an request! : " << recieved << "\n";
+
+        if (recieved == "NEED CLOSE")
+            (*msg) = "OK | CLOSE";
+        else
+            (*msg) += recieved;
+
         stream_.text(stream_.got_text());
         stream_.async_write(
             asio::buffer(*msg),
-            [s = shared_from_this(), msg] (beast::error_code ec, size_t bytes_transferred) mutable {
-                s->on_write(ec, msg->size());
-            }
+            [s = shared_from_this(), msg](beast::error_code ec, size_t bytes_transferred) mutable {
+            s->on_write(ec, msg->size());
+        }
         );
     }
 
