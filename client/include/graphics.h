@@ -1,4 +1,4 @@
-#ifndef GRAPHICS_H
+﻿#ifndef GRAPHICS_H
 #define GRAPHICS_H
 
 #include <string>
@@ -14,6 +14,9 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include <QtNetwork>
+#include <QtCore>
 
 // #include <QtWebSockets/QWebSocket>
 
@@ -32,12 +35,19 @@ namespace http = beast::http;
 namespace net = boost::asio;
 
 // QNetworkAccessManager - инкапсулирует HTTP протокол, включает SSL
+class MyCookieJar : public QNetworkCookieJar
+{
+    public:
+        QList<QNetworkCookie> getAllCookies() { return allCookies(); }
+};
 
 class Client : public QObject {
     Q_OBJECT
 public:
     Client(QObject *parent = nullptr);
     QUrl setUrl(char const* host, int port, char const* target);
+    void download(QString);
+    void _download(QUrl);
 
 signals:
     void onReady();
@@ -62,22 +72,7 @@ private slots:
 
 private:
     QNetworkAccessManager manager;
+    MyCookieJar *cookieJar;
+    QList<QNetworkCookie> cookiesList;
 };
-
-/*
-class EchoClient : public QObject {
-    Q_OBJECT
-public:
-    EchoClient(const QUrl &url, bool debug, QObject *parent);
-
-signals:
-    void onConnected();
-    void closed();
-    void onTextMessageReceived(QString message);
-private:
-    QUrl m_url;
-    bool m_debug;
-    QWebSocket m_webSocket;
-};*/
-
 #endif // GRAPHICS_H

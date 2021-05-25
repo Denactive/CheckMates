@@ -5,17 +5,20 @@
 #define _WIN32_WINNT 0x0A00
 #endif
 
+#define WBASIC_DEBUG 1
+
 #define BOOST_DATE_TIME_NO_LIB
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <set>
 
+namespace asio = boost::asio;
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
@@ -32,6 +35,7 @@ class wssession : public std::enable_shared_from_this<wssession>
     std::string host_;
     std::string text_;
 
+
 public:
     explicit wssession(net::io_context& ioc)
         : resolver_(net::make_strand(ioc)), ws_(net::make_strand(ioc)){}
@@ -43,6 +47,7 @@ public:
     void onWrite(beast::error_code ec, std::size_t bytes_transferred);
     void onRead(beast::error_code ec, std::size_t bytes_transferred);
     void onClose(beast::error_code ec);
+    void doSomeWork();
 
     void send() {};
 };

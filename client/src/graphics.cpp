@@ -8,14 +8,17 @@ Client::Client(QObject *parent) :QObject(parent)
     connect(&manager, &QNetworkAccessManager::preSharedKeyAuthenticationRequired, this, &Client::preSharedKeyAuthenticationRequired);
     connect(&manager, &QNetworkAccessManager::proxyAuthenticationRequired, this, &Client::proxyAuthenticationRequired);
     connect(&manager, &QNetworkAccessManager::sslErrors, this, &Client::sslErrors);
+    connect(&manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
+
+    cookieJar = new MyCookieJar();
+    manager.setCookieJar(cookieJar);
 }
 
 void Client::getData(char const* host, int port, char const* target)
 {
     qInfo() << "Get data from server";
 
-    QNetworkReply *reply = manager.get(QNetworkRequest(setUrl(host, port, target)));
-    reply->
+    QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(setUrl(host, port, target))));
     connect(reply, &QNetworkReply::readyRead, this, &Client::readyRead);
 }
 
@@ -24,6 +27,7 @@ void Client::post(char const* host, int port, char const* target, QByteArray dat
     qInfo() << "Post data to server";
     QNetworkRequest request = QNetworkRequest(setUrl(host, port, target));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
+    request.setRawHeader(QByteArray("Cookie"), QByteArray("TS015810ea_76=088fa"));
 
     QNetworkReply *reply = manager.post(request, data);
     connect(reply, &QNetworkReply::readyRead, this, &Client::readyRead);
@@ -94,9 +98,13 @@ void Client::encrypted(QNetworkReply *reply)
 
 void Client::finished(QNetworkReply *reply)
 {
-    Q_UNUSED(reply);
-
     qInfo() << "finished";
+    qDebug() << reply->readAll();
+    qDebug() << "getAllCookies: " << cookieJar->getAllCookies();
+    QList<QByteArray> headerList = reply->rawHeaderList();
+        foreach(QByteArray head, headerList) {
+            qDebug() << head << ":" << reply->rawHeader(head);
+        }
 }
 
 void Client::networkAccessibleChanged(QNetworkAccessManager::NetworkAccessibility accessible)
@@ -142,44 +150,50 @@ QUrl Client::setUrl(char const* host, int port, char const* target)
     return url;
 }
 
-
-// We start by connecting to the `connected()` signal.
-
-/*EchoClient::EchoClient(const QUrl &url, bool debug, QObject *parent) :
-    QObject(parent),
-    m_url(url),
-    m_debug(debug)
+void Client::download(QString url)
 {
-    if (m_debug)
-        qDebug() << "WebSocket server:" << url;
-
-    connect(&m_webSocket, &QWebSocket::connected, this, &EchoClient::onConnected);
-    connect(&m_webSocket, &QWebSocket::disconnected, this, &EchoClient::closed);
-    m_webSocket.open(QUrl(url));
+    _download(QUrl(url));
 }
 
-// After the connection, we open the socket to the given url.
-
-
-void EchoClient::onConnected()
+void Client::_download(QUrl url)
 {
-    if (m_debug)
-        qDebug() << "WebSocket connected";
-    connect(&m_webSocket, &QWebSocket::textMessageReceived,
-            this, &EchoClient::onTextMessageReceived);
-    m_webSocket.sendTextMessage(QStringLiteral("Hello, world!"));
+    //enters event loop, simulate blocking io
+    QEventLoop q;
+    QTimer t;
+    t.setSingleShot(true);
+    connect(&t, SIGNAL(timeout()), &q, SLOT(quit()));
+
+    QNetworkReply *reply = manager.get(QNetworkRequest(url));
+    connect(reply, SIGNAL(finished()), &q, SLOT(quit()));
+
+    t.start(5000);
+    q.exec();
+
+    if (t.isActive()) {
+        t.stop();
+        QByteArray response = reply->readAll();
+        qDebug() << response;
+
+        QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+        if (reply->error()) {
+            qDebug()<< "Download failed" <<  reply->errorString();
+        } else if (!redirectionTarget.isNull()) {
+            QUrl newUrl = url.resolved(redirectionTarget.toUrl());
+            qDebug()<< "Redirect to" <<  newUrl.toString();
+            url = newUrl;
+            // reply->deleteLater();
+            _download(url);
+        } else {
+            qDebug() << "Finish! ";
+        }
+
+        reply->deleteLater();
+
+    } else {
+        qDebug() << "Timeout";
+    }
+
+    cookiesList = cookieJar->getAllCookies();
+    qDebug() << "getAllCookies: " << cookiesList;
 }
-
-// When the client is connected successfully, we connect to the `onTextMessageReceived()` signal, and send out "Hello, world!". If connected with the EchoServer, we will receive the same message back.
-
-void EchoClient::onTextMessageReceived(QString message)
-{
-    if (m_debug)
-        qDebug() << "Message received:" << message;
-    m_webSocket.close();
-}
-
-void EchoClient::closed() {
-    qDebug() << "client close";
-}*/
 

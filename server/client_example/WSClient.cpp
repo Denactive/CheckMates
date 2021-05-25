@@ -182,7 +182,7 @@ public:
     }
 
     void do_some_work() {
-        Sleep(2000);
+        sleep(2);
         //std::cin >> text_;
         std::cout << "LOGIC HERE | Server send to me: ";
         std::cout << beast::make_printable(buffer_.data()) << std::endl;
