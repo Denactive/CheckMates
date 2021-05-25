@@ -27,7 +27,3 @@ private:
     std::queue<std::shared_ptr<IUser>> q_;
     std::shared_ptr<GameSessionMap> games_;
 };
-
-
-
-

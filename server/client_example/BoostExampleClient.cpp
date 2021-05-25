@@ -8,10 +8,11 @@
 #define _WIN32_WINNT 0x0A00
 #endif
 
-#define CYCLE 1
-#define DELAY 10000
-
 #define BOOST_DATE_TIME_NO_LIB
+
+#define BASIC_DEBUG 0
+#define DELAY 2000
+#define REPEATS 2
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -21,6 +22,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <set>
 #include <string>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -45,7 +47,6 @@ class session : public std::enable_shared_from_this<session>
     beast::flat_buffer buffer_; // (Must persist between reads)
     http::request<http::empty_body> req_;
     http::response<http::string_body> res_;
-    int i = 0;
 
 public:
     // Objects are constructed with a strand to
@@ -65,6 +66,7 @@ public:
             char const* target,
             int version)
     {
+        if (BASIC_DEBUG) std::cout << "run\n";
         // Set up an HTTP GET request message
         req_.version(version);
         req_.method(http::verb::get);
@@ -89,11 +91,12 @@ public:
             beast::error_code ec,
             tcp::resolver::results_type results)
     {
+        if (BASIC_DEBUG) std::cout << "on resolve\n";
         if (ec)
             return fail(ec, "resolve");
 
         // Set a timeout on the operation
-        stream_.expires_after(std::chrono::seconds(30));
+        stream_.expires_after(std::chrono::seconds(120));
 
         // Make the connection on the IP address we get from a lookup
         stream_.async_connect(
@@ -106,6 +109,7 @@ public:
     void
         on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
     {
+        if (BASIC_DEBUG) std::cout << "on connect\n";
         if (ec)
             return fail(ec, "connect");
 
@@ -124,6 +128,7 @@ public:
             beast::error_code ec,
             std::size_t bytes_transferred)
     {
+        if (BASIC_DEBUG) std::cout << "on write\n";
         boost::ignore_unused(bytes_transferred);
 
         if (ec)
@@ -141,20 +146,17 @@ public:
             beast::error_code ec,
             std::size_t bytes_transferred)
     {
+        if (BASIC_DEBUG) std::cout << "on read\n";
         boost::ignore_unused(bytes_transferred);
 
         if (ec)
             return fail(ec, "read");
 
         // Write the message to standard out
-        std::cout << "\n\n[" << i+1 << ']' << res_ << std::endl;
+        std::cout << res_ << std::endl;
 
         // Gracefully close the socket
-        if (i == CYCLE)
-            stream_.socket().shutdown(tcp::socket::shutdown_both, ec);
-
-        i++;
-        Sleep(DELAY);
+        stream_.socket().shutdown(tcp::socket::shutdown_both, ec);
 
         // not_connected happens sometimes so don't bother reporting it.
         if (ec && ec != beast::errc::not_connected)
@@ -201,13 +203,19 @@ int main(int argc, char** argv)
     auto const host = "127.0.0.1";
     auto const target = "/1108_syms_pass.txt";
     auto const version = 11;
-    std::cout << "CLIENT\nConnecting to " << host << ':' << port << "\nTrying to GET " << target << std::endl;
+    
     // The io_context is required for all I/O
     net::io_context ioc;
+    std::set<std::shared_ptr<session>> sessions;
 
     // Launch the asynchronous operation
-    std::make_shared<session>(ioc)->run(host, port, target, version);
-
+    std::cout << "CLIENT [" << 1 << "]\nConnecting to " << host << ':' << port << "\nTrying to GET " << target << std::endl;
+    /*client1*/  std::make_shared<session>(ioc)->run(host, port, target, version);
+    for (int i = 0; i < 0; ++i) {
+        Sleep(DELAY);
+        std::cout << "CLIENT [" << i + 2 << "]\nConnecting to " << host << ':' << port << "\nTrying to GET " << target << std::endl;
+        sessions.insert(std::make_shared<session>(ioc));
+    }
     // Run the I/O service. The call will return when
     // the get operation is complete.
     ioc.run();
