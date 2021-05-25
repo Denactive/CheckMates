@@ -15,6 +15,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+// #include <QtWebSockets/QWebSocket>
+
 #include "include/community.h"
 #include "include/chessboard.h"
 #include "include/figures.h"
@@ -35,6 +37,7 @@ class Client : public QObject {
     Q_OBJECT
 public:
     Client(QObject *parent = nullptr);
+    QUrl setUrl(char const* host, int port, char const* target);
 
 signals:
     void onReady();
@@ -58,9 +61,23 @@ private slots:
     void sslErrors(QNetworkReply *reply, const QList<QSslError> &errors);
 
 private:
-    QUrl setUrl(char const* host, int port, char const* target);
-
     QNetworkAccessManager manager;
 };
+
+/*
+class EchoClient : public QObject {
+    Q_OBJECT
+public:
+    EchoClient(const QUrl &url, bool debug, QObject *parent);
+
+signals:
+    void onConnected();
+    void closed();
+    void onTextMessageReceived(QString message);
+private:
+    QUrl m_url;
+    bool m_debug;
+    QWebSocket m_webSocket;
+};*/
 
 #endif // GRAPHICS_H

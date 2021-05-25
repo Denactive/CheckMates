@@ -5,7 +5,6 @@ void session::run(char const* host, char const* port, char const* target, int ve
     if (BASIC_DEBUG) std::cout << "run\n";
     // Set up an HTTP GET request message
     req_.version(version);
-    req_.method(http::verb::get);
     req_.target(target);
     req_.set(http::field::host, host);
     req_.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
@@ -14,12 +13,8 @@ void session::run(char const* host, char const* port, char const* target, int ve
     std::cout << "\nREQUEST is built!\nHEADER:\n" << req_.base() << "BODY:\n" << "No Body\n===============================\n" << std::endl;
 
     // Look up the domain name
-    resolver_.async_resolve(
-        host,
-        port,
-        beast::bind_front_handler(
-            &session::onResolve,
-            shared_from_this()));
+    resolver_.async_resolve(host, port,
+        beast::bind_front_handler(&session::onResolve, shared_from_this()));
 }
 
 void session::onResolve(beast::error_code ec, tcp::resolver::results_type results) {
@@ -31,11 +26,8 @@ void session::onResolve(beast::error_code ec, tcp::resolver::results_type result
     stream_.expires_after(std::chrono::seconds(120));
 
     // Make the connection on the IP address we get from a lookup
-    stream_.async_connect(
-        results,
-        beast::bind_front_handler(
-            &session::onConnect,
-            shared_from_this()));
+    stream_.async_connect(results,
+        beast::bind_front_handler(&session::onConnect, shared_from_this()));
 }
 
 void session::onConnect(beast::error_code ec, tcp::resolver::results_type::endpoint_type) {
@@ -48,9 +40,7 @@ void session::onConnect(beast::error_code ec, tcp::resolver::results_type::endpo
 
     // Send the HTTP request to the remote host
     http::async_write(stream_, req_,
-        beast::bind_front_handler(
-            &session::onWrite,
-            shared_from_this()));
+        beast::bind_front_handler(&session::onWrite, shared_from_this()));
 }
 
 void session::onWrite(beast::error_code ec, std::size_t bytes_transferred) {
@@ -62,9 +52,7 @@ void session::onWrite(beast::error_code ec, std::size_t bytes_transferred) {
 
         // Receive the HTTP response
         http::async_read(stream_, buffer_, res_,
-            beast::bind_front_handler(
-                &session::onRead,
-                shared_from_this()));
+            beast::bind_front_handler(&session::onRead, shared_from_this()));
 }
 
 void session::onRead(beast::error_code ec, std::size_t bytes_transferred) {
@@ -85,9 +73,7 @@ void session::onRead(beast::error_code ec, std::size_t bytes_transferred) {
         return fail(ec, "shutdown");
 
     http::async_write(stream_, req_,
-        beast::bind_front_handler(
-            &session::onWrite,
-            shared_from_this()));
+        beast::bind_front_handler(&session::onWrite, shared_from_this()));
 
     // If we get here then the connection is closed gracefully
 }
