@@ -12,6 +12,7 @@
 #define THREADS_NUM 1
 
 #define BASIC_DEBUG 1
+#define BASIC_DEBUG_WS 1
 #define START_GAME_IMITATION 1
 #define REGESTRY_IMITATION 1
 
@@ -74,6 +75,26 @@ private:
     ioc_Singleton(const ioc_Singleton&);                 // Prevent copy-construction
     ioc_Singleton& operator=(const ioc_Singleton&);      // Prevent assignment
     asio::io_context ioc_{ THREADS_NUM };
+};
+
+class MQSingleton
+{
+public:
+    static MQSingleton& instance()
+    {
+        static MQSingleton singleton;
+        return singleton;
+    }
+
+    MatcherQueue& get() { return mq; }
+
+    // Other non-static member functions
+private:
+    MQSingleton() {}
+    ~MQSingleton() {}
+    MQSingleton(const MQSingleton&);
+    MQSingleton& operator=(const MQSingleton&);
+    MatcherQueue mq;
 };
 
 class Session;
@@ -169,32 +190,10 @@ private:
 
 // =======================[ Protocol Specific Handlers ]=========================
 
-class IFormat {
-public:
-    //void handle_request(beast::string_view doc_root, http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
-    //template<bool isRequest, class Body, class Fields>
-    //void operator()(http::message<isRequest, Body, Fields>&& msg) const
 
-    // This function produces an HTTP response for the given
-    // request. The type of the response object depends on the
-    // contents of the request, so the interface requires the
-    // caller to pass a generic lambda for receiving the response.
-
-    virtual void handle_request(beast::string_view
-        , http::request<http::string_body>&&
-        , const std::shared_ptr<ILogger>& logger
-        , std::function<void(http::message<false, http::string_body, http::fields>)>
-        , Session&
-    ) = 0;
-
-    virtual std::shared_ptr<IMatcherQueue> get_mq() = 0;
-};
+// ===================================[ HTTP ]===================================
 
 
-// =======================[ Session ]=========================
-
-
-// Handles an HTTP / WS server connection
 class Session : public std::enable_shared_from_this<Session>
 {
     // This is the C++11 equivalent of a generic lambda.
@@ -237,7 +236,7 @@ class Session : public std::enable_shared_from_this<Session>
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
     std::shared_ptr<void> res_;
-    std::shared_ptr<IFormat> format_;
+    MatcherQueue& mq_;
     send_lambda lambda_;
     const std::shared_ptr<ILogger> logger_;
 
@@ -250,13 +249,12 @@ public:
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
         std::shared_ptr<std::string const> const& log_dir,
-        std::shared_ptr<IFormat>& format,
         std::shared_ptr<UserMap>& active_users
     )
         : stream_(std::move(socket))
         , doc_root_(doc_root)
         , logger_(std::make_shared<FileLogger>(log_dir))
-        , format_(format)
+        , mq_(MQSingleton::instance().get())
         , active_users_(active_users)
         , lambda_(*this)
     {
@@ -308,7 +306,7 @@ public:
         logger->log(logging_data);
 
         stream_.expires_after(std::chrono::minutes{ 2 });
-        auto push_result = format_->get_mq()->push_user(user);
+        auto push_result = mq_.push_user(user);
 
         if (push_result != nullptr) {
             // если запушили и для него сразу нашелся оппонент
@@ -441,7 +439,7 @@ public:
         }
 
         // Send the response
-        format_->handle_request(*doc_root_, std::move(req_), logger_, lambda_, *this);
+        handle_request(std::move(req_));
     }
 
     void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) {
@@ -476,205 +474,8 @@ public:
 
         // At this point the connection is closed gracefully
     }
-};
 
-class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
-{
-    struct send_lambda
-    {
-        WebSocketSession& self_;
-
-        explicit
-            send_lambda(WebSocketSession& self)
-            : self_(self)
-        {
-        }
-
-        void operator()(http::message<false, http::string_body, http::fields>&& msg) const
-        {
-            std::cout << "ws: send\n";
-        }
-    };
-
-    beast::flat_buffer buffer_;
-    std::shared_ptr<std::string const> doc_root_;
-    std::shared_ptr<IFormat> format_;
-    send_lambda lambda_;
-    const std::shared_ptr<ILogger> logger_;
-    websocket::stream<beast::tcp_stream> stream_;
-    //beast::tcp_stream stream_;
-
-
-public:
-    // Take ownership of the socket
-
-    WebSocketSession(
-        tcp::socket&& socket,
-        std::shared_ptr<std::string const> const& doc_root,
-        std::shared_ptr<std::string const> const& log_dir,
-        std::shared_ptr<IFormat>& format
-    )
-        : stream_(std::move(socket))
-        , doc_root_(doc_root)
-        , logger_(std::make_shared<FileLogger>(log_dir))
-        , format_(format)
-        , lambda_(*this)
-    {
-    }
-    // Get on the correct executor
-    void run()
-    {
-        // We need to be executing within a strand to perform async operations
-        // on the I/O objects in this session. Although not strictly necessary
-        // for single-threaded contexts, this example code is written to be
-        // thread-safe by default.
-        asio::dispatch(stream_.get_executor(),
-            beast::bind_front_handler(
-                &WebSocketSession::on_run,
-                shared_from_this()));
-    }
-
-    // Start the asynchronous operation
-    void  on_run()
-    {
-        // Set suggested timeout settings for the websocket
-        stream_.set_option(
-            websocket::stream_base::timeout::suggested(
-                beast::role_type::server));
-
-        // Set a decorator to change the Server of the handshake
-        stream_.set_option(websocket::stream_base::decorator(
-            [](websocket::response_type& res)
-            {
-                res.set(http::field::server,
-                    std::string(BOOST_BEAST_VERSION_STRING) +
-                    " websocket-server-async");
-            }));
-        // Accept the websocket handshake
-        stream_.async_accept(
-            beast::bind_front_handler(
-                &WebSocketSession::on_accept,
-                shared_from_this()));
-    }
-
-    void on_accept(beast::error_code ec)
-    {
-        if (ec)
-            return fail(ec, "accept");
-
-        // Read a message
-        do_read();
-    }
-
-    void  do_read()
-    {
-        // Read a message into our buffer
-        stream_.async_read(
-            buffer_,
-            beast::bind_front_handler(
-                &WebSocketSession::on_read,
-                shared_from_this()));
-    }
-
-    void    on_read(
-            beast::error_code ec,
-            std::size_t bytes_transferred)
-    {
-        boost::ignore_unused(bytes_transferred);
-
-        // This indicates that the session was closed
-        if (ec == websocket::error::closed)
-            return;
-
-        if (ec)
-            fail(ec, "read");
-
-        // Echo the message
-        //std::string* recieved = (std::string*)buffer_.data().data();
-        //std::string msg = "WS Echo: " + *recieved;
-        //auto msg = asio::buffer(std::string("WS Echo: "));
-        stream_.text(stream_.got_text());
-        stream_.async_write(
-            buffer_.data(),
-            //asio::buffer(msg),
-                beast::bind_front_handler(
-                &WebSocketSession::on_write,
-                shared_from_this()));
-    }
-
-    void on_write(
-            beast::error_code ec,
-            std::size_t bytes_transferred)
-    {
-        boost::ignore_unused(bytes_transferred);
-
-        if (ec)
-            return fail(ec, "write");
-
-        // Clear the buffer
-        buffer_.consume(buffer_.size());
-
-        // Do another read
-        do_read();
-    }
-};
-
-
-// =======================[ WS ]=========================
-
-
-class WS_format : public IFormat {
-public:
-    WS_format() = delete;
-    WS_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
-        : serializer_(serializer)
-        , mq_(matcher_queue)
-    {
-    }
-
-    void game_request_handler();
-    void game_response_handler();
-    void chat_handler();
-    std::shared_ptr<IMatcherQueue> get_mq() override { return mq_; }
-
-    virtual void handle_request(beast::string_view doc_root
-        , http::request<http::string_body>&& req
-        , const std::shared_ptr<ILogger>& logger
-        , std::function<void(http::message<false, http::string_body, http::fields>)> send
-        , Session& session
-    ) override {
-        std::cout << "WS format handler" << std::endl;
-    }
-    
-
-private:
-    std::shared_ptr<ISerializer> serializer_;
-    std::shared_ptr<IMatcherQueue> mq_;
-    const std::string type = "ws";
-};
-
-
-// =======================[ HTTP ]=========================
-
-class HTTP_format: public IFormat {
-public:
-
-    HTTP_format() = delete;
-    HTTP_format(const std::shared_ptr<ISerializer>& serializer, std::shared_ptr<IMatcherQueue> matcher_queue)
-        : serializer_(serializer) 
-        , mq_(matcher_queue)
-    {
-    }
-
-    std::shared_ptr<IMatcherQueue> get_mq() override { return mq_; }
-
-
-    void handle_request(beast::string_view doc_root
-        , http::request<http::string_body>&& req
-        , const std::shared_ptr<ILogger>& logger
-        , std::function<void(http::message<false, http::string_body, http::fields>)> send
-        , Session& session
-    ) override {
+    void handle_request(http::request<http::string_body>&& req) {
         std::cout << "HTTP-handler: Got an request!" << std::endl;
 
         std::string logging_data;
@@ -726,18 +527,18 @@ public:
         if (req.method() != http::verb::get &&
             req.method() != http::verb::head &&
             req.method() != http::verb::post) {
-            logger->log(logging_data += "fail: unsupported request: " + req.method_string().to_string());
-            return send(bad_request("Unknown HTTP-method"));
+            logger_->log(logging_data += "fail: unsupported request: " + req.method_string().to_string());
+            return lambda_(bad_request("Unknown HTTP-method"));
         }
         // Request path must be absolute and not contain "..".
         if (req.target().empty() ||
             req.target()[0] != '/' ||
             req.target().find("..") != beast::string_view::npos) {
-            logger->log(logging_data += "fail: invalid target: " + req.method_string().to_string());
-            return send(bad_request("Illegal request-target"));
+            logger_->log(logging_data += "fail: invalid target: " + req.method_string().to_string());
+            return lambda_(bad_request("Illegal request-target"));
         }
         // Build the path to the requested file
-        std::string path = path_cat(doc_root, req.target());
+        std::string path = path_cat(*doc_root_, req.target());
         if (req.target().back() == '/')
             path.append("index.html");
 
@@ -760,14 +561,14 @@ public:
 
             // Handle the case where the file doesn't exist
             if (ec == beast::errc::no_such_file_or_directory) {
-                logger->log(logging_data += "fail: unreachable target: " + req.target().to_string());
-                return send(not_found(req.target()));
+                logger_->log(logging_data += "fail: unreachable target: " + req.target().to_string());
+                return lambda_(not_found(req.target()));
             }
 
             // Handle an unknown error
             if (ec) {
-                logger->log(logging_data += "fail: unknown error: " + ec.message());
-                return send(server_error(ec.message()));
+                logger_->log(logging_data += "fail: unknown error: " + ec.message());
+                return lambda_(server_error(ec.message()));
             }
 
             // Cache the size since we need it after the move
@@ -781,8 +582,8 @@ public:
                 res.set(http::field::content_type, mime_type(path));
                 res.content_length(size);
                 res.keep_alive(req.keep_alive());
-                logger->log(logging_data += "OK");
-                return send(std::move(res));
+                logger_->log(logging_data += "OK");
+                return lambda_(std::move(res));
             }
 
             // Respond to GET request
@@ -793,7 +594,7 @@ public:
                 class Fields = fields>      // The type of container to store the fields
                 class message;
 
-             Construct a message.
+                Construct a message.
 
                 @param body_args A tuple forwarded as a parameter
                 pack to the body constructor.
@@ -817,7 +618,7 @@ public:
             size_t bytes_read = 1;
             std::string content;
 
-            char* block = new char [1024];
+            char* block = new char[1024];
             while (bytes_read) {
                 bytes_read = res_file.body().file().read(block, 1024, ec);
                 if (ec) {
@@ -831,27 +632,27 @@ public:
             }
             delete[] block;
             if (REGESTRY_IMITATION) {
-                session.user = std::make_shared<User>();
-                std::cout << "user №" << serializeTimePoint(session.user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
+                user = std::make_shared<User>();
+                std::cout << "user №" << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
 
-                const auto [user, success] = session.active_users_->insert({session.user->get_token_string(), session.user});
+                const auto [active_user, success] = active_users_->insert({ user->get_token_string(), user });
                 if (success)
                     std::cout << "added to the User Map successfully" << std::endl;
                 else
                     std::cout << "has not been added to the map | FAIL" << std::endl;
 
-                session.start_cookie_timer(session.user->get_token(), COOKIE_LIFETIME);
+                start_cookie_timer(user->get_token(), COOKIE_LIFETIME);
             }
 
             if (START_GAME_IMITATION) {
-                if (!session.user) {
+                if (!user) {
                     // TODO send message unauthorised
                     std::cout << "unauthorised\n";
                 }
                 //auto logging_data_ptr = std::make_shared<std::string>(&logging_data);
-                return session.on_queue(std::move(logging_data), logger, req.version());
+                return on_queue(std::move(logging_data), logger_, req.version());
             }
-            
+
             http::response<http::string_body> res{
                 std::piecewise_construct,
                 std::make_tuple(content),
@@ -862,15 +663,15 @@ public:
             res.set(http::field::content_type, mime_type(path));
             res.content_length(size);
             res.keep_alive(req.keep_alive());
-            logger->log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
-            return send(std::move(res));
+            logger_->log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
+            return lambda_(std::move(res));
         }
 
         // TODO: common value res
         //return send(std::move(res));
     }
 
-private:
+
 
     beast::string_view mime_type(beast::string_view path) {
         using beast::iequals;
@@ -904,7 +705,6 @@ private:
         if (iequals(ext, ".svgz")) return "image/svg+xml";
         return "application/text";
     }
-
     // Append an HTTP rel-path to a local filesystem path.
     // The returned path is normalized for the platform.
     std::string path_cat(beast::string_view base, beast::string_view path) {
@@ -928,15 +728,153 @@ private:
         return result;
     }
 
-    void authorize_handler();
-    void register_handler();
-
-    std::shared_ptr<ISerializer> serializer_;
-    std::shared_ptr<IMatcherQueue> mq_;
-    std::shared_ptr<std::set<User, UserComparator>> users_;
-    const std::string type_ = "http";
-    //asio::io_context ioc_;
 };
 
 
+// ====================================[ WS ]====================================
+
+
+class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
+{
+    struct send_lambda
+    {
+        WebSocketSession& self_;
+
+        explicit
+            send_lambda(WebSocketSession& self)
+            : self_(self)
+        {
+        }
+
+        void operator()(http::message<false, http::string_body, http::fields>&& msg) const
+        {
+            std::cout << "ws: send\n";
+        }
+    };
+
+    beast::flat_buffer buffer_;
+    std::string buffer_str_;
+    std::shared_ptr<std::string const> doc_root_;
+    send_lambda lambda_;
+    const std::shared_ptr<ILogger> logger_;
+    websocket::stream<beast::tcp_stream> stream_;
+    std::string msg = "Hello";
+
+public:
+    // Take ownership of the socket
+
+    WebSocketSession(
+        tcp::socket&& socket,
+        std::shared_ptr<std::string const> const& doc_root,
+        std::shared_ptr<std::string const> const& log_dir
+    )
+        : stream_(std::move(socket))
+        , doc_root_(doc_root)
+        , logger_(std::make_shared<FileLogger>(log_dir))
+        , lambda_(*this)
+    {
+    }
+    // Get on the correct executor
+    void run()
+    {
+        if (BASIC_DEBUG_WS) std::cout << "WS: run\n";
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        asio::dispatch(stream_.get_executor(),
+            beast::bind_front_handler(
+                &WebSocketSession::on_run,
+                shared_from_this()));
+    }
+
+    // Start the asynchronous operation
+    void  on_run()
+    {
+        if (BASIC_DEBUG_WS) std::cout << "WS: on run\n";
+
+        // Set suggested timeout settings for the websocket
+        stream_.set_option(
+            websocket::stream_base::timeout::suggested(
+                beast::role_type::server));
+
+        // Set a decorator to change the Server of the handshake
+        stream_.set_option(websocket::stream_base::decorator(
+            [](websocket::response_type& res)
+            {
+                res.set(http::field::server,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                    " SaberChess websocket-server");
+            }));
+        // Accept the websocket handshake
+        stream_.async_accept(
+            beast::bind_front_handler(
+                &WebSocketSession::on_accept,
+                shared_from_this()));
+    }
+
+    void on_accept(beast::error_code ec)
+    {
+        if (BASIC_DEBUG_WS) std::cout << "WS: on accept\n";
+        if (ec)
+            return fail(ec, "accept");
+
+        // Read a message
+        do_read();
+    }
+
+    void  do_read()
+    {
+        if (BASIC_DEBUG_WS) std::cout << "WS: do read\n";
+        // Read a message into our buffer
+        stream_.async_read(
+            buffer_,
+            beast::bind_front_handler(
+                &WebSocketSession::on_read,
+                shared_from_this()));
+    }
+
+    void on_read(
+            beast::error_code ec,
+            std::size_t bytes_transferred)
+    {
+        if (BASIC_DEBUG_WS) std::cout << "WS: on read\n";
+        boost::ignore_unused(bytes_transferred);
+
+        // This indicates that the session was closed
+        if (ec == websocket::error::closed)
+            return;
+
+        if (ec)
+            fail(ec, "read");
+
+    
+        auto msg = std::make_shared<std::string>("WS Echo: ");// +*recieved;
+        stream_.text(stream_.got_text());
+        stream_.async_write(
+            asio::buffer(*msg),
+            [s = shared_from_this(), msg] (beast::error_code ec, size_t bytes_transferred) mutable {
+                s->on_write(ec, msg->size());
+            }
+        );
+    }
+
+    void on_write(
+            beast::error_code ec,
+            std::size_t bytes_transferred)
+    {
+        if (BASIC_DEBUG_WS) std::cout << "WS: on write\n";
+
+        boost::ignore_unused(bytes_transferred);
+
+        if (ec)
+            return fail(ec, "write");
+
+        // Clear the buffer
+        buffer_.consume(buffer_.size());
+
+        // Do another read
+        do_read();
+    }
+};
 #endif //CHECKMATES_NET_H

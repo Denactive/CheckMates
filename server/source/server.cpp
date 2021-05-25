@@ -19,7 +19,6 @@ int Server::run(asio::io_context& ioc) {
         opts_.type_,
         opts_.doc_root_,
         opts_.log_dir_,
-        format_,
         active_users_
         )->run();
 
