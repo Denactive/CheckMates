@@ -36,7 +36,7 @@ public:
     {
     }
 
-    std::string get_info() { return "protocol: " + *type_ + "owner: " + owner_ + " | ip: " + ip_.to_string() + ":" + std::to_string(port_) + "(" + *type_ + ")\ndoc dir:" + *doc_root_ + "\nlog dir: " + *log_dir_ + '\n'; }
+    std::string get_info() { return "protocol: " + *type_ + " owner: " + owner_ + " | ip: " + ip_.to_string() + ":" + std::to_string(port_) + "(" + *type_ + ")\ndoc dir:" + *doc_root_ + "\nlog dir: " + *log_dir_ + '\n'; }
 
     std::shared_ptr<std::string> type_;
     const std::string owner_;

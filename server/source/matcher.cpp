@@ -25,7 +25,7 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> pw,
         return nullptr;
     }
     
-    
+    /*
     std::array<size_t, M> turn;
     GInfo info = game_session->send_info();
 
@@ -57,6 +57,7 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> pw,
             std::cout << "valid move\n";
         }
     }
+    */
     return game_session;
 }
 

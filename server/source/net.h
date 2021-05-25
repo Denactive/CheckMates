@@ -14,7 +14,20 @@
 #define BASIC_DEBUG 1
 #define BASIC_DEBUG_WS 1
 #define START_GAME_IMITATION 1
+/*
+1 4 3 4
+6 4 4 4
+0 5 3 2
+7 1 5 2
+0 3 4 7
+7 6 5 5
+4 7 6 5
+*/
 #define REGESTRY_IMITATION 1
+#define MOVE_PARSE_DEBUG 1
+
+// comment this
+#define ONLINE_GAME_IMITATION
 
 #define START_GAME_RESPONSE \
 "{\n\
@@ -347,10 +360,11 @@ public:
             res_to_opponent.content_length(content.size());
             res_to_opponent.keep_alive(true);
             logger->log("Creating a response to opponent: " + opponent->get_token_string() + " of " + std::to_string(content.size()) + " bytes:\n\n" + content + "\n\n");
+            // send
             opponent_session->second->lambda_(std::move(res_to_opponent));
 
             // message to current user
-            content = (boost::format(START_GAME_RESPONSE) 
+            content = (boost::format(START_GAME_RESPONSE)
                 % push_result->get_token_string()
                 % user->get_id() 
                 % (is_first_white ? "white" : "black")
@@ -370,6 +384,7 @@ public:
             res.content_length(content.size());
             res.keep_alive(true);
             logger->log("OK\nCreating a response to this player: " + user->get_token_string() + " of " + std::to_string(content.size()) + " bytes:\n\n" + content + "\n\n");
+            // send
             return lambda_(std::move(res));
         }
         else {
@@ -854,23 +869,35 @@ public:
     }
 
     void handle_request() {
-        auto msg = std::make_shared<std::string>("WS Echo: ");
-        auto recieved = beast::buffers_to_string(buffer_.data());
+        auto res = std::make_shared<std::string>();
+        auto req = beast::buffers_to_string(buffer_.data());
+        if (BASIC_DEBUG_WS) std::cout << "Got an request! : " << req << "\n";
+
+        if (req == "NEED CLOSE") {
+            (*res) = "OK | CLOSE";
+            return write(res);
+        }
+       
+        game_error_code ec;
+        Move m = get_move(req, ec);
+        if (ec) {
+            print_game_error_code(ec);
+            (*res) = game_error_code_to_string(ec);
+            return write(res);
+        }
         
-        if (BASIC_DEBUG_WS) std::cout << "Got an request! : " << recieved << "\n";
+        (*res) = game_error_code_to_string(ec); // OK
 
-        if (recieved == "NEED CLOSE")
-            (*msg) = "OK | CLOSE";
-        else
-            (*msg) += recieved;
+        write(res);
+    }
 
+    void write(std::shared_ptr<std::string>& res) {
         stream_.text(stream_.got_text());
         stream_.async_write(
-            asio::buffer(*msg),
-            [s = shared_from_this(), msg](beast::error_code ec, size_t bytes_transferred) mutable {
-            s->on_write(ec, msg->size());
-        }
-        );
+            asio::buffer(*res),
+            [s = shared_from_this(), res](beast::error_code ec, size_t bytes_transferred) mutable {
+            s->on_write(ec, res->size());
+        });
     }
 
     void on_write(
@@ -889,6 +916,87 @@ public:
 
         // Do another read
         do_read();
+    }
+
+    Move get_move(std::string& req, game_error_code& ec) {
+        /*
+        
+        {
+            game_token: 21-05-26-00_11_30,
+            uid: 21-05-26-00_11_29,
+            prev: 12,
+            cur: 28
+        }
+        
+        { game_token: 21-05-26-00_11_30, uid: 21-05-26-00_11_29, prev: 12, cur: 28 }
+        */
+
+
+        if (MOVE_PARSE_DEBUG) std::cout << "parsing: " << req << "\n";
+        Move m{};
+
+        // game_token: %s,
+        auto game_token = req.find("game_token: ");
+        if (game_token == std::string::npos) {
+            ec = game_error_code::no_game_token;
+            return m;
+        }
+        auto comma = req.substr().find(',');
+        if (comma == std::string::npos) {
+            ec = invalid_format;
+            return m;
+        }
+        m.game_token = req.substr(game_token, game_token - comma);
+        if (MOVE_PARSE_DEBUG) std::cout << "\tgame_token: " << m.game_token << "\n";
+
+        // uid: %zu,
+        auto uid = req.find("uid: ");
+        if (uid == std::string::npos) {
+            ec = game_error_code::invalid_uid;
+            return m;
+        }
+        comma = req.substr(uid).find(',');
+        if (comma == std::string::npos) {
+            ec = invalid_format;
+            return m;
+        }
+        m.id = atoi(req.substr(uid, uid - comma).c_str());
+        if (MOVE_PARSE_DEBUG) std::cout << "\tid: " << m.id << "\n";
+
+
+        // prev: %zu,
+        auto prev = req.find("prev: ");
+        if (prev == std::string::npos) {
+            ec = game_error_code::no_prev_move;
+            return m;
+        }
+        comma = req.substr(prev).find(',');
+        if (comma == std::string::npos) {
+            ec = invalid_format;
+            return m;
+        }
+        m.prev = atoi(req.substr(prev, prev - comma).c_str());
+        if (MOVE_PARSE_DEBUG) std::cout << "\tprev: " << m.prev << "\n";
+
+        // cur: %zu,
+        auto cur = req.find("cur: ");
+        if (cur == std::string::npos) {
+            ec = game_error_code::no_cur_move;
+            return m;
+        }
+        comma = req.substr(cur).find(',');
+        if (comma == std::string::npos)
+            comma = req.substr(cur).find('\n');
+        if (comma == std::string::npos)
+            comma = req.substr(cur).find('}');
+        if (comma == std::string::npos) {
+            ec = invalid_format;
+            return m;
+        }
+        m.cur = atoi(req.substr(cur, cur - comma).c_str());
+        if (MOVE_PARSE_DEBUG) std::cout << "\tcur: " << m.cur << "\n";
+        ec = game_error_code::ok;
+        return m;
     }
 };
 #endif //CHECKMATES_NET_H

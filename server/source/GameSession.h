@@ -23,6 +23,55 @@ struct GInfo {
     std::array<size_t, M> turn;
 };
 
+typedef enum {
+    ok,
+    no_game_token,
+    invalid_game_token,
+    invalid_uid,
+    no_prev_move,
+    no_cur_move,
+    invalid_format
+} game_error_code;
+
+std::string static game_error_code_to_string(const game_error_code& ec) {
+    switch (ec) {
+    case game_error_code::ok:
+        return "OK";
+        break;
+    case game_error_code::invalid_format:
+        return "Invalid Format";
+        break;
+    case game_error_code::invalid_game_token:
+        return "Invalid Game Token";
+        break;
+    case game_error_code::invalid_uid:
+        return "Invalid Uid";
+        break;
+    case game_error_code::no_cur_move:
+        return "No Current Move";
+        break;
+    case game_error_code::no_game_token:
+        return "No Game Token";
+        break;
+    case game_error_code::no_prev_move:
+        return "No Previous Move";
+        break;
+    default:
+        return "Unknown game error";
+    }
+}
+
+void static print_game_error_code(const game_error_code& ec) {
+    std::cout << game_error_code_to_string(ec) << std::endl;
+}
+
+struct Move {
+    std::string game_token;
+    uid id;
+    int prev;
+    int cur;
+};
+
 class IGameSession {
 public:
     virtual ~IGameSession() {};
