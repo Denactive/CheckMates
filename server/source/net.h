@@ -370,7 +370,7 @@ public:
             opponent_session->second->lambda_(std::move(res_to_opponent));
 
             // message to current user
-            content = (boost::format(MOVE_RESPONSE)
+            content = (boost::format(START_GAME_RESPONSE)
                 % push_result->get_token_string()
                 % user->get_id() 
                 % (is_first_white ? "white" : "black")
