@@ -883,22 +883,32 @@ public:
             (*res) = "OK | CLOSE";
             return write(res);
         }
-       
         game_error_code ec;
+
+
+
+
+
         Move m = get_move(req, ec);
         if (ec) {
             print_game_error_code(ec);
             (*res) = game_error_code_to_string(ec);
             return write(res);
         }
-
-        (*res) = game_error_code_to_string(ec); // OK
         auto session = MQSingleton::instance().get();
+        auto games = session.get_games();
+        auto game = games->find(m.game_token)->second;
+        (*res) = game_error_code_to_string(ec); // OK
+
+    if (req.find("on_game_start")!= std::string::npos) {
+        auto ws = game->you()->Get_Session();
+        ws = shared_from_this();
+    }
         //if (session == MQSingleton::instance().get().end()) {
            // std::cout << "token not found!\n";;
       //  }
-        auto games = session.get_games();
-        auto game = games->find(m.game_token)->second;
+
+
         GInfo info = game->send_info();
         int validation = 0;
             if (!validation) {
