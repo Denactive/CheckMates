@@ -950,10 +950,11 @@ public:
             std::string b;
             ss >> b;
   std::string content = (boost::format(MOVE_RESPONSE)
-                               % b.c_str()
+                               //% b.c_str()
+                               % ss.str()
                                % info.isPlayer
                                % info.isGame
-                               % info.isVictory
+                               % (int)info.isVictory
                                % info.isCheck
                                % (info.turn[0]* 8 + info.turn[1])
                                % (info.turn[2]* 8 + info.turn[3])
