@@ -892,18 +892,16 @@ public:
             if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << token << "\n";
             auto uid = req.find("id: ");
             auto a = req.substr(uid + 4).find('}');
-            std::cout << game_token <<' '<< a << "debug\n";
             int id = atoi((req.substr(uid + 4, a)+ "\0").c_str());
-            std::cout <<"end fuck";
             if (MOVE_PARSE_DEBUG) std::cout << "\tid: " << id << std::endl;
-            std::cout <<"end fuck";
-           // ec = game_error_code::ok;
-            std::cout <<"end fuck";
+            std::cout <<"end fuck" <<std::flush;
+
             auto session = MQSingleton::instance().get();
             auto games = session.get_games();
             auto game = games->find(token)->second;
-            auto ws = game->you()->Get_Session();
-            ws = shared_from_this();
+            std::cout << game->send_info().isGame;
+            //auto ws = game->you()->Get_Session();
+           // ws = shared_from_this();
             return;
         }
         std::cout <<"not found start";
@@ -943,9 +941,13 @@ public:
                 ss << "[ " << out[0]*8 + out[1] << ", "<< out[2]*8 + out[3] << " ], ";
             }
             ss << " ]";
+       // available moves: %s,\n\
+  //Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
 
-            std::string content = (boost::format(MOVE_RESPONSE)
-                               % ss.str()
+            std::string b;
+            ss >> b;
+  std::string content = (boost::format(MOVE_RESPONSE)
+                               % b.c_str()
                                % info.isPlayer
                                % info.isGame
                                % info.isVictory
