@@ -32,6 +32,9 @@ private:
     std::vector<std::array<size_t, M>> avail_moves;
     std::set<std::array<size_t, K>> enemy_threats;
 public:
+    bool castle;
+    bool leftrook;
+    bool rightrook;
     void Update_King(std::set<std::array<size_t, K>> input) ;
     const size_t* where()  { return position;}
     King(size_t i, size_t j, std::shared_ptr<ChessBoard> board);

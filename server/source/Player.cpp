@@ -3,6 +3,10 @@
 
 std::vector<std::array<size_t, M>>  Player::all_available_Moves() {
     moves.clear();
+    auto v1 = king->available_moves();
+    moves.reserve(v1.size() + moves.size());
+    moves.insert(moves.end(), v1.begin(), v1.end());
+
     for (int i = 0; i < 2 * N; ++i) {
         auto v1 = pieces[i]->available_moves();
         moves.reserve(v1.size() + moves.size());
@@ -10,6 +14,10 @@ std::vector<std::array<size_t, M>>  Player::all_available_Moves() {
     }
     return moves;
 };
+
+void Player::castling() {
+
+}
 
 void Player::print_pos() {
     for (int i = 0; i < 2 * N; ++i) {
@@ -69,8 +77,8 @@ void Player::move(std::array<size_t, M> turn) {
         }
     }
         if (num != 2 * N) {
-
             pieces[num]->move(turn);
+
         }
 
 }
@@ -102,6 +110,19 @@ void Player::is_captured(std::array<size_t, M> turn) {
         return num;
 
     }
-
-
-
+void Player::flag_castl(std::array<size_t, M> turn) {
+    size_t horiz = 7;
+    if (wb) {
+        horiz = 0;
+    }
+    if (turn[0] == horiz && turn[1] == 4) {
+        std::cout << "king";
+        king->castle = false;
+    }
+    if (turn[0] == horiz && turn[1] == 0) {
+        king->leftrook = false;
+    }
+    if (turn[0] == horiz && turn[1] == 7) {
+        king->rightrook = false;
+    }
+}
