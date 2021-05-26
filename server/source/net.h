@@ -898,7 +898,8 @@ public:
 
             auto session = MQSingleton::instance().get();
             auto games = session.get_games();
-            auto game = games->find(token)->second;
+            auto gamepair = games->find(token);
+            auto game = gamepair->second;
             std::cout << game->send_info().isGame;
             //auto ws = game->you()->Get_Session();
            // ws = shared_from_this();
@@ -913,7 +914,8 @@ public:
         }
         auto session = MQSingleton::instance().get();
         auto games = session.get_games();
-        auto game = games->find(m.game_token)->second;
+        auto gameandtoken = games->find(m.game_token);
+        auto game =  gameandtoken->second;
         (*res) = game_error_code_to_string(ec); // OK
 
 

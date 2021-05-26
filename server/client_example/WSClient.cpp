@@ -287,11 +287,11 @@ int main(int argc, char** argv)
 
 
         case 'm':
-            buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 212281337,\n\tprev: 12,\n\tcur: 28\n}";
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 12,\n\tcur: 28\n}";
             connection->write(buffer);
             break;
          case 's':
-                buffer = "{\n\tstart,\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 212281337\n}";
+                buffer = "{\n\tstart,\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337\n}";
                 connection->write(buffer);
                 break;
         }
