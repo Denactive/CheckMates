@@ -921,47 +921,53 @@ public:
     Move get_move(std::string& req, game_error_code& ec) {
         /*
         
-        {
-            game_token: 21-05-26-00_11_30,
-            uid: 21-05-26-00_11_29,
-            prev: 12,
-            cur: 28
-        }
+        c
         
         { game_token: 21-05-26-00_11_30, uid: 21-05-26-00_11_29, prev: 12, cur: 28 }
         */
-
+        auto print = [](std::string::size_type n, std::string const& s)
+        {
+            if (n == std::string::npos) {
+                std::cout << "not found\n";
+            }
+            else {
+                std::cout << "found: " << s.substr(n) << '\n';
+            }
+        };
 
         if (MOVE_PARSE_DEBUG) std::cout << "parsing: " << req << "\n";
         Move m{};
 
         // game_token: %s,
         auto game_token = req.find("game_token: ");
+        //print(game_token, req);
         if (game_token == std::string::npos) {
             ec = game_error_code::no_game_token;
             return m;
         }
-        auto comma = req.substr().find(',');
+        auto comma = req.substr(game_token + 12).find(',');
+        //print(comma, req.substr(game_token + 12));
         if (comma == std::string::npos) {
             ec = invalid_format;
             return m;
         }
-        m.game_token = req.substr(game_token, game_token - comma);
-        if (MOVE_PARSE_DEBUG) std::cout << "\tgame_token: " << m.game_token << "\n";
+        //std::cout << "game pos: " << game_token << ", com pos: " << comma << ", res: " <<req.substr(game_token + 12, comma - game_token);
+        m.game_token = req.substr(game_token + 12, comma - game_token);
+        if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << m.game_token << "\n";
 
         // uid: %zu,
-        auto uid = req.find("uid: ");
+        auto uid = req.find("id: ");
         if (uid == std::string::npos) {
             ec = game_error_code::invalid_uid;
             return m;
         }
-        comma = req.substr(uid).find(',');
+        comma = req.substr(uid + 4).find(',');
         if (comma == std::string::npos) {
             ec = invalid_format;
             return m;
         }
-        m.id = atoi(req.substr(uid, uid - comma).c_str());
-        if (MOVE_PARSE_DEBUG) std::cout << "\tid: " << m.id << "\n";
+        m.id = atoi(req.substr(uid + 4, comma - uid).c_str());
+        if (MOVE_PARSE_DEBUG) std::cout << "\t/id:/ " << m.id << "\n";
 
 
         // prev: %zu,
@@ -970,13 +976,13 @@ public:
             ec = game_error_code::no_prev_move;
             return m;
         }
-        comma = req.substr(prev).find(',');
+        comma = req.substr(prev + 6).find(',');
         if (comma == std::string::npos) {
             ec = invalid_format;
             return m;
         }
-        m.prev = atoi(req.substr(prev, prev - comma).c_str());
-        if (MOVE_PARSE_DEBUG) std::cout << "\tprev: " << m.prev << "\n";
+        m.prev = atoi(req.substr(prev + 6, comma - prev).c_str());
+        if (MOVE_PARSE_DEBUG) std::cout << "\t/prev:/ " << m.prev << "\n";
 
         // cur: %zu,
         auto cur = req.find("cur: ");
@@ -984,17 +990,17 @@ public:
             ec = game_error_code::no_cur_move;
             return m;
         }
-        comma = req.substr(cur).find(',');
+        comma = req.substr(cur + 5).find(',');
         if (comma == std::string::npos)
-            comma = req.substr(cur).find('\n');
+            comma = req.substr(cur + 5).find('\n');
         if (comma == std::string::npos)
-            comma = req.substr(cur).find('}');
+            comma = req.substr(cur + 5).find('}');
         if (comma == std::string::npos) {
             ec = invalid_format;
             return m;
         }
-        m.cur = atoi(req.substr(cur, cur - comma).c_str());
-        if (MOVE_PARSE_DEBUG) std::cout << "\tcur: " << m.cur << "\n";
+        m.cur = atoi(req.substr(cur + 5, comma - cur).c_str());
+        if (MOVE_PARSE_DEBUG) std::cout << "\t/cur:/ " << m.cur << "\n";
         ec = game_error_code::ok;
         return m;
     }

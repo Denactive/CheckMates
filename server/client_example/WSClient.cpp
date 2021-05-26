@@ -262,9 +262,9 @@ int main(int argc, char** argv)
 
     // Run the I/O service. The call will return when
     // the socket is closed.
-    
 
-    std::cout << "==========\nw - write\nc - close\nr - reconnect\nCtrl + C - exit\n==========\n";
+
+    std::cout << "==========\nw - write\nc - close\nm - send move json example\nCtrl + C - exit\n==========\n";
 
     char cmd = '\0';
 
@@ -284,12 +284,13 @@ int main(int argc, char** argv)
             connection->close();
             break;
 
-        case 'r':
-            //connection->run(host, port);
+        case 'm':
+            buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
             connection->write(buffer);
             break;
         }
     }
 
+    system("pause");
     return EXIT_SUCCESS;
 }
