@@ -884,11 +884,29 @@ public:
             return write(res);
         }
         game_error_code ec;
-
-
-
-
-
+        if (req.find("start")!= std::string::npos) {
+            std::cout <<"found start";
+            auto game_token = req.find("game_token: ");
+            auto comma = req.substr(game_token + 12).find(',');
+            auto token = req.substr(game_token + 12, comma);
+            if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << token << "\n";
+            auto uid = req.find("id: ");
+            auto a = req.substr(uid + 4).find('}');
+            std::cout << game_token <<' '<< a << "debug\n";
+            int id = atoi((req.substr(uid + 4, a)+ "\0").c_str());
+            std::cout <<"end fuck";
+            if (MOVE_PARSE_DEBUG) std::cout << "\tid: " << id << std::endl;
+            std::cout <<"end fuck";
+           // ec = game_error_code::ok;
+            std::cout <<"end fuck";
+            auto session = MQSingleton::instance().get();
+            auto games = session.get_games();
+            auto game = games->find(token)->second;
+            auto ws = game->you()->Get_Session();
+            ws = shared_from_this();
+            return;
+        }
+        std::cout <<"not found start";
         Move m = get_move(req, ec);
         if (ec) {
             print_game_error_code(ec);
@@ -899,14 +917,6 @@ public:
         auto games = session.get_games();
         auto game = games->find(m.game_token)->second;
         (*res) = game_error_code_to_string(ec); // OK
-
-    if (req.find("on_game_start")!= std::string::npos) {
-        auto ws = game->you()->Get_Session();
-        ws = shared_from_this();
-    }
-        //if (session == MQSingleton::instance().get().end()) {
-           // std::cout << "token not found!\n";;
-      //  }
 
 
         GInfo info = game->send_info();

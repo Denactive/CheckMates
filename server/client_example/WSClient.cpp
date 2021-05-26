@@ -285,10 +285,15 @@ int main(int argc, char** argv)
             connection->close();
             break;
 
+
         case 'm':
             buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 212281337,\n\tprev: 12,\n\tcur: 28\n}";
             connection->write(buffer);
             break;
+         case 's':
+                buffer = "{\n\tstart,\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 212281337\n}";
+                connection->write(buffer);
+                break;
         }
     }
 
