@@ -14,6 +14,7 @@
 
 class IPlayer {
 public:
+    virtual void Set_Session(std::shared_ptr<WebSocketSession> ss) = 0;
     virtual std::shared_ptr<WebSocketSession> Get_Session() = 0;
     std::array<ChessPiece*, 2*N> pieces;
     virtual std::vector<std::array<size_t, M>>  all_available_Moves() = 0;
@@ -41,11 +42,14 @@ private:
     std::shared_ptr<IUser> user_;
 
 public:
-    std::shared_ptr<WebSocketSession> Get_Session() {
+    std::shared_ptr<WebSocketSession> Get_Session() override {
         return session;
     };
+    void Set_Session(std::shared_ptr<WebSocketSession> ss) override {
+        session = ss;
+    };
     std::shared_ptr<WebSocketSession> session;
-    void flag_castl(std::array<size_t, M> turn);
+    void flag_castl(std::array<size_t, M> turn) override;
 
     Player(std::shared_ptr<IUser> user, std::shared_ptr<ChessBoard> board, bool wb)
         : user_(user)

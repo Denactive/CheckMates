@@ -901,8 +901,10 @@ public:
             auto gamepair = games->find(token);
             auto game = gamepair->second;
             //std::cout << game->send_info().isGame;
-            auto ws = game->you()->Get_Session();
-            ws = shared_from_this();
+            //auto ws = game->you()->Get_Session();
+            game->you()->Set_Session(shared_from_this());
+            game->enemy()->Set_Session(shared_from_this());
+            std::cout << game->you()->Get_Session();
             return;
         }
         std::cout <<"not found start";
