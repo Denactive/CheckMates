@@ -903,7 +903,6 @@ public:
             //std::cout << game->send_info().isGame;
             //auto ws = game->you()->Get_Session();
             game->you()->Set_Session(shared_from_this());
-            game->enemy()->Set_Session(shared_from_this());
             std::cout << game->you()->Get_Session();
             return;
         }
@@ -1025,7 +1024,7 @@ public:
             return m;
         }
         //std::cout << "game pos: " << game_token << ", com pos: " << comma << ", res: " <<req.substr(game_token + 12, comma - game_token);
-        m.game_token = req.substr(game_token + 12, comma - game_token);
+        m.game_token = req.substr(game_token + 12, comma);
         if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << m.game_token << "\n";
 
         // uid: %zu,
