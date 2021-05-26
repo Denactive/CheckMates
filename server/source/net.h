@@ -37,6 +37,12 @@
   opponent:\n  {\n    name: %s,\n    rating: %s,\n    avatar: %s\n  }\n\
 }"
 
+#define MOVE_RESPONSE \
+"{\n\
+  available moves: %s,\n\
+  Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n\
+}"
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -57,7 +63,7 @@
 #include <functional>
 #include <memory>
 #include <thread>
-
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -364,7 +370,7 @@ public:
             opponent_session->second->lambda_(std::move(res_to_opponent));
 
             // message to current user
-            content = (boost::format(START_GAME_RESPONSE)
+            content = (boost::format(MOVE_RESPONSE)
                 % push_result->get_token_string()
                 % user->get_id() 
                 % (is_first_white ? "white" : "black")
@@ -885,11 +891,52 @@ public:
             (*res) = game_error_code_to_string(ec);
             return write(res);
         }
-        
-        (*res) = game_error_code_to_string(ec); // OK
 
-        write(res);
+        (*res) = game_error_code_to_string(ec); // OK
+        auto session = MQSingleton::instance().get();
+        //if (session == MQSingleton::instance().get().end()) {
+           // std::cout << "token not found!\n";;
+      //  }
+        auto games = session.get_games();
+        auto game = games->find(m.game_token)->second;
+        GInfo info = game->send_info();
+        int validation = 0;
+            if (!validation) {
+                game->prepare_turn();
+                info = game->send_info();
+            }
+            std::array<size_t, 4 >turn;
+            turn[0] = m.prev / 8;
+            turn[1] = m.prev % 8;
+            turn[2] = m.cur / 8;
+            turn[3] = m.cur % 8;
+            validation = game->run_turn(turn);
+            if (!validation) {
+                std::cout << "valid move\n";
+            }
+            auto you = game->you();
+            auto enemy = game->enemy();
+            std::vector<std::array<size_t, 4>>avail = you->access();
+            std::stringstream ss;
+            ss << "[ ";
+            for(std::array<size_t, 4> out : avail) {
+                ss << "[ " << out[0]*8 + out[1] << ", "<< out[2]*8 + out[3] << " ], ";
+            }
+            ss << " ]";
+
+            std::string content = (boost::format(MOVE_RESPONSE)
+                               % ss.str()
+                               % info.isPlayer
+                               % info.isGame
+                               % info.isVictory
+                               % info.isCheck
+                               % (info.turn[0]* 8 + info.turn[1])
+                               % (info.turn[2]* 8 + info.turn[3])
+                               ).str();
+            *res = content;
+            write(res);
     }
+
 
     void write(std::shared_ptr<std::string>& res) {
         stream_.text(stream_.got_text());
