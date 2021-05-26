@@ -16,7 +16,7 @@
 
 #include <vector>
 #include <map>
-
+#include <sstream>
 #include <functional>
 
 #define TEST_USER 1
