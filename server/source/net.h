@@ -900,9 +900,9 @@ public:
             auto games = session.get_games();
             auto gamepair = games->find(token);
             auto game = gamepair->second;
-            std::cout << game->send_info().isGame;
-            //auto ws = game->you()->Get_Session();
-           // ws = shared_from_this();
+            //std::cout << game->send_info().isGame;
+            auto ws = game->you()->Get_Session();
+            ws = shared_from_this();
             return;
         }
         std::cout <<"not found start";
