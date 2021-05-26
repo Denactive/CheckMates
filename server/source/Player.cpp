@@ -15,9 +15,6 @@ std::vector<std::array<size_t, M>>  Player::all_available_Moves() {
     return moves;
 };
 
-void Player::castling() {
-
-}
 
 void Player::print_pos() {
     for (int i = 0; i < 2 * N; ++i) {

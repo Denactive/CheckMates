@@ -145,7 +145,6 @@ int GameSession::prepare_turn() {
         std::cout << "CHECKMATE!!";
         return 0;
     }
-    you->castling();
     print_moves(you);
     for (auto i = thr.begin(); i != thr.end(); ++i) {
         std::cout << (*i)[0] << ' ' << (*i)[1] << '\n';

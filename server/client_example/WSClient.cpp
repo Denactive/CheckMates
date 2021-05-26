@@ -10,6 +10,7 @@
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/strand.hpp>
+#include <thread>
 #include <cstdlib>
 #include <functional>
 #include <iostream>

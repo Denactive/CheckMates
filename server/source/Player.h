@@ -21,7 +21,6 @@ public:
     virtual size_t try_capture(std::array<size_t, M> turn) = 0;
     virtual std::shared_ptr<IUser> get_user() = 0;
     virtual void set_pieces() = 0;
-    virtual void castling() = 0;
     virtual void flag_castl(std::array<size_t, M> turn) = 0;
     virtual void print_pos() = 0;
     virtual std::shared_ptr<ChessBoard> getboard () = 0;
@@ -41,7 +40,6 @@ private:
     std::shared_ptr<IUser> user_;
 
 public:
-    void castling();
     void flag_castl(std::array<size_t, M> turn);
 
     Player(std::shared_ptr<IUser> user, std::shared_ptr<ChessBoard> board, bool wb)
