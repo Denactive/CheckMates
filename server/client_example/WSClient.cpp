@@ -10,12 +10,12 @@
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/strand.hpp>
-#include <thread>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <mutex>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -24,6 +24,50 @@ namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
+
+struct NewData
+{
+    bool state() {
+        std::lock_guard<std::recursive_mutex> locker(mtx_new_data_);
+        return flg;
+    }
+    void set(bool val) {
+        std::lock_guard<std::recursive_mutex> locker(mtx_new_data_);
+        flg = val;
+    }
+private:
+    std::recursive_mutex mtx_new_data_;
+    bool flg = false;
+};
+
+static bool KEEP_GOING = true;
+static NewData NEW_DATA;
+
+class msg_Singleton
+{
+public:
+    static msg_Singleton& instance()
+    {
+        static msg_Singleton singleton;
+        return singleton;
+    }
+
+    std::string& get() { return msg; }
+    
+    void set(std::string& text) {
+        std::lock_guard<std::recursive_mutex> locker(mtx_);
+        msg = text;
+    }
+
+    // Other non-static member functions
+private:
+    msg_Singleton() {}                                  // Private constructor
+    ~msg_Singleton() {}
+    msg_Singleton(const msg_Singleton&);                 // Prevent copy-construction
+    msg_Singleton& operator=(const msg_Singleton&);      // Prevent assignment
+    std::string msg;
+    std::recursive_mutex mtx_;
+};
 
 // Report a failure
 void
@@ -146,6 +190,9 @@ public:
     ////////
 
     void do_read() {
+        if (!KEEP_GOING)
+            return close();
+
         ws_.async_read(
             buffer_,
             beast::bind_front_handler(
@@ -178,9 +225,13 @@ public:
         //std::cout << "LOGIC HERE | Server send to me: ";
         // 
         // if there is some data from server    
-        if (bytes_transferred)
+        if (bytes_transferred) {
+            std::string msg = beast::buffers_to_string(buffer_.data());
+            msg_Singleton::instance().set(msg);
+            //try static
             std::cout << "The server send you: " << beast::make_printable(buffer_.data()) << std::endl;
-
+            NEW_DATA.set(true);
+        }
         // clear the buffer!
         buffer_.consume(bytes_transferred);
 
@@ -249,6 +300,7 @@ int main(int argc, char** argv)
     auto const port = "8001";
 
     // The io_context is required for all I/O
+    msg_Singleton::instance();
     net::io_context ioc;
 
     // Launch the asynchronous operation
@@ -259,20 +311,26 @@ int main(int argc, char** argv)
     std::thread t(
         [&ioc]() { ioc.run(); }
     );
-    t.detach();
+    //t.detach();
 
     // Run the I/O service. The call will return when
     // the socket is closed.
 
 
-    std::cout << "==========\nw - write\nc - close\nm - send move json example\nCtrl + C - exit\n==========\n";
+    std::cout << "==========\nw - write\nc - close\nm - send move json example\ne - exit\n==========\n";
 
     char cmd = '\0';
 
     // long-living string!!!
     std::string buffer;
 
-    while (std::cin >> cmd) {
+    while (KEEP_GOING) {
+
+        //std::cout << "\tfuck: " << NEW_DATA.state() << std::endl;
+
+        
+
+        std::cin >> cmd;
         std::cout << '[' << cmd << ']' << ' ';
         switch (cmd) {
         case 'w':
@@ -286,11 +344,23 @@ int main(int argc, char** argv)
             break;
 
         case 'm':
-            buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 212281337,\n\tprev: 12,\n\tcur: 28\n}";
+            buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
             connection->write(buffer);
             break;
+
+        case 'e':
+            KEEP_GOING = false;
+            connection->close();
+            break;
         }
+
+        // wait for response
+        while (!NEW_DATA.state());
+        NEW_DATA.set(false);
+        std::cout << "I am standart thread. I've got a message from server:\n" << msg_Singleton::instance().get();
     }
+
+    t.join();
 
     system("pause");
     return EXIT_SUCCESS;
