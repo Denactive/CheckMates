@@ -925,13 +925,16 @@ public:
             if (!validation) {
                 game->prepare_turn();
                 info = game->send_info();
+                std::cout <<"prepare";
             }
             std::array<size_t, 4 >turn;
             turn[0] = m.prev / 8;
             turn[1] = m.prev % 8;
             turn[2] = m.cur / 8;
             turn[3] = m.cur % 8;
+            std::cout << turn[0] <<' '<< turn[1]<<' '<< turn[2]<<' ' << turn[3]<<'\n';
             validation = game->run_turn(turn);
+            std::cout << validation;
             if (!validation) {
                 std::cout << "valid move\n";
             }
