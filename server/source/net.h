@@ -902,8 +902,8 @@ public:
             auto game = gamepair->second;
             //std::cout << game->send_info().isGame;
             //auto ws = game->you()->Get_Session();
-            game->you()->Set_Session(shared_from_this());
-            std::cout << game->you()->Get_Session();
+            game->enemy()->Set_Session(shared_from_this());
+            std::cout << game->enemy()->Get_Session();
             return;
         }
         std::cout <<"not found start";
@@ -941,6 +941,11 @@ public:
             auto you = game->you();
             auto enemy = game->enemy();
             std::vector<std::array<size_t, 4>>avail = you->access();
+            if (!validation) {
+            game->prepare_turn();
+            info = game->send_info();
+            std::cout <<"prepare";
+            }
             std::stringstream ss;
             ss << "[ ";
             for(std::array<size_t, 4> out : avail) {
@@ -963,7 +968,8 @@ public:
                                % (info.turn[2]* 8 + info.turn[3])
                                ).str();
             *res = content;
-            write(res);
+            auto ses = game->enemy()->Get_Session();
+                    ses->write(res);
     }
 
 
