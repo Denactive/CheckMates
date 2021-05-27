@@ -7,7 +7,7 @@
 #ifndef CHECKMATES_NET_H
 #define CHECKMATES_NET_H
 
-#define TIMEOUT_DELAY 30  // (s)
+#define TIMEOUT_DELAY 300  // (s)
 #define COOKIE_LIFETIME 15 // min
 #define THREADS_NUM 1
 
@@ -760,9 +760,10 @@ public:
             auto cookie = target.substr(start_game_target + 12);
             std::cout << cookie << '\n';
 
-            auto user = active_users_->find(cookie);
-            if (user != active_users_->end()) {
-                std::cout << "Found user № " << user->first << " in the User Map" << '\n';
+            auto active_user = active_users_->find(cookie);
+            if (active_user != active_users_->end()) {
+                std::cout << "Found user № " << active_user->first << " in the User Map" << '\n';
+                user = active_user->second;
                 return on_queue(std::move(logging_data), logger_, req.version());
             }
             else {
@@ -1026,7 +1027,7 @@ public:
         }
         game_error_code ec;
         if (req.find("start")!= std::string::npos) {
-            std::cout <<"found start";
+            std::cout <<"Parsing start\n";
             auto game_token = req.find("game_token: ");
             auto comma = req.substr(game_token + 12).find(',');
             auto token = req.substr(game_token + 12, comma);
@@ -1035,17 +1036,21 @@ public:
             auto a = req.substr(uid + 4).find('}');
             int id = atoi((req.substr(uid + 4, a)+ "\0").c_str());
             if (MOVE_PARSE_DEBUG) std::cout << "\tid: " << id << std::endl;
-            std::cout <<"end fuck" <<std::flush;
 
-            auto session = MQSingleton::instance().get();
-            auto games = session.get_games();
-            auto gamepair = games->find(token);
-            auto game = gamepair->second;
+            auto games = MQSingleton::instance().get().get_games();
+            auto game_pair = games->find(token);
+            if (game_pair == games->end()) {
+                std::cout << "\tGame with token " << token << " is not found\n";
+                (*res) = "Game not found";
+                return write(res);
+            }
+
+            auto game = game_pair->second;
             game->you()->Set_Session(shared_from_this());
             std::cout << game->you()->Get_Session();
             return;
         }
-        std::cout <<"not found start";
+
         Move m = get_move(req, ec);
         if (ec) {
             print_game_error_code(ec);
@@ -1096,24 +1101,25 @@ public:
                 ss << "[ " << out[0]*8 + out[1] << ", "<< out[2]*8 + out[3] << " ], ";
             }
             ss << " ]";
-       // available moves: %s,\n\
-  //Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
-
+            // available moves: %s,\n\
+            // Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
             std::string b;
             ss >> b;
-  std::string content = (boost::format(MOVE_RESPONSE)
-                               //% b.c_str()
-                               % ss.str()
+            std::string content = (boost::format(MOVE_RESPONSE)
+                               % b.c_str()
                                % info.isPlayer
                                % info.isGame
-                               % (int)info.isVictory
+                               % info.isVictory
                                % info.isCheck
-                               % (info.turn[0]* 8 + info.turn[1])
-                               % (info.turn[2]* 8 + info.turn[3])
+                               % (info.turn[0] * 8 + info.turn[1])
+                               % (info.turn[2] * 8 + info.turn[3])
                                ).str();
             *res = content;
-            auto ses = game->enemy()->Get_Session();
-                    ses->write(res);
+            auto enemy_session = game->enemy()->Get_Session();
+            if (enemy_session != nullptr)
+                enemy_session->write(res);
+            else
+                std::cout << "\tenemy_session is nullptr\n";
     }
 
 
