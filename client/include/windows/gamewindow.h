@@ -1,6 +1,8 @@
 #ifndef GAMEWINDOW_H
 #define GAMEWINDOW_H
 
+#include <thread>
+
 #include <QWidget>
 #include <QTextEdit>
 #include <QLineEdit>
@@ -18,6 +20,8 @@
 #include "include/chessboard.h"
 #include "include/database.h"
 #include "include/graphics.h"
+
+#include "include/wsclient.h"
 
 class IGameWindow {
 

@@ -41,13 +41,8 @@ ENDIF()
 enable_testing()
 #add_subdirectory(tests)
 
-find_package(QT NAMES Qt6 Qt5 Qt4 Qt3D COMPONENTS 3rdparty Widgets Core Quick Sql Network WebSockets LinguistTools REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS 3rdparty Widgets Core Quick Sql Network LinguistTools REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Core Quick Sql Network LinguistTools REQUIRED)
-
-set(Qt4_SOURCES
-   serverconnection.h
-   serverconnection.cpp
-)
 
 set(PROJECT_SOURCES
         main.cpp

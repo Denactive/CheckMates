@@ -19,7 +19,7 @@ IF (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
     ADD_DEFINITIONS("-DHAS_BOOST")
 ENDIF()
-add_executable(client client_example/WSClient.cpp)  #BoostExampleClient.cpp)
+add_executable(client ${SOURCE_DIR}/BoostExampleClient.cpp)
 target_link_libraries (client ${Boost_LIBRARIES} -lpthread)
 
 add_executable(${PROGRAM_NAME}
@@ -39,13 +39,13 @@ add_executable(${PROGRAM_NAME}
         source/Chesspiece.cpp)
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
 
-#enable_testing()
-##include_directories(${INCLUDE_DIRECTORIES})
-#message(${GTEST_LIBRARIES})
-#find_package(GMock REQUIRED)
-#include_directories(${INCLUDE_DIRECTORIES})
-#message(${GMOCK_LIBRARIES})
-
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GTEST_LIBRARIES})
+find_package(GMock REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GMOCK_LIBRARIES})
 
 #add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp source/User.cpp source/Player.cpp test/reChessPiece.h source/community.cpp)
 #target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})

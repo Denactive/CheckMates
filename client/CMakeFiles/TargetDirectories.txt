@@ -1,0 +1,3 @@
+/home/svetlana/tp/Chess/CheckMates/client/CMakeFiles/rebuild_cache.dir
+/home/svetlana/tp/Chess/CheckMates/client/CMakeFiles/edit_cache.dir
+/home/svetlana/tp/Chess/CheckMates/client/CMakeFiles/test.dir

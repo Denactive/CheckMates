@@ -100,7 +100,6 @@ void MenuWindow::drawMiddle()
       if (DEBUG) qDebug() << "file preview not found";
     }
 
-
     middleLayout->addWidget(previewLabelImage);
     middleLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
@@ -258,7 +257,6 @@ void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatIn
     chatLayout->addWidget(lastMessage);
 
     chat->setLayout(chatLayout);
-
 
     chats.push_back(chat);
     chat->setChat(chatInfo[index]);
