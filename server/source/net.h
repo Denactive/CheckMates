@@ -8,7 +8,7 @@
 #define CHECKMATES_NET_H
 
 #define TIMEOUT_DELAY 30  // (s)
-#define COOKIE_LIFETIME 15
+#define COOKIE_LIFETIME 15 // min
 #define THREADS_NUM 1
 
 #define BASIC_DEBUG 1
@@ -282,10 +282,27 @@ public:
     {
     }
 
-    void start_cookie_timer(Cookie c, int value) {
+    void start_cookie_timer(Cookie c, int value, unsigned short version, bool keep_alive, std::string& logging_data) {
         if (BASIC_DEBUG) std::cout << "start cookie timer\n";
-        auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::seconds{ value });
+        auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::minutes{ value });
         auto active_users = active_users_;
+        
+        auto msg = "Cookie is valid for " + std::to_string(value) + " minutes";
+        http::response<http::string_body> res{
+                std::piecewise_construct,
+                std::make_tuple(msg),
+                std::make_tuple(http::status::ok, version)
+        };
+
+        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(http::field::content_type, "text/html");
+        // Set-Cookie
+        res.set(http::field::set_cookie, "token=" + serializeTimePoint(c));
+        res.content_length(msg.size());
+        res.keep_alive(keep_alive);
+        logger_->log(logging_data += "Set-Cookie: token=" + serializeTimePoint(c) + " msg: " + msg + "\nOK\nCreating a response of " + std::to_string(msg.size()) + " bytes\n");
+        lambda_(std::move(res));
+
         cookie_timer->async_wait([cookie_timer, c, value, active_users](const boost::system::error_code& ec) mutable {
             std::cout << value << " seconds passed";
             if (ec)
@@ -539,7 +556,7 @@ public:
         };
 
         auto const ok_string_message =
-            [&req, &logging_data, sp_log = logger_] (std::string& msg)
+            [&req, &logging_data, sp_log = logger_] (std::string msg)
         {
             http::response<http::string_body> res{
                 std::piecewise_construct,
@@ -575,6 +592,7 @@ public:
         }
 
         auto target = req.target().to_string();
+        logging_data = target;
         auto user_target = target.find("/user/");
         if (user_target != std::string::npos) {
             std::cout << "parse url: user\n";
@@ -590,7 +608,6 @@ public:
                 return lambda_(server_error("invalid uid"));
             }
             std::string users_data;
-            //std::string users_data_buf;
             char sym = '\0';
             while (in.get(sym) && sym != EOF && sym != '\0')
                 users_data += sym;
@@ -725,35 +742,41 @@ public:
             std::cout << "\t\t| avatar: | " << user_info.avatar << "\n";
             
             user = std::make_shared<User>(user_info);
-            std::cout << "user №" << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
+            std::cout << "user № " << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
 
             const auto [active_user, success] = active_users_->insert({ user->get_token_string(), user });
             if (success)
-                std::cout << "added to the User Map successfully" << std::endl;
+                std::cout << " added to the User Map successfully" << std::endl;
             else
-                std::cout << "has not been added to the map | FAIL" << std::endl;
+                std::cout << " has not been added to the map | FAIL" << std::endl;
 
-            start_cookie_timer(user->get_token(), COOKIE_LIFETIME);
+            // sends the cookie
+            return start_cookie_timer(user->get_token(), COOKIE_LIFETIME, req.version(), req.keep_alive(), logging_data);
         }
 
-        // TODO
-        //
-        //
-        //      STOP HANDLING REQUEST IF REGISTER / USER URL
-        //
-        //
-        
+        auto start_game_target = target.find("/start_game/");
+        if (start_game_target != std::string::npos) {
+            std::cout << "parse url: start_game: from cookie: ";
+            auto cookie = target.substr(start_game_target + 12);
+            std::cout << cookie << '\n';
 
+            auto user = active_users_->find(cookie);
+            if (user != active_users_->end()) {
+                std::cout << "Found user № " << user->first << " in the User Map" << '\n';
+                return on_queue(std::move(logging_data), logger_, req.version());
+            }
+            else {
+                std::cout << "Not found user № " << cookie << " in the User Map" << '\n';
+                return lambda_(not_found("no such token or token expired"));
+            }
+        }
 
         // Build the path to the requested file
-        std::string path = path_cat(*doc_root_, req.target());
+        std::string path = path_cat(*doc_root_, target);
         if (req.target().back() == '/')
             path.append("index.html");
 
-        //
-        // REQUEST EXECUTION
-        //
-
+        // getting file
         beast::error_code ec;
         http::file_body::value_type body;
         http::string_body::value_type string_body;
@@ -765,22 +788,23 @@ public:
         }
         else {
             // Attempt to open the file
-            body.open(path.c_str(), beast::file_mode::scan, ec);
-
+            std::ifstream in(path);
+            
             // Handle the case where the file doesn't exist
-            if (ec == beast::errc::no_such_file_or_directory) {
-                logger_->log(logging_data += "fail: unreachable target: " + req.target().to_string());
+            if (!in.is_open()) {
+                logger_->log(logging_data += "fail: unreachable target: " + target);
                 return lambda_(not_found(req.target()));
             }
 
-            // Handle an unknown error
-            if (ec) {
-                logger_->log(logging_data += "fail: unknown error: " + ec.message());
-                return lambda_(server_error(ec.message()));
+            size_t bytes_read = 1;
+            std::string content;
+            char* block = new char[1024];
+            while (bytes_read) {
+                bytes_read = static_cast<size_t>(in.readsome(block, 1024));
+                std::string block_string(block, bytes_read);
+                content += block_string;
             }
-
-            // Cache the size since we need it after the move
-            auto size = body.size();
+            delete[] block;
 
             // Respond to HEAD request
             if (req.method() == http::verb::head)
@@ -788,45 +812,10 @@ public:
                 http::response<http::string_body> res{ http::status::ok, req.version() };
                 res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
                 res.set(http::field::content_type, mime_type(path));
-                res.content_length(size);
+                res.content_length(content.size());
                 res.keep_alive(req.keep_alive());
                 logger_->log(logging_data += "OK");
                 return lambda_(std::move(res));
-            }
-
-            // Respond to GET request
-            http::response<http::file_body> res_file{
-                std::piecewise_construct,
-                std::make_tuple(std::move(body)),
-                std::make_tuple(http::status::ok, req.version())      // тапл - это кортеж - контейнер из произвольного числа элементов произвольного типа
-            };
-
-            size_t bytes_read = 1;
-            std::string content;
-
-            char* block = new char[1024];
-            while (bytes_read) {
-                bytes_read = res_file.body().file().read(block, 1024, ec);
-                if (ec) {
-                    fail(ec, "file copy");
-                    logging_data += "an error occured while copying " + req.target().to_string() + ": " + ec.message() + "\n"
-                        + "here: " + std::string(block, bytes_read) + '\n';
-
-                }
-                std::string block_string(block, bytes_read);
-                content += block_string;
-            }
-            delete[] block;
-            if (REGESTRY_IMITATION) {
-                
-            }
-
-            if (START_GAME_IMITATION) {
-                if (!user) {
-                    // TODO send message unauthorised
-                    std::cout << "unauthorised\n";
-                }
-                return on_queue(std::move(logging_data), logger_, req.version());
             }
 
             http::response<http::string_body> res{
@@ -837,9 +826,9 @@ public:
 
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
             res.set(http::field::content_type, mime_type(path));
-            res.content_length(size);
+            res.content_length(content.size());
             res.keep_alive(req.keep_alive());
-            logger_->log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
+            logger_->log(logging_data += "OK\nCreating a response of " + std::to_string(content.size()) + " bytes\n");
             return lambda_(std::move(res));
         }
     }
