@@ -4,7 +4,7 @@ set(CMAKE_C_STANDARD 17)
 
 # крутая компиляция для взрослых
 #set(CMAKE_CXX_FLAGS "-g -coverage -O0 -Wall -fprofile-arcs -ftest-coverage -fPIC -lstdc++fs")
-set(CMAKE_CXX_FLAGS "-g -Wall -std=c++17")
+set(CMAKE_CXX_FLAGS "-g -std=c++17")
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 set(GMock_DIR ./)
 set(PROGRAM_NAME server)
@@ -19,10 +19,10 @@ IF (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
     ADD_DEFINITIONS("-DHAS_BOOST")
 ENDIF()
-add_executable(client ${SOURCE_DIR}/BoostExampleClient.cpp)
-target_link_libraries (client ${Boost_LIBRARIES} -lpthread)
-add_executable(client1 client_example/BoostExampleClient.cpp)  #BoostExampleClient.cpp)
-target_link_libraries (client1 ${Boost_LIBRARIES} -lpthread)
+add_executable(ws_client_test client_example/WSClient.cpp)
+target_link_libraries (ws_client_test ${Boost_LIBRARIES} -lpthread)
+add_executable(http_client_test client_example/BoostExampleClient.cpp)
+target_link_libraries (http_client_test ${Boost_LIBRARIES} -lpthread)
 
 add_executable(${PROGRAM_NAME}
         ${SOURCE_DIR}/main.cpp

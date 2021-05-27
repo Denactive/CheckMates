@@ -22,6 +22,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <thread>
 #include <mutex>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>

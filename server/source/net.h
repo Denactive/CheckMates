@@ -1041,8 +1041,6 @@ public:
             auto games = session.get_games();
             auto gamepair = games->find(token);
             auto game = gamepair->second;
-            //std::cout << game->send_info().isGame;
-            //auto ws = game->you()->Get_Session();
             game->you()->Set_Session(shared_from_this());
             std::cout << game->you()->Get_Session();
             return;
