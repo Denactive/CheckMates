@@ -37,6 +37,12 @@
   opponent:\n  {\n    name: %s,\n    rating: %s,\n    avatar: %s\n  }\n\
 }"
 
+#define MOVE_RESPONSE \
+"{\n\
+  available moves: %s,\n\
+  Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n\
+}"
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -57,7 +63,7 @@
 #include <functional>
 #include <memory>
 #include <thread>
-
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -877,19 +883,100 @@ public:
             (*res) = "OK | CLOSE";
             return write(res);
         }
-       
         game_error_code ec;
+        if (req.find("start")!= std::string::npos) {
+            std::cout <<"found start";
+            auto game_token = req.find("game_token: ");
+            auto comma = req.substr(game_token + 12).find(',');
+            auto token = req.substr(game_token + 12, comma);
+            if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << token << "\n";
+            auto uid = req.find("id: ");
+            auto a = req.substr(uid + 4).find('}');
+            int id = atoi((req.substr(uid + 4, a)+ "\0").c_str());
+            if (MOVE_PARSE_DEBUG) std::cout << "\tid: " << id << std::endl;
+            std::cout <<"end fuck" <<std::flush;
+
+            auto session = MQSingleton::instance().get();
+            auto games = session.get_games();
+            auto gamepair = games->find(token);
+            auto game = gamepair->second;
+            //std::cout << game->send_info().isGame;
+            //auto ws = game->you()->Get_Session();
+            game->you()->Set_Session(shared_from_this());
+            std::cout << game->you()->Get_Session();
+            return;
+        }
+        std::cout <<"not found start";
         Move m = get_move(req, ec);
         if (ec) {
             print_game_error_code(ec);
             (*res) = game_error_code_to_string(ec);
             return write(res);
         }
-        
+        auto session = MQSingleton::instance().get();
+        auto games = session.get_games();
+        auto gameandtoken = games->find(m.game_token);
+        auto game =  gameandtoken->second;
         (*res) = game_error_code_to_string(ec); // OK
 
-        write(res);
+
+        GInfo info = game->send_info();
+        int validation = 0;
+            if (!validation) {
+                //game->prepare_turn();
+                info = game->send_info();
+                std::cout <<"prepare";
+            }
+            std::array<size_t, 4 >turn;
+            turn[0] = m.prev / 8;
+            turn[1] = m.prev % 8;
+            turn[2] = m.cur / 8;
+            turn[3] = m.cur % 8;
+            std::cout << turn[0] <<' '<< turn[1]<<' '<< turn[2]<<' ' << turn[3]<<'\n';
+            validation = game->run_turn(turn);
+            std::cout << validation;
+            if (!validation) {
+                std::cout << "valid move\n";
+            }
+            auto you = game->you();
+            auto enemy = game->enemy();
+            std::vector<std::array<size_t, 4>>avail = you->access();
+            if (!validation) {
+                game->prepare_turn();
+                info = game->send_info();
+                if (!game->you()->Get_Session()) {
+                    game->you()->Set_Session(shared_from_this());
+                    std::cout << game->enemy()->Get_Session();
+                }
+
+                std::cout << "prepare2";
+            }
+            std::stringstream ss;
+            ss << "[ ";
+            for(std::array<size_t, 4> out : avail) {
+                ss << "[ " << out[0]*8 + out[1] << ", "<< out[2]*8 + out[3] << " ], ";
+            }
+            ss << " ]";
+       // available moves: %s,\n\
+  //Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
+
+            std::string b;
+            ss >> b;
+  std::string content = (boost::format(MOVE_RESPONSE)
+                               //% b.c_str()
+                               % ss.str()
+                               % info.isPlayer
+                               % info.isGame
+                               % (int)info.isVictory
+                               % info.isCheck
+                               % (info.turn[0]* 8 + info.turn[1])
+                               % (info.turn[2]* 8 + info.turn[3])
+                               ).str();
+            *res = content;
+            auto ses = game->enemy()->Get_Session();
+                    ses->write(res);
     }
+
 
     void write(std::shared_ptr<std::string>& res) {
         stream_.text(stream_.got_text());
@@ -952,7 +1039,7 @@ public:
             return m;
         }
         //std::cout << "game pos: " << game_token << ", com pos: " << comma << ", res: " <<req.substr(game_token + 12, comma - game_token);
-        m.game_token = req.substr(game_token + 12, comma - game_token);
+        m.game_token = req.substr(game_token + 12, comma);
         if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << m.game_token << "\n";
 
         // uid: %zu,

@@ -281,14 +281,46 @@ int main(int argc, char** argv)
             connection->write(buffer);
             break;
 
-        case 'c':
+        case 'C':
             connection->close();
             break;
 
+
         case 'm':
-            buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 12,\n\tcur: 28\n}";
             connection->write(buffer);
             break;
+        case 'a':
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 52,\n\tcur: 36\n}";
+            connection->write(buffer);
+            break;
+
+            case 'b':
+                buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 5,\n\tcur: 26\n}";
+                connection->write(buffer);
+                break;
+            case 'c':
+                buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 57,\n\tcur: 42\n}";
+                connection->write(buffer);
+                break;
+            case 'd':
+                buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 3,\n\tcur: 39\n}";
+                connection->write(buffer);
+                break;
+            case 'e':
+                buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 62,\n\tcur: 45\n}";
+                connection->write(buffer);
+                break;
+            case 'f':
+                buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 39,\n\tcur: 53\n}";
+                connection->write(buffer);
+                break;
+
+
+         case 's':
+                buffer = "{\n\tstart,\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337\n}";
+                connection->write(buffer);
+                break;
         }
     }
 

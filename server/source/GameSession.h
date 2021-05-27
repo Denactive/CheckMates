@@ -79,6 +79,8 @@ public:
     virtual time_t GetTime() = 0;
     virtual int run_turn(std::array<size_t, M>) = 0;
     virtual void setup() = 0;
+    virtual std::shared_ptr<IPlayer> you() = 0;
+    virtual std::shared_ptr<IPlayer> enemy() = 0;
     virtual bool is_check(std::shared_ptr<IPlayer>, std::shared_ptr<IPlayer>) = 0;
     virtual bool is_mate(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy)= 0;
     virtual bool is_stalemate(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy)= 0;
@@ -99,7 +101,7 @@ public:
 
     GameSession(
         std::shared_ptr<IUser> player1, std::shared_ptr<IUser> player2)
-        : token_(std::chrono::system_clock::now())
+        : token_(std::chrono::system_clock::from_time_t(0))//system_clock::now())
     {
         board = std::make_shared<ChessBoard>();
 
@@ -109,7 +111,20 @@ public:
     }
 
     GameSession() = delete;
-
+    std::shared_ptr<IPlayer> you() {
+        if (info.isPlayer) {
+            return wPlayer;
+        } else {
+            return bPlayer;
+        }
+    }
+    virtual std::shared_ptr<IPlayer> enemy() {
+        if (info.isPlayer) {
+            return bPlayer;
+        } else {
+            return wPlayer;
+        }
+    }
     void CreateLog();
     int prepare_turn();
     bool is_check(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy);

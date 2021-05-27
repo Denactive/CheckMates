@@ -21,6 +21,8 @@ IF (Boost_FOUND)
 ENDIF()
 add_executable(client ${SOURCE_DIR}/BoostExampleClient.cpp)
 target_link_libraries (client ${Boost_LIBRARIES} -lpthread)
+add_executable(client1 client_example/BoostExampleClient.cpp)  #BoostExampleClient.cpp)
+target_link_libraries (client1 ${Boost_LIBRARIES} -lpthread)
 
 add_executable(${PROGRAM_NAME}
         ${SOURCE_DIR}/main.cpp
