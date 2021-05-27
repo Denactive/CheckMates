@@ -941,7 +941,7 @@ public:
             auto you = game->you();
             auto enemy = game->enemy();
             std::vector<std::array<size_t, 4>>avail = you->access();
-            if (!validation) {
+           /* if (!validation) {
             game->prepare_turn();
             info = game->send_info();
             if(!game->you()->Get_Session()) {
@@ -950,7 +950,7 @@ public:
             }
 
             std::cout <<"prepare";
-            }
+            }*/
             std::stringstream ss;
             ss << "[ ";
             for(std::array<size_t, 4> out : avail) {
