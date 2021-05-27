@@ -944,6 +944,11 @@ public:
             if (!validation) {
             game->prepare_turn();
             info = game->send_info();
+            if(!game->you()->Get_Session()) {
+                game->you()->Set_Session(shared_from_this());
+                std::cout << game->enemy()->Get_Session();
+            }
+
             std::cout <<"prepare";
             }
             std::stringstream ss;
