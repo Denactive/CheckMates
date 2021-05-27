@@ -308,17 +308,14 @@ int main(int argc, char** argv)
                 connection->write(buffer);
                 break;
             case 'e':
-                buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 40,\n\tcur: 45\n}";
+                buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 60,\n\tcur: 45\n}";
                 connection->write(buffer);
                 break;
             case 'f':
                 buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 39,\n\tcur: 53\n}";
                 connection->write(buffer);
                 break;
-            case 'g':
-                buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 52,\n\tcur: 36\n}";
-                connection->write(buffer);
-                break;
+
 
          case 's':
                 buffer = "{\n\tstart,\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337\n}";
