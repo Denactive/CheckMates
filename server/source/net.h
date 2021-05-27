@@ -923,7 +923,7 @@ public:
         GInfo info = game->send_info();
         int validation = 0;
             if (!validation) {
-                game->prepare_turn();
+                //game->prepare_turn();
                 info = game->send_info();
                 std::cout <<"prepare";
             }
@@ -941,16 +941,16 @@ public:
             auto you = game->you();
             auto enemy = game->enemy();
             std::vector<std::array<size_t, 4>>avail = you->access();
-           /* if (!validation) {
-            game->prepare_turn();
-            info = game->send_info();
-            if(!game->you()->Get_Session()) {
-                game->you()->Set_Session(shared_from_this());
-                std::cout << game->enemy()->Get_Session();
-            }
+            if (!validation) {
+                game->prepare_turn();
+                info = game->send_info();
+                if (!game->you()->Get_Session()) {
+                    game->you()->Set_Session(shared_from_this());
+                    std::cout << game->enemy()->Get_Session();
+                }
 
-            std::cout <<"prepare";
-            }*/
+                std::cout << "prepare2";
+            }
             std::stringstream ss;
             ss << "[ ";
             for(std::array<size_t, 4> out : avail) {
