@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------------------------
+﻿ //------------------------------------------------------------------------------
 //
 // Example: HTTP client, asynchronous
 //
@@ -236,18 +236,6 @@ int main(int argc, char** argv)
     // init
     net::io_context ioc;
     msg_Singleton::instance();
-
-    // Launch the asynchronous operation
-    std::cout << "CLIENT [" << 1 << "]\nConnecting to " << host << ':' << port << "\nTrying to GET " << target << std::endl;
-    /*client1*/  std::make_shared<session>(ioc)->run(host, port, target, version);
-    for (int i = 0; i < 0; ++i) {
-        sleep(DELAY);
-        std::cout << "CLIENT [" << i + 2 << "]\nConnecting to " << host << ':' << port << "\nTrying to GET " << target << std::endl;
-        sessions.insert(std::make_shared<session>(ioc));
-    }
-    // Run the I/O service. The call will return when
-    // the get operation is complete.
-    ioc.run();
 
     auto s = std::make_shared<session>(ioc);
     s->run(host, port, version);
