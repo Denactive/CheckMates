@@ -4,13 +4,6 @@
 
 #include "User.h"
 
-UserInfo User::get_info() {
-    UserInfo res;
-    res.id = this->id_;
-    res.rating = this->rating_;
-    return res;
-}
-
 Stats User::get_full_stats(IDBServer& db) {
     return stats_getter_.get_user_stats(this->id_, db);
 }

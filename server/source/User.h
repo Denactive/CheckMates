@@ -19,7 +19,7 @@
 
 #include <functional>
 
-#define TEST_USER 1
+#define TEST_USER 0
 
 class WebSocketSession;
 class Session;
@@ -78,6 +78,7 @@ typedef struct {
     uid id;
     int rating;
     std::string nickname;
+    std::string avatar;
 } UserInfo;
 
 
@@ -112,8 +113,12 @@ public:
 
 class User: public IUser {
 public:
-    User()
+    User(UserInfo& user_info)
         : token_(std::chrono::system_clock::now())
+        , id_(user_info.id)
+        , rating_(user_info.rating)
+        , nickname_(user_info.nickname)
+        , avatar_(user_info.avatar)
     {
         if (TEST_USER) {
             id_ = 1;
@@ -125,7 +130,7 @@ public:
 
     ~User() {};
 
-    UserInfo get_info() override;
+    UserInfo get_info() override { return {id_, rating_, nickname_, avatar_}; };
     uid get_id() override { return id_; }
     std::string get_nickname() override { return nickname_; }
     std::string get_avatar() override { return avatar_; }
@@ -144,7 +149,6 @@ public:
 private:
 
     StatsAgregator stats_getter_;
-    
     uid id_;
     std::string nickname_;
     int rating_;

@@ -8,12 +8,14 @@
 #define CHECKMATES_NET_H
 
 #define TIMEOUT_DELAY 30  // (s)
-#define COOKIE_LIFETIME 15
+#define COOKIE_LIFETIME 15 // min
 #define THREADS_NUM 1
 
 #define BASIC_DEBUG 1
 #define BASIC_DEBUG_WS 1
 #define START_GAME_IMITATION 1
+
+// test
 /*
 1 4 3 4
 6 4 4 4
@@ -36,6 +38,7 @@
   side: %s,\n\
   opponent:\n  {\n    name: %s,\n    rating: %s,\n    avatar: %s\n  }\n\
 }"
+
 
 #define MOVE_RESPONSE \
 "{\n\
@@ -279,10 +282,27 @@ public:
     {
     }
 
-    void start_cookie_timer(Cookie c, int value) {
+    void start_cookie_timer(Cookie c, int value, unsigned short version, bool keep_alive, std::string& logging_data) {
         if (BASIC_DEBUG) std::cout << "start cookie timer\n";
-        auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::seconds{ value });
+        auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::minutes{ value });
         auto active_users = active_users_;
+        
+        auto msg = "Cookie is valid for " + std::to_string(value) + " minutes";
+        http::response<http::string_body> res{
+                std::piecewise_construct,
+                std::make_tuple(msg),
+                std::make_tuple(http::status::ok, version)
+        };
+
+        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(http::field::content_type, "text/html");
+        // Set-Cookie
+        res.set(http::field::set_cookie, "token=" + serializeTimePoint(c));
+        res.content_length(msg.size());
+        res.keep_alive(keep_alive);
+        logger_->log(logging_data += "Set-Cookie: token=" + serializeTimePoint(c) + " msg: " + msg + "\nOK\nCreating a response of " + std::to_string(msg.size()) + " bytes\n");
+        lambda_(std::move(res));
+
         cookie_timer->async_wait([cookie_timer, c, value, active_users](const boost::system::error_code& ec) mutable {
             std::cout << value << " seconds passed";
             if (ec)
@@ -329,11 +349,6 @@ public:
 
         if (push_result != nullptr) {
             // если запушили и для него сразу нашелся оппонент
-            /*
-            game_token:% s, \
-            uid : % zu, \
-            side : % s\
-            opponent : { name:% s, rating : % s, avatar : % s }*/
             bool is_first_white = false;
             if (push_result->wPlayer->get_user()->get_token() == user->get_token())
                 is_first_white = true;
@@ -540,6 +555,23 @@ public:
             return res;
         };
 
+        auto const ok_string_message =
+            [&req, &logging_data, sp_log = logger_] (std::string msg)
+        {
+            http::response<http::string_body> res{
+                std::piecewise_construct,
+                std::make_tuple(msg),
+                std::make_tuple(http::status::ok, req.version())
+            };
+
+            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::content_type, "text/html");
+            res.content_length(msg.size());
+            res.keep_alive(req.keep_alive());
+            sp_log->log(logging_data += "OK\nCreating a response of " + std::to_string(msg.size()) + " bytes\n");
+            return res;
+        };
+
         //
         // CHECKS AND VALIDATION
         //
@@ -558,15 +590,193 @@ public:
             logger_->log(logging_data += "fail: invalid target: " + req.method_string().to_string());
             return lambda_(bad_request("Illegal request-target"));
         }
+
+        auto target = req.target().to_string();
+        logging_data = target;
+        auto user_target = target.find("/user/");
+        if (user_target != std::string::npos) {
+            std::cout << "parse url: user\n";
+            std::cout << "\ttarget: " << target << "\n";
+            std::cout << "\tfind at: " << user_target << "\n";
+            auto uid = atoi(target.substr(user_target + 6).c_str());
+            std::cout << "\tuid: " << uid << "\n";
+            if (uid == 0)
+                return lambda_(bad_request("invalid uid"));
+            std::ifstream in((*doc_root_) + "/users.txt");
+            if (!in.is_open()) {
+                std::cout << "\tfile " << (*doc_root_) + "/users.txt is not oppened\n";
+                return lambda_(server_error("invalid uid"));
+            }
+            std::string users_data;
+            char sym = '\0';
+            while (in.get(sym) && sym != EOF && sym != '\0')
+                users_data += sym;
+            users_data += '\0';
+            std::cout << "\t\tuser data is:\n" << users_data << "\n\t\ttrying to find a string: '" << "uid: " + std::to_string(uid) <<"'\n";
+            auto record_pos = users_data.find("uid: " + std::to_string(uid));
+            std::cout << "\t\trecord_pos: " << record_pos << " (" << users_data.substr(record_pos, 10) << "...)" << "\n";
+            if (record_pos == std::string::npos) {
+                std::cout << "\tnot found | uid\n";
+                logger_->log(logging_data += "not found | uid\n");
+                return lambda_(not_found("invalid uid"));
+            }
+            record_pos = users_data.rfind('{', record_pos);
+            std::cout << "\t\trecord_pos ('{'): " << record_pos << " (" << users_data.substr(record_pos, 10) << "...)" << "\n";
+            if (record_pos == std::string::npos) {
+                logger_->log(logging_data += "not found | invalid user record: no '{'\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            auto record_end_pos = users_data.substr(record_pos).find('}');
+            std::cout << "\t\trecord_end_pos ('}'): " << record_end_pos << " (" << users_data.substr(record_pos + record_end_pos, 10) << "...)" << "\n";
+            if (record_pos == std::string::npos) {
+                logger_->log(logging_data += "not found | invalid user record: no '}'\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            auto content = users_data.substr(record_pos, record_end_pos + 1);
+            logger_->log("answer:\n" + content);
+            return lambda_(ok_string_message(content));
+        }
+
+        auto reg_target = target.find("/register/");
+        if (reg_target != std::string::npos) {
+            std::cout << "parse url: register\n";
+            UserInfo user_info{};
+            auto name = target.substr(reg_target + 10);
+            std::ifstream in((*doc_root_) + "/users.txt");
+            if (!in.is_open()) {
+                std::cout << "\tfile " << (*doc_root_) + "/users.txt is not oppened\n";
+                return lambda_(server_error("invalid uid"));
+            }
+            std::string users_data;
+            char sym = '\0';
+            while (in.get(sym) && sym != EOF && sym != '\0')
+                users_data += sym;
+            
+            // name
+            auto user_record = users_data.find("name: " + name);
+            if (user_record == std::string::npos) {
+                std::cout << "\t\tno such login: " << name << "\n";
+                return lambda_(not_found("no such login"));;
+            }
+            user_info.nickname = name;
+
+            // whole record
+            auto record_pos = users_data.rfind('{', user_record);
+            std::cout << "\t\trecord_pos ('{'): " << record_pos << " (" << users_data.substr(record_pos, 10) << "...)" << "\n";
+            if (record_pos == std::string::npos) {
+                std::cout << "\t\tnot found | invalid user record: no '{'\n";
+                logger_->log(logging_data += "not found | invalid user record: no '{'\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            auto record_end_pos = users_data.substr(record_pos).find('}');
+            std::cout << "\t\trecord_end_pos ('}'): " << record_end_pos << " (" << users_data.substr(record_pos + record_end_pos, 10) << "...)" << "\n";
+            if (record_pos == std::string::npos) {
+                std::cout << "\t\tnot found | invalid user record: no '}'\n";
+                logger_->log(logging_data += "not found | invalid user record: no '}'\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            auto record = users_data.substr(record_pos, record_end_pos + 1);
+
+            // uid
+            auto uid = record.find("uid: ");
+            if (uid == std::string::npos) {
+                std::cout << "\t\tnot found | invalid user record: no uid\n";
+                logger_->log(logging_data += "not found | invalid user record: no uid\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            auto comma = record.substr(uid + 4).find(',');
+            if (comma == std::string::npos) {
+                std::cout << "\t\tnot found | invalid user record: no comma after uid\n";
+                logger_->log(logging_data += "not found | invalid user record: no comma after uid\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            user_info.id = atoi(record.substr(uid + 4, comma).c_str());
+            if (user_info.id == 0) {
+                std::cout << "\t\tnot found | cannot convert uid\n";
+                logger_->log(logging_data += "not found | cannot convert uid\n");
+                return lambda_(server_error("invalid user record"));
+            }
+
+            // rating
+            auto rating = record.find("rating: ");
+            if (rating == std::string::npos) {
+                std::cout << "\t\tnot found | invalid user record: no rating\n";
+                logger_->log(logging_data += "not found | invalid user record: no rating\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            comma = record.substr(rating + 8).find(',');
+            if (comma == std::string::npos) {
+                std::cout << "\t\tnot found | invalid user record: no comma after rating\n";
+                logger_->log(logging_data += "not found | invalid user record: no comma after rating\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            user_info.rating = atoi(record.substr(rating + 8, comma).c_str());
+            if (user_info.rating == 0) {
+                std::cout << "\t\tnot found | cannot convert rating\n";
+                logger_->log(logging_data += "not found | cannot convert rating\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            
+            // avatar url
+            auto avatar = record.find("avatar: ");
+            if (avatar == std::string::npos) {
+                std::cout << "\t\tnot found | invalid user record: no avatar\n";
+                logger_->log(logging_data += "not found | invalid user record: no avatar\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            comma = record.substr(avatar + 8).find(',');
+            if (comma == std::string::npos)
+                comma = record.substr(avatar + 8).find('\n');
+            if (comma == std::string::npos)
+                comma = record.substr(avatar + 8).find('}');
+            if (comma == std::string::npos) {
+                std::cout << "\t\tnot found | invalid user record: no object ending\n";
+                logger_->log(logging_data += "not found | invalid user record: no object ending\n");
+                return lambda_(server_error("invalid user record"));
+            }
+            user_info.avatar = record.substr(avatar + 8, comma);
+
+            std::cout << "REGISTER parsing results:\n" << "\t\t| uid: | " << user_info.id << "\n";
+            std::cout << "\t\t| name: | " << user_info.nickname << "\n";
+            std::cout << "\t\t| rating: | " << user_info.rating << "\n";
+            std::cout << "\t\t| avatar: | " << user_info.avatar << "\n";
+            
+            user = std::make_shared<User>(user_info);
+            std::cout << "user № " << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
+
+            const auto [active_user, success] = active_users_->insert({ user->get_token_string(), user });
+            if (success)
+                std::cout << " added to the User Map successfully" << std::endl;
+            else
+                std::cout << " has not been added to the map | FAIL" << std::endl;
+
+            // sends the cookie
+            return start_cookie_timer(user->get_token(), COOKIE_LIFETIME, req.version(), req.keep_alive(), logging_data);
+        }
+
+        auto start_game_target = target.find("/start_game/");
+        if (start_game_target != std::string::npos) {
+            std::cout << "parse url: start_game: from cookie: ";
+            auto cookie = target.substr(start_game_target + 12);
+            std::cout << cookie << '\n';
+
+            auto user = active_users_->find(cookie);
+            if (user != active_users_->end()) {
+                std::cout << "Found user № " << user->first << " in the User Map" << '\n';
+                return on_queue(std::move(logging_data), logger_, req.version());
+            }
+            else {
+                std::cout << "Not found user № " << cookie << " in the User Map" << '\n';
+                return lambda_(not_found("no such token or token expired"));
+            }
+        }
+
         // Build the path to the requested file
-        std::string path = path_cat(*doc_root_, req.target());
+        std::string path = path_cat(*doc_root_, target);
         if (req.target().back() == '/')
             path.append("index.html");
 
-        //
-        // REQUEST EXECUTION
-        //
-
+        // getting file
         beast::error_code ec;
         http::file_body::value_type body;
         http::string_body::value_type string_body;
@@ -578,22 +788,23 @@ public:
         }
         else {
             // Attempt to open the file
-            body.open(path.c_str(), beast::file_mode::scan, ec);
-
+            std::ifstream in(path);
+            
             // Handle the case where the file doesn't exist
-            if (ec == beast::errc::no_such_file_or_directory) {
-                logger_->log(logging_data += "fail: unreachable target: " + req.target().to_string());
+            if (!in.is_open()) {
+                logger_->log(logging_data += "fail: unreachable target: " + target);
                 return lambda_(not_found(req.target()));
             }
 
-            // Handle an unknown error
-            if (ec) {
-                logger_->log(logging_data += "fail: unknown error: " + ec.message());
-                return lambda_(server_error(ec.message()));
+            size_t bytes_read = 1;
+            std::string content;
+            char* block = new char[1024];
+            while (bytes_read) {
+                bytes_read = static_cast<size_t>(in.readsome(block, 1024));
+                std::string block_string(block, bytes_read);
+                content += block_string;
             }
-
-            // Cache the size since we need it after the move
-            auto size = body.size();
+            delete[] block;
 
             // Respond to HEAD request
             if (req.method() == http::verb::head)
@@ -601,77 +812,10 @@ public:
                 http::response<http::string_body> res{ http::status::ok, req.version() };
                 res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
                 res.set(http::field::content_type, mime_type(path));
-                res.content_length(size);
+                res.content_length(content.size());
                 res.keep_alive(req.keep_alive());
                 logger_->log(logging_data += "OK");
                 return lambda_(std::move(res));
-            }
-
-            // Respond to GET request
-
-            /*template<
-                bool isRequest,             // `true` for requests, `false` for responses
-                class Body,                 // Controls the container and algorithms used for the body
-                class Fields = fields>      // The type of container to store the fields
-                class message;
-
-                Construct a message.
-
-                @param body_args A tuple forwarded as a parameter
-                pack to the body constructor.
-
-                @param fields_args A tuple forwarded as a parameter
-                pack to the `Fields` constructor.
-
-                template<class... BodyArgs, class... FieldsArgs>
-                message(std::piecewise_construct_t,
-                    std::tuple<BodyArgs...> body_args,
-                    std::tuple<FieldsArgs...> fields_args);
-            */
-
-
-            http::response<http::file_body> res_file{
-                std::piecewise_construct,
-                std::make_tuple(std::move(body)),
-                std::make_tuple(http::status::ok, req.version())      // тапл - это кортеж - контейнер из произвольного числа элементов произвольного типа
-            };
-
-            size_t bytes_read = 1;
-            std::string content;
-
-            char* block = new char[1024];
-            while (bytes_read) {
-                bytes_read = res_file.body().file().read(block, 1024, ec);
-                if (ec) {
-                    fail(ec, "file copy");
-                    logging_data += "an error occured while copying " + req.target().to_string() + ": " + ec.message() + "\n"
-                        + "here: " + std::string(block, bytes_read) + '\n';
-
-                }
-                std::string block_string(block, bytes_read);
-                content += block_string;
-            }
-            delete[] block;
-            if (REGESTRY_IMITATION) {
-                user = std::make_shared<User>();
-                std::cout << "user №" << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
-
-                const auto [active_user, success] = active_users_->insert({ user->get_token_string(), user });
-                if (success)
-                    std::cout << "added to the User Map successfully" << std::endl;
-                else
-                    std::cout << "has not been added to the map | FAIL" << std::endl;
-
-                start_cookie_timer(user->get_token(), COOKIE_LIFETIME);
-            }
-
-            if (START_GAME_IMITATION) {
-                if (!user) {
-                    // TODO send message unauthorised
-                    std::cout << "unauthorised\n";
-                }
-                //auto logging_data_ptr = std::make_shared<std::string>(&logging_data);
-                return on_queue(std::move(logging_data), logger_, req.version());
             }
 
             http::response<http::string_body> res{
@@ -682,14 +826,11 @@ public:
 
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
             res.set(http::field::content_type, mime_type(path));
-            res.content_length(size);
+            res.content_length(content.size());
             res.keep_alive(req.keep_alive());
-            logger_->log(logging_data += "OK\nCreating a response of " + std::to_string(size) + " bytes\n");
+            logger_->log(logging_data += "OK\nCreating a response of " + std::to_string(content.size()) + " bytes\n");
             return lambda_(std::move(res));
         }
-
-        // TODO: common value res
-        //return send(std::move(res));
     }
 
 
