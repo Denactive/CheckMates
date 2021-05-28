@@ -899,26 +899,9 @@ public:
 
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
 {
-    struct send_lambda
-    {
-        WebSocketSession& self_;
-
-        explicit
-            send_lambda(WebSocketSession& self)
-            : self_(self)
-        {
-        }
-
-        void operator()(http::message<false, http::string_body, http::fields>&& msg) const
-        {
-            std::cout << "ws: send\n";
-        }
-    };
-
     beast::flat_buffer buffer_;
     std::string buffer_str_;
     std::shared_ptr<std::string const> doc_root_;
-    send_lambda lambda_;
     const std::shared_ptr<ILogger> logger_;
     websocket::stream<beast::tcp_stream> stream_;
     std::string msg = "Hello";
@@ -934,7 +917,6 @@ public:
         : stream_(std::move(socket))
         , doc_root_(doc_root)
         , logger_(std::make_shared<FileLogger>(log_dir))
-        , lambda_(*this)
     {
     }
     // Get on the correct executor
@@ -1057,12 +1039,16 @@ public:
             (*res) = game_error_code_to_string(ec);
             return write(res);
         }
-        auto session = MQSingleton::instance().get();
-        auto games = session.get_games();
+        
+        // get game
+        auto games = MQSingleton::instance().get().get_games();
         auto gameandtoken = games->find(m.game_token);
+        if (gameandtoken == games->end()) {
+            (*res) = "Invalid game token";
+            return write(res);
+        }
         auto game =  gameandtoken->second;
         (*res) = game_error_code_to_string(ec); // OK
-
 
         GInfo info = game->send_info();
         int validation = 0;
@@ -1114,7 +1100,7 @@ public:
                                % (info.turn[0] * 8 + info.turn[1])
                                % (info.turn[2] * 8 + info.turn[3])
                                ).str();
-            *res = content;
+            (*res) = content;
             auto enemy_session = game->enemy()->Get_Session();
             if (enemy_session != nullptr)
                 enemy_session->write(res);
@@ -1152,40 +1138,24 @@ public:
 
     Move get_move(std::string& req, game_error_code& ec) {
         /*
-        
-        c
-        
         { game_token: 21-05-26-00_11_30, uid: 21-05-26-00_11_29, prev: 12, cur: 28 }
         */
-        auto print = [](std::string::size_type n, std::string const& s)
-        {
-            if (n == std::string::npos) {
-                std::cout << "not found\n";
-            }
-            else {
-                std::cout << "found: " << s.substr(n) << '\n';
-            }
-        };
-
-        if (MOVE_PARSE_DEBUG) std::cout << "parsing: " << req << "\n";
+        if (MOVE_PARSE_DEBUG) std::cout << "parsing move\n";
         Move m{};
 
         // game_token: %s,
         auto game_token = req.find("game_token: ");
-        //print(game_token, req);
         if (game_token == std::string::npos) {
             ec = game_error_code::no_game_token;
             return m;
         }
         auto comma = req.substr(game_token + 12).find(',');
-        //print(comma, req.substr(game_token + 12));
         if (comma == std::string::npos) {
             ec = invalid_format;
             return m;
         }
-        //std::cout << "game pos: " << game_token << ", com pos: " << comma << ", res: " <<req.substr(game_token + 12, comma - game_token);
         m.game_token = req.substr(game_token + 12, comma);
-        if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << m.game_token << "\n";
+        if (MOVE_PARSE_DEBUG) std::cout << "\t\t/game_token:/ " << m.game_token << "\n";
 
         // uid: %zu,
         auto uid = req.find("id: ");
@@ -1199,8 +1169,7 @@ public:
             return m;
         }
         m.id = atoi(req.substr(uid + 4, comma - uid).c_str());
-        if (MOVE_PARSE_DEBUG) std::cout << "\t/id:/ " << m.id << "\n";
-
+        if (MOVE_PARSE_DEBUG) std::cout << "\t\t/id:/ " << m.id << "\n";
 
         // prev: %zu,
         auto prev = req.find("prev: ");
@@ -1214,7 +1183,7 @@ public:
             return m;
         }
         m.prev = atoi(req.substr(prev + 6, comma - prev).c_str());
-        if (MOVE_PARSE_DEBUG) std::cout << "\t/prev:/ " << m.prev << "\n";
+        if (MOVE_PARSE_DEBUG) std::cout << "\t\t/prev:/ " << m.prev << "\n";
 
         // cur: %zu,
         auto cur = req.find("cur: ");
@@ -1232,7 +1201,7 @@ public:
             return m;
         }
         m.cur = atoi(req.substr(cur + 5, comma - cur).c_str());
-        if (MOVE_PARSE_DEBUG) std::cout << "\t/cur:/ " << m.cur << "\n";
+        if (MOVE_PARSE_DEBUG) std::cout << "\t\t/cur:/ " << m.cur << "\n";
         ec = game_error_code::ok;
         return m;
     }
