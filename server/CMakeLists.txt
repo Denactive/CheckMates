@@ -4,7 +4,7 @@ set(CMAKE_C_STANDARD 17)
 
 # крутая компиляция для взрослых
 #set(CMAKE_CXX_FLAGS "-g -coverage -O0 -Wall -fprofile-arcs -ftest-coverage -fPIC -lstdc++fs")
-set(CMAKE_CXX_FLAGS "-g -Wall -std=c++17")
+set(CMAKE_CXX_FLAGS "-g -std=c++17")
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 set(GMock_DIR ./)
 set(PROGRAM_NAME server)
@@ -19,8 +19,14 @@ IF (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
     ADD_DEFINITIONS("-DHAS_BOOST")
 ENDIF()
-add_executable(client client_example/WSClient.cpp)  #BoostExampleClient.cpp)
-target_link_libraries (client ${Boost_LIBRARIES} -lpthread)
+add_executable(ws_client_test client_example/WSClient.cpp)
+target_link_libraries (ws_client_test ${Boost_LIBRARIES} -lpthread)
+add_executable(http_client_test_Denis client_example/BoostExampleClientDenis.cpp)
+target_link_libraries (http_client_test_Denis ${Boost_LIBRARIES} -lpthread)
+add_executable(http_client_test_Yuora client_example/BoostExampleClientYoura.cpp)
+target_link_libraries (http_client_test_Yuora ${Boost_LIBRARIES} -lpthread)
+add_executable(http_client_test_cookie client_example/BoostExampleClientCookie.cpp)
+target_link_libraries (http_client_test_cookie ${Boost_LIBRARIES} -lpthread)
 
 add_executable(${PROGRAM_NAME}
         ${SOURCE_DIR}/main.cpp
@@ -39,13 +45,13 @@ add_executable(${PROGRAM_NAME}
         source/Chesspiece.cpp)
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
 
-#enable_testing()
-##include_directories(${INCLUDE_DIRECTORIES})
-#message(${GTEST_LIBRARIES})
-#find_package(GMock REQUIRED)
-#include_directories(${INCLUDE_DIRECTORIES})
-#message(${GMOCK_LIBRARIES})
-
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GTEST_LIBRARIES})
+find_package(GMock REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GMOCK_LIBRARIES})
 
 #add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp source/User.cpp source/Player.cpp test/reChessPiece.h source/community.cpp)
 #target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})

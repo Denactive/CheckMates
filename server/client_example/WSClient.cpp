@@ -317,7 +317,7 @@ int main(int argc, char** argv)
     // the socket is closed.
 
 
-    std::cout << "==========\nw - write\nc - close\nm - send move json example\ne - exit\n==========\n";
+    std::cout << "==========\nw - write\nC - close\nm - send move json example\nE - exit\n==========\n";
 
     char cmd = '\0';
 
@@ -339,7 +339,7 @@ int main(int argc, char** argv)
             connection->write(buffer);
             break;
 
-        case 'c':
+        case 'Ñ':
             connection->close();
             break;
 
@@ -348,16 +348,52 @@ int main(int argc, char** argv)
             connection->write(buffer);
             break;
 
-        case 'e':
+        case 'E':
             KEEP_GOING = false;
             connection->close();
             break;
+
+        case 'a':
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 52,\n\tcur: 36\n}";
+            connection->write(buffer);
+            break;
+
+        case 'b':
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 5,\n\tcur: 26\n}";
+            connection->write(buffer);
+            break;
+
+        case 'c':
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 57,\n\tcur: 42\n}";
+            connection->write(buffer);
+            break;
+
+        case 'd':
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 3,\n\tcur: 39\n}";
+            connection->write(buffer);
+            break;
+
+        case 'e':
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 62,\n\tcur: 45\n}";
+            connection->write(buffer);
+            break;
+
+        case 'f':
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 39,\n\tcur: 53\n}";
+            connection->write(buffer);
+            break;
+
+        case 's':
+            buffer = "{\n\tstart,\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29\n}";
+            connection->write(buffer);
+            break;
+
         }
 
         // wait for response
         while (!NEW_DATA.state());
         NEW_DATA.set(false);
-        std::cout << "I am standart thread. I've got a message from server:\n" << msg_Singleton::instance().get();
+        std::cout << "I am standart thread. I've got a message from server:\n" << msg_Singleton::instance().get() << std::endl;
     }
 
     t.join();

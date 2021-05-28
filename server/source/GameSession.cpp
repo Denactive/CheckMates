@@ -149,6 +149,7 @@ int GameSession::prepare_turn() {
     for (auto i = thr.begin(); i != thr.end(); ++i) {
         std::cout << (*i)[0] << ' ' << (*i)[1] << '\n';
     }
+    return 0;
 }
 
 int GameSession::run_turn(std::array<size_t, M> turn) {

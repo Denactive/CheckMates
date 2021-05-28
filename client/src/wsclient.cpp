@@ -1,12 +1,19 @@
 #include "include/wsclient.h"
 
-// Start the asynchronous operation
-void wssession::run(char const* host, char const* port, char const* text)
+void wsfail(beast::error_code ec, char const* what)
 {
-    if (WBASIC_DEBUG) std::cout << "run\n";
+    std::cerr << what << ": " << ec.message() << "\n";
+}
+// Start the asynchronous operation
+void
+    wssession::run(
+        char const* host,
+        char const* port)
+{
+    if (WBASIC_DEBUG) qDebug() << "run\n";
     // Save these for later
     host_ = host;
-    text_ = text;
+    need_close = false;
 
     // Look up the domain name
     resolver_.async_resolve(
@@ -17,8 +24,12 @@ void wssession::run(char const* host, char const* port, char const* text)
             shared_from_this()));
 }
 
-void wssession::onResolve(beast::error_code ec, tcp::resolver::results_type results) {
-    if (WBASIC_DEBUG) std::cout << "on resolve\n";
+void
+    wssession::onResolve(
+        beast::error_code ec,
+        tcp::resolver::results_type results)
+{
+    if (WBASIC_DEBUG) qDebug() << "on resolve\n";
     if (ec)
         return wsfail(ec, "resolve");
 
@@ -33,8 +44,10 @@ void wssession::onResolve(beast::error_code ec, tcp::resolver::results_type resu
             shared_from_this()));
 }
 
-void wssession::onConnect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep) {
-    if (WBASIC_DEBUG) std::cout << "on connect\n";
+void
+     wssession::onConnect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
+{
+    if (WBASIC_DEBUG) qDebug() << "on connect\n";
     if (ec)
         return wsfail(ec, "connect");
 
@@ -64,95 +77,149 @@ void wssession::onConnect(beast::error_code ec, tcp::resolver::results_type::end
     // Perform the websocket handshake
     ws_.async_handshake(host_, "/",
         beast::bind_front_handler(
+            // call handler
             &wssession::onHandshake,
             shared_from_this()));
 }
 
-void wssession::onHandshake(beast::error_code ec) {
-    if (WBASIC_DEBUG) std::cout << "on handshake\n";
+void
+     wssession::onHandshake(beast::error_code ec)
+{
+    if (WBASIC_DEBUG) qDebug() << "on handshake\n";
     if (ec)
         return wsfail(ec, "handshake");
 
-    // Send the message
-    ws_.async_write(
-        net::buffer(text_),
-        beast::bind_front_handler(
-            &wssession::onWrite,
-            shared_from_this()));
+    // Start reading
+    doRead();
 }
 
-void wssession::onWrite(beast::error_code ec, std::size_t bytes_transferred) {
-    boost::ignore_unused(bytes_transferred);
-
-    if (WBASIC_DEBUG) std::cout << "on write\n";
-    boost::ignore_unused(bytes_transferred);
-
-    if (ec)
-        return wsfail(ec, "write");
-
-    // Read a message into our buffer
+void wssession::doRead() {
     ws_.async_read(
         buffer_,
         beast::bind_front_handler(
+            // call handler when done
             &wssession::onRead,
             shared_from_this()));
 }
 
-void wssession::onRead(beast::error_code ec, std::size_t bytes_transferred) {
-    boost::ignore_unused(bytes_transferred);
-
-    if (WBASIC_DEBUG) std::cout << "on read\n";
+void wssession::onRead(beast::error_code ec, std::size_t bytes_transferred)
+{
+    // if we are here - then reading operation is done
+    if (WBASIC_DEBUG) qDebug() << "on read\n";
     boost::ignore_unused(bytes_transferred);
 
     if (ec)
         return wsfail(ec, "read");
 
-    // Close the WebSocket connection
-    /*ws_.async_close(websocket::close_code::normal,
-        beast::bind_front_handler(
-            &session::on_close,
-            shared_from_this()));
-    */
-    doSomeWork();
+    if (need_close)
+        doClose();
+    else
+        doSomeWork(ec, bytes_transferred);
 }
 
-void wssession::onClose(beast::error_code ec) {
-    if (WBASIC_DEBUG) std::cout << "on close\n";
+void wssession::doSomeWork(beast::error_code ec, std::size_t bytes_transferred) {
+    //Sleep(2000);
+    //qDebug() << "LOGIC HERE | Server send to me: ";
+    //
+    // if there is some data from server
+    if (bytes_transferred)
+        qDebug() << "The server send you: " << QString::fromLocal8Bit(beast::buffers_to_string(buffer_.data()).c_str());
+
+    // clear the buffer!
+    buffer_.consume(bytes_transferred);
+
+    // we have read some data -> then read again
+    doRead();
+}
+
+
+void wssession::write(std::string& msg)
+{
+    if (WBASIC_DEBUG) qDebug() << "write\n";
+
+    // Send the message
+    ws_.async_write(
+        net::buffer(msg),
+        [sp = shared_from_this(), &msg](beast::error_code ec, std::size_t bytes_transferred) {
+        // call handler
+        sp->onWrite(ec, bytes_transferred, msg);
+    });
+}
+
+void wssession::onWrite(beast::error_code ec, std::size_t bytes_transferred, std::string& msg) {
+    if (ec)
+        wsfail(ec, "failed while writing (write)");
+    qDebug() << "You have sent: " << QString::fromLocal8Bit(msg.c_str()) << " to server. " << bytes_transferred << " bytes were delivered\n";
+}
+
+void wssession::close() {
+    need_close = true;
+    write(close_str); // kostil to destroy read - on_read loop
+}
+
+void wssession::doClose() {
+    ws_.async_close(websocket::close_code::normal,
+        beast::bind_front_handler(
+            &wssession::onClose,
+            shared_from_this()));
+}
+
+void wssession::onClose(beast::error_code ec)
+{
+    if (WBASIC_DEBUG) qDebug() << "on close\n";
     if (ec)
         return wsfail(ec, "close");
 
     // If we get here then the connection is closed gracefully
-
-    // The make_printable() function helps print a ConstBufferSequence
-    std::cout << beast::make_printable(buffer_.data()) << std::endl;
+    qDebug() << "Connection is closed gracefully\n";
 }
 
-void wssession::doSomeWork() {
-    sleep(2);
+void runGame() {
+    // -------------------------------------- [boost example]--------------------------------------
 
-    std::cin >> text_;
-    std::cout << "LOGIC HERE | Server send to me: ";
-    std::cout << beast::make_printable(buffer_.data()) << std::endl;
+    auto const host = "127.0.0.1";
+    auto const port = "8001";
 
-    buffer_.consume(buffer_.size());
+    connection->run(host, port);
 
-    auto msg = std::make_shared<std::string>("WS from client: " + text_);// +*recieved;
-    ws_.text(ws_.got_text());
-    ws_.async_write(
-        net::buffer(*msg),
-        [s = shared_from_this(), msg] (beast::error_code ec, size_t bytes_transferred) mutable {
-            s->onWrite(ec, msg->size());
-        }
-    );
+    // create a thread to maintain communication
+//    std::thread t(
+//        [&ioc]() { ioc.run(); }
+//    );
+//    t.detach();
 
-    /*ws_.async_write(
-        net::buffer(text_),
-        beast::bind_front_handler(
-            &wssession::onWrite,
-            shared_from_this()));*/
-}
+    // Run the I/O service. The call will return when
+    // the socket is closed.
 
-void wsfail(beast::error_code ec, char const* what)
-{
-    std::cerr << what << ": " << ec.message() << "\n";
+
+    qDebug() << "==========\nw - write\nc - close\nm - send move json example\nCtrl + C - exit\n==========\n";
+
+    char cmd = '\0';
+
+    // long-living string!!!
+    std::string buffer;
+
+    std::cin >> cmd;
+    qDebug() << '[' << cmd << ']' << ' ';
+    switch (cmd) {
+    case 'w':
+        qDebug() << " write a message >> ";
+        std::cin >> buffer;
+        connection->write(buffer);
+        sleep(2);
+        qDebug() << "buffer: " << QString::fromLocal8Bit(connection->buffer().c_str());
+        break;
+
+    case 'c':
+        connection->close();
+        break;
+
+    case 'm':
+        buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
+        connection->write(buffer);
+        break;
+    }
+
+    // -------------------------------------[ end boost example]---------------------------------
+
 }

@@ -55,7 +55,7 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
     drawBottom();
 
     setLayout(mainLayout);
-    setWindowTitle("Main");
+    setWindowTitle("SaberChess");
 }
 
 MainWindow::~MainWindow()

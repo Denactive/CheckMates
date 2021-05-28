@@ -7,6 +7,8 @@
 
 #include "include/windows/gamewindow.h"
 
+void runGame();
+
 GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent)
     : QWidget(parent), gameInfo(gameInfo), opponent(opponent), main(main)
 {
@@ -25,8 +27,11 @@ GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<G
 //    // client->post(host, port, target, name);
 
 //    client->getData(host, port, target);
-
+    // std::thread run(runGame);
+    // runGame();
+    // run.join();
     drawGame();
+    //connect(this, SIGNAL(), this, SLOT(runGame()));
 }
 
 void GameWindow::drawGame()
@@ -161,6 +166,7 @@ QVBoxLayout* GameWindow::drawChat(Chat *chat)  {
 void GameWindow::sendClicked()
 {
     qDebug() << "send: " << writeMessage->text();
+    qDebug() << "buffer: " << QString::fromLocal8Bit(connection->buffer().c_str());
 
     QListWidgetItem *item = new QListWidgetItem(writeMessage->text());
     QFont font("Helvetica [Cronyx]", 20);

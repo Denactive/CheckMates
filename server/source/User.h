@@ -142,7 +142,6 @@ public:
     // test
     void set_user_data(uid id, std::string nickame, int new_rating) override { rating_ = new_rating; id_ = id; nickname_ = nickame; }
     void set_rating(int new_rating) override { rating_ = new_rating; }
-   
 
     ICommunity* create_community() override;
     IChat* create_chat(std::set<uid> members) override;
