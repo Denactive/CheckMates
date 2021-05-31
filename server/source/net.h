@@ -1031,6 +1031,7 @@ public:
             return;
 
         }
+
         if (req.find("start")!= std::string::npos) {
             std::cout <<"Parsing start\n";
             auto game_token = req.find("game_token: ");
