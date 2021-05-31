@@ -101,7 +101,7 @@ public:
 
     GameSession(
         std::shared_ptr<IUser> player1, std::shared_ptr<IUser> player2)
-        : token_(std::chrono::system_clock::from_time_t(0))//system_clock::now())
+        : token_(std::chrono::system_clock::now())
     {
         board = std::make_shared<ChessBoard>();
 

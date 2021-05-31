@@ -9,8 +9,6 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> pw,
     };
 
     std::cout << "Matcher: ";
-    // TODO fill the constructor correctly
-    //    GameSession gs = new GameSession(iBDServer* log, iTurnControl* control, iPlayer* player);
 
     auto game_session = std::make_shared<GameSession>(pw, pb);
     game_session->prepare_turn();
@@ -41,6 +39,10 @@ std::shared_ptr<GameSession> MatcherQueue::push_user(std::shared_ptr<IUser> u) {
             new_game = start_game(p1, p2);
         else
             new_game = start_game(p2, p1);
+
+        // nullptr if error while pushing game token occured
+        if (!new_game)
+            return nullptr;
 
         std::cout << "MatcherQueue::push_user | white player is: " << new_game->wPlayer->get_user()->get_token_string() << " (" << new_game->wPlayer->get_user()->get_nickname() << ")\n";
         std::cout << "                        | black player is: " << new_game->bPlayer->get_user()->get_token_string() << " (" << new_game->bPlayer->get_user()->get_nickname() << ")\n";

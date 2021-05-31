@@ -287,7 +287,7 @@ public:
         auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::minutes{ value });
         auto active_users = active_users_;
         
-        auto msg = "Cookie is valid for " + std::to_string(value) + " minutes";
+        auto msg = "Cookie: " + serializeTimePoint(c) + "\nCookie is valid for " + std::to_string(value) + " minutes\n";
         http::response<http::string_body> res{
                 std::piecewise_construct,
                 std::make_tuple(msg),
@@ -470,7 +470,9 @@ public:
         }
 
         if (ec) {
-            logger_->log("Read failed: " + ec.message() + '\n');
+            std::stringstream ss;
+            ss << req_.base() << '\n' << req_.body();
+            logger_->log("Read failed: " + ec.message() + "\nthe response: " + ss.str());
             return fail(ec, "read");
         }
 
@@ -742,7 +744,7 @@ public:
             std::cout << "\t\t| avatar: | " << user_info.avatar << "\n";
             
             user = std::make_shared<User>(user_info);
-            std::cout << "user № " << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
+            std::cout << "user N " << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
 
             const auto [active_user, success] = active_users_->insert({ user->get_token_string(), user });
             if (success)
