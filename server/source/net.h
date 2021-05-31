@@ -1079,6 +1079,7 @@ public:
                 enemy_session->write(res);
             else
                 std::cout << "\tenemy_session is nullptr\n";
+            return;
         }
 
         Move m = get_move(req, ec);
