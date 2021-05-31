@@ -14,6 +14,8 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <thread>
+
 #include <string>
 #include <mutex>
 
@@ -339,12 +341,12 @@ int main(int argc, char** argv)
             connection->write(buffer);
             break;
 
-        case 'Ñ':
+        case 'z':
             connection->close();
             break;
 
         case 'm':
-            buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
+            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
             connection->write(buffer);
             break;
 

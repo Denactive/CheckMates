@@ -1051,26 +1051,18 @@ public:
         (*res) = game_error_code_to_string(ec); // OK
 
         GInfo info = game->send_info();
-        int validation = 0;
-            if (!validation) {
-                //game->prepare_turn();
-                info = game->send_info();
-                std::cout <<"prepare";
-            }
             std::array<size_t, 4 >turn;
             turn[0] = m.prev / 8;
             turn[1] = m.prev % 8;
             turn[2] = m.cur / 8;
             turn[3] = m.cur % 8;
             std::cout << turn[0] <<' '<< turn[1]<<' '<< turn[2]<<' ' << turn[3]<<'\n';
-            validation = game->run_turn(turn);
+            int validation = game->run_turn(turn);
             std::cout << validation;
             if (!validation) {
                 std::cout << "valid move\n";
             }
-            auto you = game->you();
-            auto enemy = game->enemy();
-
+        std::vector<std::array<size_t, 4>>avail = game->you()->access();
             if (!validation) {
                 game->prepare_turn();
                 info = game->send_info();
@@ -1081,7 +1073,8 @@ public:
 
                 std::cout << "prepare2";
             }
-            std::vector<std::array<size_t, 4>>avail = you->access();
+
+            std::cout << avail.size();
             std::stringstream ss;
             ss << "[ ";
             for(std::array<size_t, 4> out : avail) {
