@@ -1070,7 +1070,6 @@ public:
                     game->you()->Set_Session(shared_from_this());
                     std::cout << game->enemy()->Get_Session();
                 }
-
                 std::cout << "prepare2";
             }
 
@@ -1083,10 +1082,8 @@ public:
             ss << " ]";
             // available moves: %s,\n\
             // Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
-            std::string b;
-            ss >> b;
             std::string content = (boost::format(MOVE_RESPONSE)
-                               % b.c_str()
+                               % ss.str()
                                % info.isPlayer
                                % info.isGame
                                % info.isVictory
