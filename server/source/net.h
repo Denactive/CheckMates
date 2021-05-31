@@ -1027,8 +1027,7 @@ public:
                 return write(res);
             }
             auto game = game_pair->second;
-            game->you()->Set_Session(shared_from_this());
-            std::cout << game->you()->Get_Session();
+            game->enemy()->Set_Session(shared_from_this());
             return;
 
         }
