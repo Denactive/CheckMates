@@ -11,6 +11,9 @@ Database::Database()
 
     if (!bd.isOpen())
         qDebug() << "database not open";
+    else {
+        qDebug() << "bd is open";
+    }
 
     gameInfo = make_shared<GameInfo>();
 

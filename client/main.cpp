@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
     // return EXIT_SUCCESS;
 }*/
 
+#include "global.h"
 #include <QApplication>
 
 #include "include/echoclient.h"
@@ -51,6 +52,7 @@ int main(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     setlocale(LC_ALL, "rus");
+    msg_Singleton::instance();
     QApplication a(argc, argv);
 
     /*QCommandLineParser parser;
@@ -63,11 +65,17 @@ int main(int argc, char *argv[])
     parser.process(a);*/
     // bool debug = true; // parser.isSet(dbgOption);
 
-    std::shared_ptr<EchoClient> webSocket = std::make_shared<EchoClient>(QUrl(QStringLiteral("ws://127.0.0.1:1234")), DEBUGSOCKET);
-    std::shared_ptr<Client> httpClient = std::make_shared<Client>();
+    auto const h_port = 8000;
+    std::shared_ptr<std::string> h_host = std::make_shared<std::string>("127.0.0.1"); //("25.34.102.253");
+
+    std::shared_ptr<EchoClient> webSocket = std::make_shared<EchoClient>(QUrl(QStringLiteral("ws://127.0.0.1:1234")), DEBUGSOCKET); //25.34.102.253:1234")), DEBUGSOCKET);
+    std::shared_ptr<Client> httpClient = std::make_shared<Client>(h_host, h_port);
     GlobalNet *globalNet = new GlobalNet();
     globalNet->httpClient = httpClient;
     globalNet->webSocket = webSocket;
+
+    globalNet->webSocket->doReceive();
+    globalNet->webSocket->doSend("msg start from client");
 
     std::shared_ptr<Database> db = std::make_shared<Database>();
     MainWindow w(db, globalNet);

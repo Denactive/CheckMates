@@ -2,6 +2,7 @@
 #define MENUWINDOW_H
 #define DEBUG 0
 
+#include "global.h"
 #include <algorithm>
 #include <iterator>
 

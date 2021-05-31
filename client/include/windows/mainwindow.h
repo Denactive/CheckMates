@@ -29,7 +29,7 @@
 #include "include/windows/chatwindow.h"
 #include "include/windows/settingswindow.h"
 #include "include/windows/gamewindow.h"
-#include "include/serverconnection.h"
+// #include "include/serverconnection.h"
 
 #include <memory>
 #include <string>
@@ -50,6 +50,17 @@ public:
 
     void setRegisterUser(int index);
 
+//    template<typename TSignal>
+//    void waitingFor(TSignal&& signal)
+//    {
+//        QEventLoop evloop;
+//        connect(this, signal, &evloop, &QEventLoop::quit);
+//        evloop.exec();
+//    }
+
+signals:
+    void onSaveToken();
+
 private slots:
     void onSearchChatClicked();
 
@@ -62,6 +73,7 @@ private slots:
     void exitClicked();
     void logoutClicked();
     void loginClicked();
+    void saveToken();
     void registrClicked();
 private:
     QStackedWidget * main;

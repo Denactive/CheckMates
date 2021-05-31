@@ -169,15 +169,14 @@ void MenuWindow::tapPlay()
         if (DEBUG) qDebug() << "game info opponent id: " << gameInfo->opponentId;
         if (DEBUG) qDebug() << "opponent: " << opponent->getName();
         //---------------- [qt connection]---------------
-           auto const h_port = 8000;
-           auto const h_host = "127.0.0.1";
+//        std::shared_ptr<std::string> h_target = std::make_shared<std::string>("/start_game/" + *(token_));
+        std::shared_ptr<std::string> h_target = std::make_shared<std::string>("/start_game/" + msg_Singleton::instance().get());
 
-           std::cout << "token id after begin game:" << *(token_);
-           qDebug() << "token after begin game: " << QString::fromLocal8Bit(token_->c_str());
-           std::string _target = "/start_game/" + *(token_);
-           auto const h_target = _target.c_str();
+           qDebug() << "token after begin game: " << QString::fromLocal8Bit(token_->c_str()) << " target: " << QString::fromLocal8Bit((*h_target).c_str());
 
-           globalNet->httpClient->getData(h_host, h_port, h_target);
+           globalNet->httpClient->getData(h_target);
+           // globalNet->httpClient->download(h_target);
+           // globalNet->httpClient->post(h_host, h_port, h_target, token_->c_str());
            // globalNet->httpClient->_download(globalNet->httpClient->setUrl(h_host, h_port, h_target));
         //-----------------------[end qt connection]---------------
 

@@ -138,8 +138,8 @@ void ChessBoard::cellClicked()
                clickCell = nullptr;
             }
         }
-        globalNet->webSocket->doReceive();
-        // globalNet->webSocket->doSend("1122");
+        // globalNet->webSocket->doReceive();
+        globalNet->webSocket->doSend("1122");
     }
 
     // здесь нужно отправить данные Юре о сделанном ходе

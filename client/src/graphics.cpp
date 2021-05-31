@@ -1,6 +1,7 @@
 #include "include/graphics.h"
 
-Client::Client(QObject *parent) :QObject(parent)
+Client::Client(std::shared_ptr<std::string> host, int port, std::shared_ptr<std::string> target, QObject *parent)
+    : host(host), port(port)
 {
     token_ = std::make_shared<std::string>();
     connect(&manager, &QNetworkAccessManager::authenticationRequired, this, &Client::authenticationRequired);
@@ -9,17 +10,22 @@ Client::Client(QObject *parent) :QObject(parent)
     connect(&manager, &QNetworkAccessManager::preSharedKeyAuthenticationRequired, this, &Client::preSharedKeyAuthenticationRequired);
     connect(&manager, &QNetworkAccessManager::proxyAuthenticationRequired, this, &Client::proxyAuthenticationRequired);
     connect(&manager, &QNetworkAccessManager::sslErrors, this, &Client::sslErrors);
+
     connect(&manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
 
     cookieJar = new MyCookieJar();
     manager.setCookieJar(cookieJar);
 }
 
-void Client::getData(char const* host, int port, char const* target)
+void Client::getData(std::shared_ptr<std::string> target, const fp &signal)
 {
+    _signal = signal;
     qInfo() << "Get data from server";
 
-    QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(setUrl(host, port, target))));
+    QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(setUrl(host->c_str(), port, target->c_str()))));
+    // sleep(1);
+    qDebug() << "connect to ready read";
+
     connect(reply, &QNetworkReply::readyRead, this, &Client::readyRead);
 }
 
@@ -54,12 +60,14 @@ void Client::readyRead()
                     if (HTTPDEBUG)  qDebug() << "Cookie: " << header + ": " + cookie;
                     std::string msg = cookie.toStdString();
                     auto beg = msg.find("token=") + 6;
-                    auto end = msg.substr(beg).find('\"');
-                    token_ = std::make_shared<std::string>(msg.substr(beg, end));
+                    //auto end = msg.substr(beg).find('\"');
+//                    token_ = std::make_shared<std::string>(msg.substr(beg, end));
+//                    global_token = msg.substr(beg, end);
+                    auto tmp = msg.substr(beg);
+                    msg_Singleton::instance().set(tmp);
                     // qDebug() << "token: " << QString::fromLocal8Bit(token_->c_str());
                 }
             }
-
 
             qDebug() << "reply: " << rp;
             file->write(rp);
@@ -75,6 +83,8 @@ void Client::readyRead()
 
     if (HTTPDEBUG)  qDebug() << "Data is get";
     emit onReady();
+    if (_signal != nullptr) emit _signal();
+    // emit MainWindow::onSaveToken();
 }
 
 void Client::parseFromJSON(std::shared_ptr<QFile> file)
@@ -166,9 +176,9 @@ QUrl Client::setUrl(char const* host, int port, char const* target)
     return url;
 }
 
-void Client::download(QString url)
+void Client::download(std::shared_ptr<std::string> target)
 {
-    _download(QUrl(url));
+    _download(setUrl(host->c_str(), port, target->c_str()));
 }
 
 void Client::_download(QUrl url)

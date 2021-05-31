@@ -237,28 +237,22 @@ void MainWindow::logoutClicked()
 
 void MainWindow::loginClicked()
 {
-    //---------------- [qt connection]---------------
+    QByteArray name;
+    name.append("Sveta");
+    std::shared_ptr<std::string> h_target = std::make_shared<std::string>("/register/Sveta");
 
+    globalNet->httpClient->getData(h_target, [&] () {onSaveToken();});
 
-       auto const h_port = 8000;
-       auto const h_host = "127.0.0.1";
+    qDebug() << "GET";
+    saveToken();
+    connect(this, SIGNAL(onSaveToken()), this, SLOT(saveToken()));
+}
 
-       QByteArray name;
-       name.append("Sveta");
-       auto const h_target = "/register/Sveta";
+void MainWindow::saveToken()
+{
+    *(token_) =  *(globalNet->httpClient->getToken()); // std::shared_ptr<std::string>((globalNet->httpClient->getToken()));
 
-       globalNet->httpClient->getData(h_host, h_port, h_target);
-       globalNet->httpClient->_download(globalNet->httpClient->setUrl(h_host, h_port, h_target));
-       qDebug() << "end downland";
-
-       // qDebug() << "token after login: " << QString::fromLocal8Bit(smtg.c_str());
-       *(token_) =  *(globalNet->httpClient->getToken()); // std::shared_ptr<std::string>((globalNet->httpClient->getToken()));
-
-       qDebug() << "token after login: " << QString::fromLocal8Bit(token_->c_str());
-    //-----------------------[end at connection]---------------*/
-    // globalNet->httpClient->doReceive();
-    // globalNet->httpClient->doSend("New message from client");
-
+    qDebug() << "token after login: " << QString::fromLocal8Bit(token_->c_str());
     setRegisterUser(0);
     authorizerIs->show();
     authorizerNo->hide();

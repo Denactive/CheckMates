@@ -17,6 +17,7 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 message(${GTEST_LIBRARIES})
 find_package(GMock REQUIRED)
+set(INCLUDE_DIRECTORIES include include/windows)
 include_directories(${INCLUDE_DIRECTORIES})
 message(${GMOCK_LIBRARIES})
 
@@ -52,8 +53,6 @@ set(SERVER_SOURCES
 set(PROJECT_SOURCES
         main.cpp
 
-        #include/wsclient.h
-
         #src/wsclient.cpp
         #src/serverconnection.cpp
         src/graphics.cpp
@@ -63,6 +62,7 @@ set(PROJECT_SOURCES
         src/database.cpp
         src/figures.cpp
         src/gameobjects.cpp
+        src/echoclient.cpp
 
         src/windows/mainwindow.cpp
         src/windows/chatwindow.cpp
@@ -71,8 +71,9 @@ set(PROJECT_SOURCES
         src/windows/settingswindow.cpp
         src/windows/authorizerwindow.cpp
 
-        src/echoclient.cpp
 
+        #include/wsclient.h
+        include/echoclient.h
         #include/serverconnection.h
         include/graphics.h
         include/chessboard.h
@@ -89,9 +90,7 @@ set(PROJECT_SOURCES
         include/windows/settingswindow.h
         include/windows/authorizerwindow.h
 
-        include/echoclient.h
-
-        database.db3
+#        database.db3
 
         ${TS_FILES}
 )
