@@ -1,3 +1,1 @@
-{
-    "name": "Anton"
-}
+Cookie is valid for 15 minutes

@@ -18,10 +18,14 @@
 #include <QDesktopWidget>
 #include <QMainWindow>
 
+#include <string>
+#include <memory>
+#include <iostream>
 #include "include/community.h"
 #include "include/windows/chatwindow.h"
 #include "include/database.h"
 #include "include/windows/gamewindow.h"
+#include "include/graphics.h"
 
 class IMenuWindow {
 public:
@@ -38,7 +42,8 @@ class MenuWindow : public QWidget, public IMenuWindow {
 public:
     MenuWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, bool isMatching = false,
                std::vector<std::shared_ptr<Chat>> chatInfo = {}, std::vector<std::shared_ptr<User>> friendsInfo = {},
-               std::shared_ptr<GameInfo> gameInfo = {},  std::shared_ptr<User> opponent = nullptr, std::vector<std::shared_ptr<User>> frnsInfo = {});
+               std::shared_ptr<GameInfo> gameInfo = {},  std::shared_ptr<User> opponent = nullptr, std::vector<std::shared_ptr<User>> frnsInfo = {},
+               GlobalNet *globalNet = nullptr, std::shared_ptr<std::string> token = nullptr);
     void drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) override;
     void drawMiddle();
     void drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) override;
@@ -50,6 +55,8 @@ public:
 
 public slots:
     void tapPlay() override;
+    void beginGame();
+
     void chooseFriend() override;
     void chooseChat() override;
     void changeMatching();
@@ -77,6 +84,9 @@ private:
 
     MyButton * playButton;
     LabelImage * previewLabelImage;
+
+    GlobalNet *globalNet;
+    std::shared_ptr<std::string> token_;
 };
 
 #endif // MENUWINDOW_H

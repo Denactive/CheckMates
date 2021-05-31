@@ -25,7 +25,7 @@ int main() {
 
     // BE CAREFUL WITH FILEPATH
     Options opts_http("http", ServerName, IP, 8000, storage_root, http_logger);
-    Options opts_ws("ws", ServerName, IP, 8001, storage_root, ws_logger);
+    Options opts_ws("ws", ServerName, IP, 1234, storage_root, ws_logger);
     Server s_http(opts_http, active_users);
     Server s_ws(opts_ws, active_users);
 

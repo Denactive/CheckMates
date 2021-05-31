@@ -9,8 +9,9 @@
 
 void runGame();
 
-GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent)
-    : QWidget(parent), gameInfo(gameInfo), opponent(opponent), main(main)
+GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo,
+                       std::shared_ptr<User> opponent, GlobalNet *globalNet)
+    : QWidget(parent), gameInfo(gameInfo), opponent(opponent), main(main), globalNet(globalNet)
 {
 //    net::io_context ioc;
 //    ioc.run();
@@ -36,7 +37,7 @@ GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<G
 
 void GameWindow::drawGame()
 {
-    if (DEBUG) qDebug() << "game opponent: " << opponent->getName();
+    // qDebug() << "game opponent: " << opponent->getName();
     checkGame();
 
     game = new QVBoxLayout();
@@ -119,14 +120,7 @@ void GameWindow::drawGameTop()
     topLayout->addWidget(gameMessage);
 
     topLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
-
-//    User user;
-//    user.setName("Friend name");
-//    QPixmap photo("../img/friendPhoto.png");
-//    user.setUserPhoto(photo);
     topLayout->addLayout(playerStatisticsDraw());
-
-
     topLayout->setAlignment(Qt::AlignRight);
 
     game->addLayout(topLayout);
@@ -166,7 +160,7 @@ QVBoxLayout* GameWindow::drawChat(Chat *chat)  {
 void GameWindow::sendClicked()
 {
     qDebug() << "send: " << writeMessage->text();
-    qDebug() << "buffer: " << QString::fromLocal8Bit(connection->buffer().c_str());
+    // qDebug() << "buffer: " << QString::fromLocal8Bit(connection->buffer().c_str());
 
     QListWidgetItem *item = new QListWidgetItem(writeMessage->text());
     QFont font("Helvetica [Cronyx]", 20);

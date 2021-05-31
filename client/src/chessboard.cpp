@@ -9,8 +9,8 @@
 #include  "include/chessboard.h"
 #include "include/cell.h"
 
-ChessBoard::ChessBoard(QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, int newSize, QWidget *parent)
-    :QWidget(parent), main(main), size(newSize), gameInfo(gameInfo) {
+ChessBoard::ChessBoard(QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, int newSize, GlobalNet * globalNet, QWidget *parent)
+    :QWidget(parent), main(main), size(newSize), gameInfo(gameInfo), globalNet(globalNet) {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     mainLayout = new QGridLayout();
@@ -138,6 +138,8 @@ void ChessBoard::cellClicked()
                clickCell = nullptr;
             }
         }
+        globalNet->webSocket->doReceive();
+        // globalNet->webSocket->doSend("1122");
     }
 
     // здесь нужно отправить данные Юре о сделанном ходе

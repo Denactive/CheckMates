@@ -2,6 +2,7 @@
 
 Client::Client(QObject *parent) :QObject(parent)
 {
+    token_ = std::make_shared<std::string>();
     connect(&manager, &QNetworkAccessManager::authenticationRequired, this, &Client::authenticationRequired);
     connect(&manager, &QNetworkAccessManager::encrypted, this, &Client::encrypted);
     connect(&manager, &QNetworkAccessManager::networkAccessibleChanged, this, &Client::networkAccessibleChanged);
@@ -45,6 +46,21 @@ void Client::readyRead()
         std::shared_ptr<QFile> file = std::make_shared<QFile>("../../server/storage/getdata.txt");
         if (file->open(QFile::WriteOnly)) {
             QByteArray rp = reply->readAll();
+            // QString::fromUtf8(data);
+            QList<QByteArray> headerList = reply->rawHeaderList();
+            for (auto & header : headerList) {
+                if (header == "Set-Cookie") {
+                    QString cookie = reply->rawHeader(header);
+                    if (HTTPDEBUG)  qDebug() << "Cookie: " << header + ": " + cookie;
+                    std::string msg = cookie.toStdString();
+                    auto beg = msg.find("token=") + 6;
+                    auto end = msg.substr(beg).find('\"');
+                    token_ = std::make_shared<std::string>(msg.substr(beg, end));
+                    // qDebug() << "token: " << QString::fromLocal8Bit(token_->c_str());
+                }
+            }
+
+
             qDebug() << "reply: " << rp;
             file->write(rp);
             file->close();
@@ -53,11 +69,11 @@ void Client::readyRead()
         }
 
         // просто тест - после того, как записали в файл считываем с него и переводим с json формата
-        parseFromJSON(file);
-        parseToJSON(file);
+        // parseFromJSON(file);
+        // parseToJSON(file);
     }
 
-    qDebug() << "Data is get";
+    if (HTTPDEBUG)  qDebug() << "Data is get";
     emit onReady();
 }
 
@@ -99,11 +115,11 @@ void Client::encrypted(QNetworkReply *reply)
 void Client::finished(QNetworkReply *reply)
 {
     qInfo() << "finished";
-    qDebug() << reply->readAll();
-    qDebug() << "getAllCookies: " << cookieJar->getAllCookies();
+    if (HTTPDEBUG) qDebug() << reply->readAll();
+    if (HTTPDEBUG) qDebug() << "getAllCookies: " << cookieJar->getAllCookies();
     QList<QByteArray> headerList = reply->rawHeaderList();
         foreach(QByteArray head, headerList) {
-            qDebug() << head << ":" << reply->rawHeader(head);
+            // qDebug() << head << ":" << reply->rawHeader(head);
         }
 }
 
@@ -157,6 +173,7 @@ void Client::download(QString url)
 
 void Client::_download(QUrl url)
 {
+    qDebug() << "downland from url";
     //enters event loop, simulate blocking io
     QEventLoop q;
     QTimer t;
@@ -172,28 +189,28 @@ void Client::_download(QUrl url)
     if (t.isActive()) {
         t.stop();
         QByteArray response = reply->readAll();
-        qDebug() << response;
+        if (HTTPDEBUG)  qDebug() << response;
 
         QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
         if (reply->error()) {
-            qDebug()<< "Download failed" <<  reply->errorString();
+            if (HTTPDEBUG)  qDebug()<< "Download failed" <<  reply->errorString();
         } else if (!redirectionTarget.isNull()) {
             QUrl newUrl = url.resolved(redirectionTarget.toUrl());
-            qDebug()<< "Redirect to" <<  newUrl.toString();
+            if (HTTPDEBUG)  qDebug()<< "Redirect to" <<  newUrl.toString();
             url = newUrl;
             // reply->deleteLater();
             _download(url);
         } else {
-            qDebug() << "Finish! ";
+            if (HTTPDEBUG) qDebug() << "Finish! ";
         }
 
         reply->deleteLater();
 
     } else {
-        qDebug() << "Timeout";
+        if (HTTPDEBUG)  qDebug() << "Timeout";
     }
 
     cookiesList = cookieJar->getAllCookies();
-    qDebug() << "getAllCookies: " << cookiesList;
+    if (HTTPDEBUG)  qDebug() << "getAllCookies: " << cookiesList;
 }
 

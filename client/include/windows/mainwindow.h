@@ -29,13 +29,17 @@
 #include "include/windows/chatwindow.h"
 #include "include/windows/settingswindow.h"
 #include "include/windows/gamewindow.h"
+#include "include/serverconnection.h"
 
+#include <memory>
+#include <string>
+#include <iostream>
 
 class MainWindow : public QWidget
 {
     Q_OBJECT
 public:
-    MainWindow(std::shared_ptr<Database> db, QWidget * parent = 0);
+    MainWindow(std::shared_ptr<Database> db, GlobalNet *globalNet = nullptr, QWidget * parent = 0);
     ~MainWindow();
     void drawTop();
     void drawBottom();
@@ -80,6 +84,8 @@ private:
     std::shared_ptr<User> opponent;
 
     std::shared_ptr<Database> db;
+    GlobalNet *globalNet;
+    std::shared_ptr<std::string> token_;
 };
 
 #endif // MAINWINDOW_H

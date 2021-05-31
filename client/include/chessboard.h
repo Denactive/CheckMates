@@ -15,6 +15,7 @@
 #include "include/cell.h"
 #include "include/figures.h"
 #include "include/database.h"
+#include "include/graphics.h"
 
 class IChessBoard {
     virtual void arrangeFigures(bool isWhite) = 0;
@@ -26,7 +27,8 @@ class ChessBoard : public QWidget,  public IChessBoard
 {
     Q_OBJECT
 public:
-    ChessBoard(QStackedWidget * main = nullptr, std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(), int newSize = 0, QWidget * parent = nullptr);
+    ChessBoard(QStackedWidget * main = nullptr, std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(),
+               int newSize = 0, GlobalNet * globalNet = nullptr, QWidget * parent = nullptr);
     void arrangeFigures(bool isWhite) override;;
     int getSize() const override { return size; }
     void setSize(int newSize) { size = newSize; }
@@ -43,10 +45,10 @@ private:
     Cell *clickCell;
     int size;
 
-    // bool isPlayer; // true - you, false - friend
-    // bool kingUnderMat;
     std::shared_ptr<GameInfo> gameInfo;
     int kingPos;
+
+    GlobalNet * globalNet;
 
     Cell* createCell(const QString &color, int x, int y, const char *member);
     void drawBoardLabels();

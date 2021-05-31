@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 project(CheckMates)
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
 
 # крутая компиляция для взрослых
 #set(CMAKE_CXX_FLAGS "-g -coverage -O0 -Wall -fprofile-arcs -ftest-coverage -fPIC -lstdc++fs")

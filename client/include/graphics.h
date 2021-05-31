@@ -1,6 +1,8 @@
 ﻿#ifndef GRAPHICS_H
 #define GRAPHICS_H
 
+#define HTTPDEBUG 0
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -21,11 +23,11 @@
 // #include <QtWebSockets/QWebSocket>
 
 #include "include/community.h"
-#include "include/chessboard.h"
 #include "include/figures.h"
-#include "include/windows/mainwindow.h"
 #include "include/database.h"
+#include "include/echoclient.h"
 #include <unistd.h>
+#include <string>
 
 #include <../boost/beast/http.hpp>
 #include <../boost/asio/strand.hpp>
@@ -48,6 +50,8 @@ public:
     QUrl setUrl(char const* host, int port, char const* target);
     void download(QString);
     void _download(QUrl);
+    std::shared_ptr<std::string> getToken() { return token_; }
+    QNetworkAccessManager & getManager() { return manager; }
 
 signals:
     void onReady();
@@ -74,5 +78,12 @@ private:
     QNetworkAccessManager manager;
     MyCookieJar *cookieJar;
     QList<QNetworkCookie> cookiesList;
+    std::shared_ptr<std::string> token_;
 };
+
+typedef struct {
+    std::shared_ptr<EchoClient> webSocket;
+    std::shared_ptr<Client> httpClient;
+} GlobalNet;
+
 #endif // GRAPHICS_H

@@ -1,7 +1,10 @@
 #include <QDebug>
 #include "include/windows/mainwindow.h"
 
-MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(parent), db(db) {
+MainWindow::MainWindow(std::shared_ptr<Database> db, GlobalNet *globalNet, QWidget * parent)
+    :QWidget(parent), db(db), globalNet(globalNet) {
+    token_ = std::make_shared<std::string>("0000");
+
     setStyleSheet("background-image: url(../img/background2.jpg); background-color: #EDECEA;");
     main = new QStackedWidget();
     mainLayout = new QVBoxLayout();
@@ -39,12 +42,11 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
     opponent = friendsInfo[gameInfo->opponentId];
     // end of get data
 
-    MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo, gameInfo, opponent, friendsInfo);
+    MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo, gameInfo, opponent, friendsInfo, globalNet, token_);
+    main->insertWidget(0, menuWindow);
 
     SettingsWindow *settingsWindow = new SettingsWindow(this, main, infoAboutMe);
     AuthorizerWindow *authorizerWindow = new AuthorizerWindow(this, main, true);
-
-    main->insertWidget(0, menuWindow);
 
     main->insertWidget(2, settingsWindow);
     main->insertWidget(3, authorizerWindow);
@@ -199,8 +201,7 @@ void MainWindow::developersClicked()
     QMessageBox::information(this, "Developers", "Developers: \n"\
                                                 "Турчин Денис \n"\
                                                 "Очеретная Светлана \n"\
-                                                "Любский Юрий \n"\
-                                                "Овчинникова Ксения");
+                                                "Любский Юрий \n");
 }
 
 void MainWindow::donateClicked()
@@ -213,8 +214,7 @@ void MainWindow::contactsClicked()
     QMessageBox::information(this, "Contacts", "Если есть вопросы, пишите вк: \n"\
                                                 "@denactive\n"\
                                                 "@svetlanlka\n"\
-                                                "@ylybskiy\n"\
-                                                "@kseniaparvaty");
+                                                "@ylybskiy\n");
 }
 
 void MainWindow::exitClicked()
@@ -225,6 +225,7 @@ void MainWindow::exitClicked()
 
 void MainWindow::logoutClicked()
 {
+    qDebug() << "token before logout : " << QString::fromLocal8Bit(token_->c_str());
     QMessageBox::StandardButton reply =
             QMessageBox::question(this, "Logout", "Если вы действительно хотите выйти из аккаунта, нажмите ОК", QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
@@ -236,6 +237,28 @@ void MainWindow::logoutClicked()
 
 void MainWindow::loginClicked()
 {
+    //---------------- [qt connection]---------------
+
+
+       auto const h_port = 8000;
+       auto const h_host = "127.0.0.1";
+
+       QByteArray name;
+       name.append("Sveta");
+       auto const h_target = "/register/Sveta";
+
+       globalNet->httpClient->getData(h_host, h_port, h_target);
+       globalNet->httpClient->_download(globalNet->httpClient->setUrl(h_host, h_port, h_target));
+       qDebug() << "end downland";
+
+       // qDebug() << "token after login: " << QString::fromLocal8Bit(smtg.c_str());
+       *(token_) =  *(globalNet->httpClient->getToken()); // std::shared_ptr<std::string>((globalNet->httpClient->getToken()));
+
+       qDebug() << "token after login: " << QString::fromLocal8Bit(token_->c_str());
+    //-----------------------[end at connection]---------------*/
+    // globalNet->httpClient->doReceive();
+    // globalNet->httpClient->doSend("New message from client");
+
     setRegisterUser(0);
     authorizerIs->show();
     authorizerNo->hide();

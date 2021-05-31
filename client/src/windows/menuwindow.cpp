@@ -7,9 +7,11 @@
 #include <QDebug>
 #include <QMessageBox>
 
-MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo,
-                       std::vector<std::shared_ptr<User>> friendsInfo, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent, std::vector<std::shared_ptr<User>> frnsInfo)
-    :QWidget(parent), main(main), isMatching(isMatching), gameInfo(gameInfo), friendsInfo(frnsInfo), opponent(opponent)
+MenuWindow::MenuWindow(QWidget * parent, QStackedWidget * main, bool isMatching,
+                                  std::vector<std::shared_ptr<Chat>> chatInfo, std::vector<std::shared_ptr<User>> friendsInfo,
+                                  std::shared_ptr<GameInfo> gameInfo,  std::shared_ptr<User> opponent, std::vector<std::shared_ptr<User>> frnsInfo,
+                                  GlobalNet *globalNet, std::shared_ptr<std::string> token)
+    :QWidget(parent), main(main), isMatching(isMatching), gameInfo(gameInfo), friendsInfo(frnsInfo), opponent(opponent), globalNet(globalNet), token_(token)
 {
     menu = new QHBoxLayout();
     menu->setAlignment(Qt::AlignCenter);
@@ -166,12 +168,30 @@ void MenuWindow::tapPlay()
     } else {
         if (DEBUG) qDebug() << "game info opponent id: " << gameInfo->opponentId;
         if (DEBUG) qDebug() << "opponent: " << opponent->getName();
+        //---------------- [qt connection]---------------
+           auto const h_port = 8000;
+           auto const h_host = "127.0.0.1";
 
-        GameWindow *gameWindow = new GameWindow(this, main, gameInfo, opponent);
-        main->insertWidget(1, gameWindow);
-        main->setCurrentIndex(1);
-        qDebug() << "main -> play\n";
+           std::cout << "token id after begin game:" << *(token_);
+           qDebug() << "token after begin game: " << QString::fromLocal8Bit(token_->c_str());
+           std::string _target = "/start_game/" + *(token_);
+           auto const h_target = _target.c_str();
+
+           globalNet->httpClient->getData(h_host, h_port, h_target);
+           // globalNet->httpClient->_download(globalNet->httpClient->setUrl(h_host, h_port, h_target));
+        //-----------------------[end qt connection]---------------
+
+           sleep(3);
+           beginGame();
+           // connect(&globalNet->httpClient->getManager(), SIGNAL(&globalNet->httpClient->getManager()::finished), this, SLOT(beginGame()));
     }
+}
+
+void MenuWindow::beginGame() {
+    GameWindow *gameWindow = new GameWindow(this, main, gameInfo, opponent, globalNet);
+    main->insertWidget(1, gameWindow);
+    main->setCurrentIndex(1);
+    qDebug() << "main -> play\n";
 }
 
 void MenuWindow::chooseFriend()

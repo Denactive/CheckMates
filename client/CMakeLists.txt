@@ -41,16 +41,21 @@ ENDIF()
 enable_testing()
 #add_subdirectory(tests)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS 3rdparty Widgets Core Quick Sql Network LinguistTools REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Core Quick Sql Network LinguistTools REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS 3rdparty Widgets Core Quick Sql Network WebSockets LinguistTools REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Core Quick Sql Network LinguistTools WebSockets REQUIRED)
+
+set(SERVER_SOURCES
+        main2.cpp
+        include/echoserver.h
+        src/echoserver.cpp)
 
 set(PROJECT_SOURCES
         main.cpp
 
-        include/wsclient.h
+        #include/wsclient.h
 
-        src/wsclient.cpp
-        src/serverconnection.cpp
+        #src/wsclient.cpp
+        #src/serverconnection.cpp
         src/graphics.cpp
         src/chessboard.cpp
         src/cell.cpp
@@ -66,8 +71,9 @@ set(PROJECT_SOURCES
         src/windows/settingswindow.cpp
         src/windows/authorizerwindow.cpp
 
+        src/echoclient.cpp
 
-        include/serverconnection.h
+        #include/serverconnection.h
         include/graphics.h
         include/chessboard.h
         include/cell.h
@@ -83,13 +89,23 @@ set(PROJECT_SOURCES
         include/windows/settingswindow.h
         include/windows/authorizerwindow.h
 
+        include/echoclient.h
+
+        database.db3
+
         ${TS_FILES}
 )
 
 add_library(clientlib SHARED ${PROJECT_SOURCES})
 target_link_libraries(clientlib Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Network
-    GTest::GTest GTest::Main)
+    Qt${QT_VERSION_MAJOR}::WebSockets GTest::GTest GTest::Main)
+
+
+add_library(serverlib SHARED ${SERVER_SOURCES})
+target_link_libraries(serverlib Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::WebSockets GTest::GTest GTest::Main)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(client ${PROJECT_SOURCES})
@@ -99,10 +115,10 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
+add_executable(server main2.cpp include/echoserver.h src/echoserver.cpp)
+
 target_link_libraries(client PRIVATE clientlib)
+target_link_libraries(server PRIVATE serverlib)
 
 add_executable(server_connect server_connect/BoostExampleClient.cpp)
 target_link_libraries (server_connect ${Boost_LIBRARIES} -lpthread)
-
-
-

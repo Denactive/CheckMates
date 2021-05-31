@@ -38,8 +38,8 @@ class GameWindow :  public QWidget, public IGameWindow {
     Q_OBJECT
 
 public:
-    GameWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr,
-               std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(), std::shared_ptr<User> opponent = std::make_shared<User>());
+    GameWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(),
+               std::shared_ptr<User> opponent = std::make_shared<User>(), GlobalNet *globalNet = nullptr);
     void checkGame();
     bool moveFigure(Figure *figure) override { return true; };
     QWidget* drawGameChat();
@@ -64,5 +64,7 @@ private:
     QLineEdit * writeMessage;
     QLabel *gameMessage;
     QLabel * gameTime;
+
+    GlobalNet *globalNet;
 };
 #endif // GAMEWINDOW_H
