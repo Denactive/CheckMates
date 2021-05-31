@@ -21,8 +21,12 @@ IF (Boost_FOUND)
 ENDIF()
 add_executable(ws_client_test client_example/WSClient.cpp)
 target_link_libraries (ws_client_test ${Boost_LIBRARIES} -lpthread)
-add_executable(http_client_test client_example/BoostExampleClient.cpp)
-target_link_libraries (http_client_test ${Boost_LIBRARIES} -lpthread)
+add_executable(http_client_test_Denis client_example/BoostExampleClientDenis.cpp)
+target_link_libraries (http_client_test_Denis ${Boost_LIBRARIES} -lpthread)
+add_executable(http_client_test_Yuora client_example/BoostExampleClientYoura.cpp)
+target_link_libraries (http_client_test_Yuora ${Boost_LIBRARIES} -lpthread)
+add_executable(http_client_test_cookie client_example/BoostExampleClientCookie.cpp)
+target_link_libraries (http_client_test_cookie ${Boost_LIBRARIES} -lpthread)
 
 add_executable(${PROGRAM_NAME}
         ${SOURCE_DIR}/main.cpp

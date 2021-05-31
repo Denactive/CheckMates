@@ -63,7 +63,7 @@ public:
         run(
             char const* host,
             char const* port,
-            char const* target,
+            std::string& target,
             int version)
     {
         if (BASIC_DEBUG) std::cout << "run\n";

@@ -201,7 +201,7 @@ int main(int argc, char** argv)
     //auto const host = "192.168.1.26";
     //auto const host = "25.40.253.246";
     auto const host = "127.0.0.1";
-    std::string target = "/start_game/";
+    auto const target = "/register/Youra";
     auto const version = 11;
     
     // The io_context is required for all I/O
@@ -209,11 +209,14 @@ int main(int argc, char** argv)
     std::set<std::shared_ptr<session>> sessions;
 
     // Launch the asynchronous operation
-    std::string cookie;
-    std::cin >> cookie;
-    target += cookie;
-
-    std::make_shared<session>(ioc)->run(host, port, target, version);
+    std::cout << "CLIENT [" << 1 << "]\nConnecting to " << host << ':' << port << "\nTrying to GET " << target << std::endl;
+    /*client1*/  std::make_shared<session>(ioc)->run(host, port, target, version);
+    for (int i = 0; i < 0; ++i) {
+        sleep(DELAY);
+        std::cout << "CLIENT [" << i + 2 << "]\nConnecting to " << host << ':' << port << "\nTrying to GET " << target << std::endl;
+        sessions.insert(std::make_shared<session>(ioc));
+    }
+    // Run the I/O service. The call will return when
     // the get operation is complete.
     ioc.run();
 
