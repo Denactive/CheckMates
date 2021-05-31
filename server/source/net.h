@@ -1053,7 +1053,7 @@ public:
 
             auto game = game_pair->second;
             game->you()->Set_Session(shared_from_this());
-            auto avail = game->enemy()->access();
+            auto avail = game->you()->access();
             auto info = game->send_info();
             std::cout << avail.size();
             std::stringstream ss;
@@ -1111,7 +1111,7 @@ public:
             if (!validation) {
                 std::cout << "valid move\n";
             }
-        std::vector<std::array<size_t, 4>>avail = game->you()->access();
+            std::vector<std::array<size_t, 4>>avail = game->enemy()->access();
             if (!validation) {
                 game->prepare_turn();
                 info = game->send_info();
