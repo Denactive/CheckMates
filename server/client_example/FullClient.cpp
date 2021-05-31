@@ -592,6 +592,11 @@ int main(int argc, char** argv)
             ws_connection->write(buffer);
             break;
 
+        case 'p':
+            buffer = "{\n\tprepare,\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29\n}";
+            ws_connection->write(buffer);
+            break;
+
         default:
             skip_waiting = true;
         }
