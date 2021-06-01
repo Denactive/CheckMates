@@ -42,19 +42,18 @@ private:
     std::shared_ptr<IUser> user_;
 
 public:
-    std::shared_ptr<WebSocketSession> Get_Session() override {
-        return session;
-    };
-    void Set_Session(std::shared_ptr<WebSocketSession> ss) override {
-        session = ss;
-    };
-    std::shared_ptr<WebSocketSession> session;
+    std::shared_ptr<WebSocketSession> session = nullptr;
+    
+    std::shared_ptr<WebSocketSession> Get_Session() override { return session; }
+    void Set_Session(std::shared_ptr<WebSocketSession> ss) override { session = ss; }
+    
     void flag_castl(std::array<size_t, M> turn) override;
 
     Player(std::shared_ptr<IUser> user, std::shared_ptr<ChessBoard> board, bool wb)
         : user_(user)
         , board(board)
-        , king(nullptr), wb(wb)
+        , king(nullptr)
+        , wb(wb)
     {
         Player::set_pieces();
         king = static_cast<King*>(pieces[4]);
@@ -62,10 +61,7 @@ public:
 
     size_t try_capture(std::array<size_t, M> turn);
 
-    std::vector<std::array<size_t, M>>& access() {
-        std::vector<std::array<size_t, M>>& temp = moves;
-        return temp;
-    }
+    std::vector<std::array<size_t, M>>& access() { return moves; }
 
     std::shared_ptr<ChessBoard> getboard () { return board; }
 

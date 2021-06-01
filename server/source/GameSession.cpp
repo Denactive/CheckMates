@@ -1,12 +1,12 @@
 #include "GameSession.h"
 
-void GameSession::move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy, std::array<size_t, M> turn) {
+void GameSession::move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy, std::array<size_t, M>& turn) {
     you->move(turn);
     board->move_chess(turn);
     enemy->is_captured(turn);
 }
 
-void GameSession::try_move(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) {
+void GameSession::try_move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) {
     std::array<size_t, M> turn, reverse, capt;
     std::vector<std::array<size_t, M>>& moves = you->access();
     if (moves.empty()) {
@@ -53,7 +53,7 @@ bool GameSession::GameStatus() {
     return info.isGame;
 };
 
-void GameSession::print_moves(std::shared_ptr<IPlayer> you) {
+void GameSession::print_moves(std::shared_ptr<IPlayer>& you) {
     std::vector<std::array<size_t, M>> moves = you->access();
     for (auto i = moves.begin(); i < moves.end(); ++i) {
         std::cout << (*i)[0] << ' ' << (*i)[1] << ' ' << (*i)[2] << ' ' << (*i)[3] << '\n';
@@ -61,7 +61,7 @@ void GameSession::print_moves(std::shared_ptr<IPlayer> you) {
 }
 
 
-bool GameSession::is_check(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) {
+bool GameSession::is_check(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) {
     std::array<size_t, K> p;
     const size_t* pos = you->where();
     p[0] = pos[0];
@@ -74,7 +74,7 @@ bool GameSession::is_check(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer
     return true;
 }
 
-bool GameSession::is_mate(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) {
+bool GameSession::is_mate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) {
 
     std::vector<std::array<size_t, M>> avail = you->access();
     if (is_check(you, enemy) && avail.size() == 0) {
@@ -83,7 +83,7 @@ bool GameSession::is_mate(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer>
     return false;
 
 };
-bool GameSession::is_stalemate(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) {
+bool GameSession::is_stalemate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) {
     std::vector<std::array<size_t, M>> avail = you->access();
     if (!is_check(you, enemy) && avail.size() == 0) {
         return true;

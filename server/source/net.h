@@ -1010,8 +1010,8 @@ public:
             return write(res);
         }
         game_error_code ec;
-        if (req.find("start")!= std::string::npos) {
-            std::cout <<"Parsing start\n";
+        if (req.find("prepare")!= std::string::npos) {
+            std::cout <<"prepare Parsing\n";
             auto game_token = req.find("game_token: ");
             auto comma = req.substr(game_token + 12).find(',');
             auto token = req.substr(game_token + 12, comma);
@@ -1028,10 +1028,83 @@ public:
                 (*res) = "Game not found";
                 return write(res);
             }
+            auto game = game_pair->second;
+            game->enemy()->Set_Session(shared_from_this());
+            return;
+
+        }
+
+        // WS request to say they are ready to start the game
+        if (req.find("start") != std::string::npos) {
+            std::cout <<"Parsing start\n";
+            auto game_token = req.find("game_token: ");
+            if (game_token == std::string::npos) {
+                std::cout << "\tNo Game_token\n";
+                (*res) = "\tNo game token";
+                return write(res);
+            }
+            auto comma = req.substr(game_token + 12).find(',');
+            if (comma == std::string::npos) {
+                std::cout << "\tNo comma after game_token\n";
+                (*res) = "\tNo comma after game token";
+                return write(res);
+            }
+            // token
+            auto token = req.substr(game_token + 12, comma);
+            if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << token << "\n";
+            auto uid = req.find("id: ");
+            if (uid == std::string::npos) {
+                std::cout << "\tNo uid\n";
+                (*res) = "\tNo uid";
+                return write(res);
+            }
+            auto closing_bracket = req.substr(uid + 4).find('}');
+            if (closing_bracket == std::string::npos) {
+                std::cout << "\tNo closing_bracket\n";
+                (*res) = "\tNo closing bracket after uid";
+                return write(res);
+            }
+            // uid
+            int id = atoi((req.substr(uid + 4, closing_bracket)+ "\0").c_str());
+            if (MOVE_PARSE_DEBUG) std::cout << "\tid: " << id << std::endl;
+
+            // game
+            auto games = MQSingleton::instance().get().get_games();
+            auto game_pair = games->find(token);
+            if (game_pair == games->end()) {
+                std::cout << "\tGame with token " << token << " is not found\n";
+                (*res) = "Game not found";
+                return write(res);
+            }
 
             auto game = game_pair->second;
             game->you()->Set_Session(shared_from_this());
-            std::cout << game->you()->Get_Session();
+            auto avail = game->you()->access();
+            auto info = game->send_info();
+            std::cout << avail.size();
+            std::stringstream ss;
+            ss << "[ ";
+            for(std::array<size_t, 4> out : avail) {
+                ss << "[ " << out[0]*8 + out[1] << ", "<< out[2]*8 + out[3] << " ], ";
+            }
+            ss << " ]";
+            // available moves: %s,\n\
+            // Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
+            std::string content = (boost::format(MOVE_RESPONSE)
+                                   % ss.str()
+                                   % info.isPlayer
+                                   % info.isGame
+                                   % info.isVictory
+                                   % info.isCheck
+                                   % (info.turn[0] * 8 + info.turn[1])
+                                   % (info.turn[2] * 8 + info.turn[3])
+                                  ).str();
+            (*res) = content;
+            auto enemy_session = game->enemy()->Get_Session();
+            if (enemy_session != nullptr)
+                return enemy_session->write(res);
+            else
+                std::cout << "\tenemy_session is nullptr\n";
             return;
         }
 
@@ -1053,36 +1126,30 @@ public:
         (*res) = game_error_code_to_string(ec); // OK
 
         GInfo info = game->send_info();
-        int validation = 0;
-            if (!validation) {
-                //game->prepare_turn();
-                info = game->send_info();
-                std::cout <<"prepare";
-            }
             std::array<size_t, 4 >turn;
             turn[0] = m.prev / 8;
             turn[1] = m.prev % 8;
             turn[2] = m.cur / 8;
             turn[3] = m.cur % 8;
             std::cout << turn[0] <<' '<< turn[1]<<' '<< turn[2]<<' ' << turn[3]<<'\n';
-            validation = game->run_turn(turn);
+            int validation = game->run_turn(turn);
             std::cout << validation;
             if (!validation) {
                 std::cout << "valid move\n";
             }
-            auto you = game->you();
-            auto enemy = game->enemy();
-            std::vector<std::array<size_t, 4>>avail = you->access();
+           // std::vector<std::array<size_t, 4>>avail = game->you()->access();
+        std::vector<std::array<size_t, 4>>avail = game->enemy()->access();
             if (!validation) {
                 game->prepare_turn();
                 info = game->send_info();
-                if (!game->you()->Get_Session()) {
-                    game->you()->Set_Session(shared_from_this());
-                    std::cout << game->enemy()->Get_Session();
-                }
-
+               // if (!game->you()->Get_Session()) {
+                    //game->you()->Set_Session(shared_from_this());
+                  //  std::cout << game->enemy()->Get_Session();
+               // }
                 std::cout << "prepare2";
             }
+
+            std::cout << avail.size();
             std::stringstream ss;
             ss << "[ ";
             for(std::array<size_t, 4> out : avail) {
@@ -1091,10 +1158,8 @@ public:
             ss << " ]";
             // available moves: %s,\n\
             // Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
-            std::string b;
-            ss >> b;
             std::string content = (boost::format(MOVE_RESPONSE)
-                               % b.c_str()
+                               % ss.str()
                                % info.isPlayer
                                % info.isGame
                                % info.isVictory
@@ -1104,6 +1169,7 @@ public:
                                ).str();
             (*res) = content;
             auto enemy_session = game->enemy()->Get_Session();
+           // auto enemy_session = game->you()->Get_Session();
             if (enemy_session != nullptr)
                 enemy_session->write(res);
             else
