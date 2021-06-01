@@ -8,7 +8,7 @@ void GameSession::move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& 
 
 void GameSession::try_move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) {
     std::array<size_t, M> turn, reverse, capt;
-    std::vector<std::array<size_t, M>>& moves = you->access();
+    std::vector<std::array<size_t, M>> moves = you->access();
     if (moves.empty()) {
         return;
     }
@@ -152,11 +152,11 @@ int GameSession::prepare_turn() {
     return 0;
 }
 
-int GameSession::run_turn(std::array<size_t, M> turn) {
+int GameSession::run_turn(std::array<size_t, M>& turn) {
     bool move_accepted = false;
 
-    std::shared_ptr<IPlayer> you = bPlayer;
-    std::shared_ptr<IPlayer> enemy = wPlayer;
+    std::shared_ptr<IPlayer>& you = bPlayer;
+    std::shared_ptr<IPlayer>& enemy = wPlayer;
     size_t horiz = 7;
     if (info.isPlayer) {
         you = wPlayer;
@@ -191,9 +191,4 @@ int GameSession::run_turn(std::array<size_t, M> turn) {
         info.turn = { 0, 0 , 0, 0 };
         return 1;
     }
-}
-
-time_t GameSession::GetTime() {
-    std::cout << "fuck time\n";
-    return 0;
 }

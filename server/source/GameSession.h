@@ -76,8 +76,8 @@ class IGameSession {
 public:
     virtual ~IGameSession() {};
     virtual void CreateLog() = 0;
-    virtual time_t GetTime() = 0;
-    virtual int run_turn(std::array<size_t, M>) = 0;
+    virtual bool GameStatus() = 0;
+    virtual int run_turn(std::array<size_t, M>&) = 0;
     virtual void setup() = 0;
     virtual std::shared_ptr<IPlayer>& you() = 0;
     virtual std::shared_ptr<IPlayer>& enemy() = 0;
@@ -116,38 +116,35 @@ public:
 
     GameSession() = delete;
 
-    std::shared_ptr<IPlayer>& you() {
-        if (info.isPlayer) {
+    std::shared_ptr<IPlayer>& you() override {
+        if (info.isPlayer)
             return wPlayer;
-        } else {
+        else
             return bPlayer;
-        }
     }
-    virtual std::shared_ptr<IPlayer>& enemy() {
-        if (info.isPlayer) {
+
+    std::shared_ptr<IPlayer>& enemy() override {
+        if (info.isPlayer)
             return bPlayer;
-        } else {
+        else
             return wPlayer;
-        }
     }
 
     bool is_in_game(std::shared_ptr<IPlayer>& player) override {
-        if (player->get_user()->get_token() == wPlayer->get_user()->get_token() ||
-            player->get_user()->get_token() == bPlayer->get_user()->get_token())
+        if (player->get_user()->get_id() == wPlayer->get_user()->get_id() ||
+            player->get_user()->get_id() == bPlayer->get_user()->get_id())
             return true;
         return false;
     }
 
-    void CreateLog();
-    int prepare_turn();
-    bool is_check(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy);
-    bool is_mate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy);
-    bool is_stalemate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy);
-    bool GameStatus();
-    std::array<size_t, M> GetTurn();
-    int run_turn(std::array<size_t, M> turn);
-    void setup();
-    time_t GetTime();
+    void CreateLog() override;
+    int prepare_turn() override;
+    bool is_check(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;
+    bool is_mate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;
+    bool is_stalemate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;
+    bool GameStatus() override;
+    int run_turn(std::array<size_t, M>& turn) override;
+    void setup() override;
     ~GameSession() = default;
 
     void print_moves(std::shared_ptr<IPlayer>& you) override;

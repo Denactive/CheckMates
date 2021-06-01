@@ -1009,32 +1009,8 @@ public:
             (*res) = "OK | CLOSE";
             return write(res);
         }
-        game_error_code ec;
-        if (req.find("prepare")!= std::string::npos) {
-            std::cout <<"prepare Parsing\n";
-            auto game_token = req.find("game_token: ");
-            auto comma = req.substr(game_token + 12).find(',');
-            auto token = req.substr(game_token + 12, comma);
-            if (MOVE_PARSE_DEBUG) std::cout << "\t/game_token:/ " << token << "\n";
-            auto uid = req.find("id: ");
-            auto a = req.substr(uid + 4).find('}');
-            int id = atoi((req.substr(uid + 4, a)+ "\0").c_str());
-            if (MOVE_PARSE_DEBUG) std::cout << "\tid: " << id << std::endl;
-
-            auto games = MQSingleton::instance().get().get_games();
-            auto game_pair = games->find(token);
-            if (game_pair == games->end()) {
-                std::cout << "\tGame with token " << token << " is not found\n";
-                (*res) = "Game not found";
-                return write(res);
-            }
-            auto game = game_pair->second;
-            game->enemy()->Set_Session(shared_from_this());
-            return;
-
-        }
-
         // WS request to say they are ready to start the game
+        // WS reconnecting may be done with sending "start" once more
         if (req.find("start") != std::string::npos) {
             std::cout <<"Parsing start\n";
             auto game_token = req.find("game_token: ");
@@ -1077,37 +1053,57 @@ public:
                 return write(res);
             }
 
+            // session filling
             auto game = game_pair->second;
-            game->you()->Set_Session(shared_from_this());
-            auto avail = game->you()->access();
-            auto info = game->send_info();
-            std::cout << avail.size();
-            std::stringstream ss;
-            ss << "[ ";
-            for(std::array<size_t, 4> out : avail) {
-                ss << "[ " << out[0]*8 + out[1] << ", "<< out[2]*8 + out[3] << " ], ";
+            // it is a message from a white player
+            if (id == game->wPlayer->get_user()->get_id())
+                game->wPlayer->set_session(shared_from_this());
+            if (id == game->bPlayer->get_user()->get_id())
+                game->bPlayer->set_session(shared_from_this());
+            if (id != game->bPlayer->get_user()->get_id() && id != game->wPlayer->get_user()->get_id()) {
+                std::cout << "\tPlayer with uid " << id << " does not belong this game! (game token: " << game->get_token_string() << ").\n";
+                std::cout << "\t\tWhite player has uid: " << game->wPlayer->get_user()->get_id() << "\n";
+                std::cout << "\t\tBlack player has uid: " << game->bPlayer->get_user()->get_id() << "\n";
+                (*res) = "Player with uid " + id + std::string(" does not belong this game! (game token : ") + game->get_token_string() + ")";
+                return write(res);
             }
-            ss << " ]";
-            // available moves: %s,\n\
-            // Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
-            std::string content = (boost::format(MOVE_RESPONSE)
-                                   % ss.str()
-                                   % info.isPlayer
-                                   % info.isGame
-                                   % info.isVictory
-                                   % info.isCheck
-                                   % (info.turn[0] * 8 + info.turn[1])
-                                   % (info.turn[2] * 8 + info.turn[3])
-                                  ).str();
-            (*res) = content;
-            auto enemy_session = game->enemy()->Get_Session();
-            if (enemy_session != nullptr)
-                return enemy_session->write(res);
-            else
-                std::cout << "\tenemy_session is nullptr\n";
-            return;
-        }
 
+            // game start
+            if (game->bPlayer->get_session() != nullptr && game->wPlayer->get_session() != nullptr) {
+                // message to white player
+                auto info = game->send_info();
+                auto avail = game->you()->access();
+                std::stringstream ss;
+                ss << "[ ";
+                for (std::array<size_t, 4> out : avail)
+                    ss << "[ " << out[0] * 8 + out[1] << ", " << out[2] * 8 + out[3] << " ], ";
+                ss << " ]";
+                std::string msg_to_white = (boost::format(MOVE_RESPONSE)
+                    % ss.str()
+                    % info.isPlayer
+                    % info.isGame
+                    % info.isVictory
+                    % info.isCheck
+                    % (info.turn[0] * 8 + info.turn[1])
+                    % (info.turn[2] * 8 + info.turn[3])
+                    ).str();
+                (*res) = msg_to_white;
+
+                // TODO: check for session loop going on
+                // сейчас луп черного игока продолжается, в то время как луп белого останавливается на async write в write game start
+                // Сделай петлю чтения как на клиенте и не еби мозг
+                return write_game_start(game, res);
+            }
+            else {
+                //(*res) = "test msg";
+                //write(res);
+                (*res) = "wait for opponent connection";
+                return write(res);
+            }
+        }        
+        
+        // parse move
+        game_error_code ec;
         Move m = get_move(req, ec);
         if (ec) {
             print_game_error_code(ec);
@@ -1122,42 +1118,31 @@ public:
             (*res) = "Invalid game token";
             return write(res);
         }
+        
         auto game =  gameandtoken->second;
-        (*res) = game_error_code_to_string(ec); // OK
-
         GInfo info = game->send_info();
-            std::array<size_t, 4 >turn;
+            std::array<size_t, M> turn;
             turn[0] = m.prev / 8;
             turn[1] = m.prev % 8;
             turn[2] = m.cur / 8;
             turn[3] = m.cur % 8;
-            std::cout << turn[0] <<' '<< turn[1]<<' '<< turn[2]<<' ' << turn[3]<<'\n';
             int validation = game->run_turn(turn);
-            std::cout << validation;
-            if (!validation) {
-                std::cout << "valid move\n";
-            }
-           // std::vector<std::array<size_t, 4>>avail = game->you()->access();
-        std::vector<std::array<size_t, 4>>avail = game->enemy()->access();
+            if (!validation)
+                std::cout << "\tMove is valid\n";
+
+            std::vector<std::array<size_t, M>> avail = game->enemy()->access();
             if (!validation) {
                 game->prepare_turn();
                 info = game->send_info();
-               // if (!game->you()->Get_Session()) {
-                    //game->you()->Set_Session(shared_from_this());
-                  //  std::cout << game->enemy()->Get_Session();
-               // }
-                std::cout << "prepare2";
+                std::cout << "\tprepare2";
             }
 
             std::cout << avail.size();
             std::stringstream ss;
             ss << "[ ";
-            for(std::array<size_t, 4> out : avail) {
+            for(std::array<size_t, 4> out : avail)
                 ss << "[ " << out[0]*8 + out[1] << ", "<< out[2]*8 + out[3] << " ], ";
-            }
             ss << " ]";
-            // available moves: %s,\n\
-            // Ginfo:\n  {\n    isPlayer: %d,\n    isGame: %d,\n    isVictory: %d,\n    isCheck: %d,\n  prev: %d,\n cur: %d,\n}\n
             std::string content = (boost::format(MOVE_RESPONSE)
                                % ss.str()
                                % info.isPlayer
@@ -1168,16 +1153,17 @@ public:
                                % (info.turn[2] * 8 + info.turn[3])
                                ).str();
             (*res) = content;
-            auto enemy_session = game->enemy()->Get_Session();
-           // auto enemy_session = game->you()->Get_Session();
+
+            auto enemy_session = game->enemy()->get_session();
             if (enemy_session != nullptr)
                 enemy_session->write(res);
             else
-                std::cout << "\tenemy_session is nullptr\n";
+                std::cout << "\tError: enemy_session is nullptr\n";
     }
 
 
-    void write(std::shared_ptr<std::string>& res) {
+    void write(std::shared_ptr<std::string> res) {
+        if (BASIC_DEBUG_WS) std::cout << "WS: write\n";
         stream_.text(stream_.got_text());
         stream_.async_write(
             asio::buffer(*res),
@@ -1202,6 +1188,23 @@ public:
 
         // Do another read
         do_read();
+    }
+
+    void write_game_start(std::shared_ptr<GameSession> game, std::shared_ptr<std::string> msg_to_white) {
+        auto white = game->wPlayer->get_session();
+        auto black = game->bPlayer->get_session();
+        if (BASIC_DEBUG_WS) std::cout << "WS: write game start\n";
+        white->stream_.text(white->stream_.got_text());
+        white->stream_.async_write(
+            asio::buffer(*msg_to_white),
+            [white, black, msg_to_white](beast::error_code ec, size_t bytes_transferred) mutable {
+                boost::ignore_unused(bytes_transferred);
+                if (ec)
+                    return fail(ec, "write to white on game start");
+                white->buffer_.consume(white->buffer_.size());
+                if (BASIC_DEBUG_WS) std::cout << "WS: write game start part 2\n";
+                return black->write(std::make_shared<std::string>("started"));
+        });
     }
 
     Move get_move(std::string& req, game_error_code& ec) {

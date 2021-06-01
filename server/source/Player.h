@@ -6,7 +6,6 @@
 
 
 #include "User.h"
-//#include "GameSession.h"
 #include "ChessBoard.h"
 #include "Chesspiece.h"
 
@@ -14,9 +13,8 @@
 
 class IPlayer {
 public:
-    virtual void Set_Session(std::shared_ptr<WebSocketSession> ss) = 0;
-    virtual std::shared_ptr<WebSocketSession> Get_Session() = 0;
-    std::array<ChessPiece*, 2*N> pieces;
+    virtual std::shared_ptr<WebSocketSession> get_session() = 0;
+    virtual void set_session(std::shared_ptr<WebSocketSession>) = 0;
     virtual std::vector<std::array<size_t, M>>  all_available_Moves() = 0;
     virtual void move(std::array<size_t, M> turn) = 0;
     virtual void is_captured(std::array<size_t, M> turn) = 0;
@@ -28,7 +26,7 @@ public:
     virtual std::shared_ptr<ChessBoard> getboard () = 0;
     virtual void KingUpdate(std::set<std::array<size_t, K>> thr) = 0;
     virtual const size_t* where() = 0;
-    virtual std::vector<std::array<size_t, M>>& access() = 0;
+    virtual std::vector<std::array<size_t, M>> access() = 0;
     virtual std::set<std::array<size_t, K>> all_threatens() = 0;
 };
 
@@ -44,8 +42,8 @@ private:
 public:
     std::shared_ptr<WebSocketSession> session = nullptr;
     
-    std::shared_ptr<WebSocketSession> Get_Session() override { return session; }
-    void Set_Session(std::shared_ptr<WebSocketSession> ss) override { session = ss; }
+    std::shared_ptr<WebSocketSession> get_session() override { return session; }
+    void set_session(std::shared_ptr<WebSocketSession> ss) override { session = ss; }
     
     void flag_castl(std::array<size_t, M> turn) override;
 
@@ -61,7 +59,7 @@ public:
 
     size_t try_capture(std::array<size_t, M> turn);
 
-    std::vector<std::array<size_t, M>>& access() { return moves; }
+    std::vector<std::array<size_t, M>> access() { return moves; }
 
     std::shared_ptr<ChessBoard> getboard () { return board; }
 

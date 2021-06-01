@@ -501,8 +501,6 @@ int main(int argc, char** argv)
     // Run the I/O service. The call will return when
     // the socket is closed.
 
-    std::cout << "==========\n1 - http login\n2 - http connect\n==========\n";
-    std::cout << "==========\nw - ws write\nC - ws close\nm - send move json example\nE - exit\n==========\n";
 
     char cmd = '\0';
 
@@ -511,9 +509,21 @@ int main(int argc, char** argv)
     std::string http_buffer;
     bool skip_waiting = false;
 
-    std::string names[] = { "Denis", "Youra" };
-    int names_amount = 2;
-    int name_flag = 0;
+#ifdef _WIN32
+    Sleep(500);
+#else 
+    sleep(1);
+#endif // WIN32
+
+    std::cout << "Set user [1] - Sveta, [2] - Denis, [3] - Youra >> ";
+    int uid = 0;
+    std::cin >> uid;
+    if (uid > 3)
+        uid = 1;
+    std::string names[] = { "Sveta", "Denis", "Youra" };
+
+    std::cout << "==========\n1 - http login\n2 - http connect\n==========\n";
+    std::cout << "==========\nw - ws write\nC - ws close\nm - send move json example\nE - exit\n==========\n";
 
     while (KEEP_GOING) {
         skip_waiting = false;
@@ -523,11 +533,8 @@ int main(int argc, char** argv)
         switch (cmd) {
 
         case '1':
-            if (name_flag >= names_amount)
-                name_flag = 0;
-            http_buffer = "/register/" + names[name_flag];
+            http_buffer = "/register/" + names[uid - 1];
             http_connection->write(http_buffer);
-            name_flag++;
             skip_waiting = true;
             break;
 
@@ -548,7 +555,7 @@ int main(int argc, char** argv)
             break;
 
         case 'm':
-            buffer = "{\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
+            buffer = "{\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + ",\n\tprev: 12,\n\tcur: 28\n}";
             ws_connection->write(buffer);
             break;
 
@@ -558,37 +565,42 @@ int main(int argc, char** argv)
             break;
 
         case 'a':
-            buffer = "{\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29,\n\tprev: 52,\n\tcur: 36\n}";
+            buffer = "{\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + ",\n\tprev: 52,\n\tcur: 36\n}";
             ws_connection->write(buffer);
             break;
 
         case 'b':
-            buffer = "{\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29,\n\tprev: 5,\n\tcur: 26\n}";
+            buffer = "{\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + ",\n\tprev: 5,\n\tcur: 26\n}";
             ws_connection->write(buffer);
             break;
 
         case 'c':
-            buffer = "{\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29,\n\tprev: 57,\n\tcur: 42\n}";
+            buffer = "{\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + ",\n\tprev: 57,\n\tcur: 42\n}";
             ws_connection->write(buffer);
             break;
 
         case 'd':
-            buffer = "{\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29,\n\tprev: 3,\n\tcur: 39\n}";
+            buffer = "{\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + ",\n\tprev: 3,\n\tcur: 39\n}";
             ws_connection->write(buffer);
             break;
 
         case 'e':
-            buffer = "{\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29,\n\tprev: 62,\n\tcur: 45\n}";
+            buffer = "{\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + ",\n\tprev: 62,\n\tcur: 45\n}";
             ws_connection->write(buffer);
             break;
 
         case 'f':
-            buffer = "{\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29,\n\tprev: 39,\n\tcur: 53\n}";
+            buffer = "{\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + ",\n\tprev: 39,\n\tcur: 53\n}";
             ws_connection->write(buffer);
             break;
 
         case 's':
-            buffer = "{\n\tstart,\n\tgame_token: " + game + ",\n\tuid: 21-05-26-00_11_29\n}";
+            buffer = "{\n\tstart,\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + "\n}";
+            ws_connection->write(buffer);
+            break;
+
+        case 'p':
+            buffer = "{\n\tprepare,\n\tgame_token: " + game + ",\n\tuid: " + std::to_string(uid) + "\n}";
             ws_connection->write(buffer);
             break;
 
