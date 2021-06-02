@@ -927,7 +927,7 @@ public:
     // Get on the correct executor
     void run()
     {
-        if (BASIC_DEBUG_WS) std::cout << "WS: run\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " run\n";
         // We need to be executing within a strand to perform async operations
         // on the I/O objects in this session. Although not strictly necessary
         // for single-threaded contexts, this example code is written to be
@@ -941,7 +941,7 @@ public:
     // Start the asynchronous operation
     void  on_run()
     {
-        if (BASIC_DEBUG_WS) std::cout << "WS: on run\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " on run\n";
 
         // Set suggested timeout settings for the websocket
         stream_.set_option(
@@ -965,7 +965,7 @@ public:
 
     void on_accept(beast::error_code ec)
     {
-        if (BASIC_DEBUG_WS) std::cout << "WS: on accept\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " on accept\n";
         if (ec)
             return fail(ec, "accept");
 
@@ -975,7 +975,7 @@ public:
 
     void  do_read()
     {
-        if (BASIC_DEBUG_WS) std::cout << "WS: do read\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " do read\n";
         // Read a message into our buffer
         stream_.async_read(
             buffer_,
@@ -988,12 +988,12 @@ public:
             beast::error_code ec,
             std::size_t bytes_transferred)
     {
-        if (BASIC_DEBUG_WS) std::cout << "WS: on read\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " on read\n";
         boost::ignore_unused(bytes_transferred);
 
         // This indicates that the session was closed
         if (ec == websocket::error::closed) {
-            if (BASIC_DEBUG_WS) std::cout << "WS: client closed connection\n";
+            if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " client closed connection\n";
             return;
         }
 
@@ -1129,6 +1129,7 @@ public:
             }
         }        
         
+        // TODO: over
         if (code == "move") {
 
             // parse move
@@ -1209,7 +1210,7 @@ public:
 
 
     void write(std::shared_ptr<std::string> res) {
-        if (BASIC_DEBUG_WS) std::cout << "WS: write\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " write\n";
         stream_.text(stream_.got_text());
         stream_.async_write(
             asio::buffer(*res),
@@ -1222,7 +1223,7 @@ public:
             beast::error_code ec,
             std::size_t bytes_transferred)
     {
-        if (BASIC_DEBUG_WS) std::cout << "WS: on write\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " on write\n";
 
         boost::ignore_unused(bytes_transferred);
 
@@ -1238,12 +1239,12 @@ public:
 
     // simple write with no this session event-loop continuation
     void write_short(std::shared_ptr<std::string> res) {
-        if (BASIC_DEBUG_WS) std::cout << "WS: write short\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " write short\n";
         stream_.text(stream_.got_text());
         stream_.async_write(
             asio::buffer(*res),
             [s = shared_from_this(), res](beast::error_code ec, size_t bytes_transferred) mutable {
-            if (BASIC_DEBUG_WS) std::cout << "WS: on write short\n";
+            if (BASIC_DEBUG_WS) std::cout << "WS: " << s << "on write short\n";
             boost::ignore_unused(bytes_transferred);
             if (ec)
                 return fail(ec, "write");
@@ -1256,28 +1257,18 @@ public:
     void write_game_start(std::shared_ptr<GameSession> game, std::shared_ptr<std::string> msg_to_white, uid id_last) {
         auto white = game->wPlayer->get_session();
         auto black = game->bPlayer->get_session();
-        if (BASIC_DEBUG_WS) std::cout << "WS: write game start\n";
-        //white->write(msg_to_white);
-        //return black->write(std::make_shared<std::string>("started"));
-        white->stream_.text(white->stream_.got_text());
-        white->stream_.async_write(
-            asio::buffer(*msg_to_white),
-            [white, black, game, id_last, msg_to_white](beast::error_code ec, size_t bytes_transferred) mutable {
-                boost::ignore_unused(bytes_transferred);
-                if (ec)
-                    return fail(ec, "write to white on game start");
-                white->buffer_.consume(white->buffer_.size());
-                std::cout << "\n\n1\n\n";
-                // продлить евент луп только последнему подключившемуся
-                if (id_last == game->wPlayer->get_user()->get_id())
-                    white->do_read();
-                std::cout << "\n\n2\n\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " write game start\n";
+        
+        
+        if (id_last == game->wPlayer->get_user()->get_id())
+            white->write(msg_to_white);
+        else
+            white->write_short(msg_to_white);
 
-                if (id_last == game->bPlayer->get_user()->get_id())
-                    return black->write(std::make_shared<std::string>("started"));
-                else
-                    return black->write_short(std::make_shared<std::string>("started"));
-        });
+        if (id_last == game->bPlayer->get_user()->get_id())
+            return black->write(std::make_shared<std::string>("started"));
+        else
+            return black->write_short(std::make_shared<std::string>("started"));
     }
 
     Move get_move(std::string& req, game_error_code& ec) {
