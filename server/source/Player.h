@@ -26,7 +26,7 @@ public:
     virtual std::shared_ptr<ChessBoard> getboard () = 0;
     virtual void KingUpdate(std::set<std::array<size_t, K>> thr) = 0;
     virtual const size_t* where() = 0;
-    virtual std::vector<std::array<size_t, M>> access() = 0;
+    virtual std::vector<std::array<size_t, M>>& access() = 0;
     virtual std::set<std::array<size_t, K>> all_threatens() = 0;
 };
 
@@ -59,7 +59,7 @@ public:
 
     size_t try_capture(std::array<size_t, M> turn);
 
-    std::vector<std::array<size_t, M>> access() { return moves; }
+    std::vector<std::array<size_t, M>>& access() { return moves; }
 
     std::shared_ptr<ChessBoard> getboard () { return board; }
 
