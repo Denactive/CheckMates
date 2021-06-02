@@ -17,7 +17,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <thread>
 #include <mutex>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -412,7 +411,7 @@ public:
             std::string msg = beast::buffers_to_string(buffer_.data());
             msg_Singleton::instance().set(msg);
             //try static
-            //std::cout << "The server send you: " << beast::make_printable(buffer_.data()) << std::endl;
+            std::cout << "The server send you: " << beast::make_printable(buffer_.data()) << std::endl;
             NEW_DATA.set(true);
         }
         // clear the buffer!
@@ -527,7 +526,7 @@ int main(int argc, char** argv)
     std::cout << "==========\nw - ws write\nC - ws close\nm - send move json example\nE - exit\n==========\n";
 
     while (KEEP_GOING) {
-        skip_waiting = false;
+        skip_waiting = true;//false;
 
         std::cin >> cmd;
         std::cout << '[' << cmd << ']' << ' ';
@@ -551,7 +550,7 @@ int main(int argc, char** argv)
             ws_connection->write(buffer);
             break;
 
-        case 'ï¿½':
+        case 'Ñ':
             ws_connection->close();
             break;
 
