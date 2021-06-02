@@ -79,8 +79,8 @@ public:
     virtual bool GameStatus() = 0;
     virtual int run_turn(std::array<size_t, M>&) = 0;
     virtual void setup() = 0;
-    virtual std::shared_ptr<IPlayer> you() = 0;
-    virtual std::shared_ptr<IPlayer> enemy() = 0;
+    virtual std::shared_ptr<IPlayer> you(int id) = 0;
+    virtual std::shared_ptr<IPlayer> enemy(int id) = 0;
     virtual bool is_check(std::shared_ptr<IPlayer>&, std::shared_ptr<IPlayer>&) = 0;
     virtual bool is_mate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy)= 0;
     virtual bool is_stalemate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy)= 0;
@@ -116,18 +116,22 @@ public:
 
     GameSession() = delete;
 
-    std::shared_ptr<IPlayer> you() override {
-        if (info.isPlayer)
+    std::shared_ptr<IPlayer> you(int id) override {
+        if (id == wPlayer->get_user()->get_id()) {
             return wPlayer;
-        else
-            return bPlayer;
+        }
+        if (id == bPlayer->get_user()->get_id()) {
+            return wPlayer;
+        }
     }
 
-    std::shared_ptr<IPlayer> enemy() override {
-        if (info.isPlayer)
-            return bPlayer;
-        else
+    std::shared_ptr<IPlayer> enemy(int id) override {
+        if (id == wPlayer->get_user()->get_id()) {
             return wPlayer;
+        }
+        if (id == bPlayer->get_user()->get_id()) {
+            return wPlayer;
+        }
     }
 
     bool is_in_game(std::shared_ptr<IPlayer>& player) override {

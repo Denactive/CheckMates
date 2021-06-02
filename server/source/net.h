@@ -1136,7 +1136,7 @@ public:
             }
 
 
-            std::vector<std::array<size_t, M>> avail = game->enemy()->access();
+            std::vector<std::array<size_t, M>> avail = game->enemy(m.id)->access();
             game->prepare_turn();
             info = game->send_info();
             std::cout << "\tprepare2";
@@ -1157,7 +1157,7 @@ public:
                                ).str();
             (*res) = content;
 
-            auto enemy_session = game->you()->get_session();//
+            auto enemy_session = game->enemy(m.id)->get_session();//
 
             if (enemy_session != nullptr)
                 enemy_session->write_short(res);
