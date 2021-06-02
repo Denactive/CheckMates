@@ -1087,11 +1087,7 @@ public:
                     % ss.str()
                     % info.isPlayer
                     % info.isGame
-<<<<<<< HEAD
-                    % (int)info.isVictory
-=======
                     % int(info.isVictory)
->>>>>>> Denis
                     % info.isCheck
                     % (info.turn[0] * 8 + info.turn[1])
                     % (info.turn[2] * 8 + info.turn[3])
@@ -1162,7 +1158,7 @@ public:
             (*res) = content;
 
             auto enemy_session = game->you()->get_session();//
-            
+
             if (enemy_session != nullptr)
                 enemy_session->write_short(res);
             else
