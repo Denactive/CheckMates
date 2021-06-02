@@ -121,13 +121,13 @@ public:
             return wPlayer;
         }
         if (id == bPlayer->get_user()->get_id()) {
-            return wPlayer;
+            return bPlayer;
         }
     }
 
     std::shared_ptr<IPlayer> enemy(int id) override {
         if (id == wPlayer->get_user()->get_id()) {
-            return wPlayer;
+            return bPlayer;
         }
         if (id == bPlayer->get_user()->get_id()) {
             return wPlayer;

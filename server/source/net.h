@@ -1059,10 +1059,12 @@ public:
             // it is a message from a white player
             if (id == game->wPlayer->get_user()->get_id()) {
                 game->wPlayer->set_session(shared_from_this());
-              //  game->prepare_turn();
+                // game->prepare_turn();
+                game->wPlayer->all_available_Moves();
             }
             if (id == game->bPlayer->get_user()->get_id()) {
                 game->bPlayer->set_session(shared_from_this());
+                game->bPlayer->all_available_Moves();
                // game->prepare_turn();
             }
             if (id != game->bPlayer->get_user()->get_id() && id != game->wPlayer->get_user()->get_id()) {
