@@ -154,15 +154,15 @@ int GameSession::prepare_turn() {
 
 int GameSession::run_turn(std::array<size_t, M>& turn) {
     bool move_accepted = false;
-
-    std::shared_ptr<IPlayer>& you = bPlayer;
-    std::shared_ptr<IPlayer>& enemy = wPlayer;
+    std::shared_ptr<IPlayer> you = bPlayer;
+    std::shared_ptr<IPlayer> enemy = wPlayer;
     size_t horiz = 7;
     if (info.isPlayer) {
         you = wPlayer;
-        horiz = 0;
         enemy = bPlayer;
+        horiz = 0;
     }
+
     std::vector<std::array<size_t, M>> moves = you->access();
     for (auto i = moves.begin(); i != moves.end(); ++i) {
         if (*i == turn) {

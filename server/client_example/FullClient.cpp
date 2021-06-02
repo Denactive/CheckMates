@@ -17,6 +17,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <thread>
 #include <mutex>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -550,7 +551,7 @@ int main(int argc, char** argv)
             ws_connection->write(buffer);
             break;
 
-        case 'Ñ':
+        case 'ï¿½':
             ws_connection->close();
             break;
 

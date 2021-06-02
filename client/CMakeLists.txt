@@ -38,7 +38,7 @@ ENDIF()
 #add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
 #        ${CMAKE_BINARY_DIR}/googletest-build)
 
-enable_testing()
+#enable_testing()
 #add_subdirectory(tests)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS 3rdparty Widgets Core Quick Sql Network LinguistTools REQUIRED)

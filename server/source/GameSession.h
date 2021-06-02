@@ -123,7 +123,7 @@ public:
             return bPlayer;
     }
 
-    std::shared_ptr<IPlayer>& enemy() override {
+    std::shared_ptr<IPlayer>& enemy(std::shared_ptr<IPlayer>& you) override {
         if (info.isPlayer)
             return bPlayer;
         else

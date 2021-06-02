@@ -1057,10 +1057,14 @@ public:
             // session filling
             auto game = game_pair->second;
             // it is a message from a white player
-            if (id == game->wPlayer->get_user()->get_id())
+            if (id == game->wPlayer->get_user()->get_id()) {
                 game->wPlayer->set_session(shared_from_this());
-            if (id == game->bPlayer->get_user()->get_id())
+                game->prepare_turn();
+            }
+            if (id == game->bPlayer->get_user()->get_id()) {
                 game->bPlayer->set_session(shared_from_this());
+                game->prepare_turn();
+            }
             if (id != game->bPlayer->get_user()->get_id() && id != game->wPlayer->get_user()->get_id()) {
                 std::cout << "\tPlayer with uid " << id << " does not belong this game! (game token: " << game->get_token_string() << ").\n";
                 std::cout << "\t\tWhite player has uid: " << game->wPlayer->get_user()->get_id() << "\n";
@@ -1083,7 +1087,7 @@ public:
                     % ss.str()
                     % info.isPlayer
                     % info.isGame
-                    % info.isVictory
+                    % (int)info.isVictory
                     % info.isCheck
                     % (info.turn[0] * 8 + info.turn[1])
                     % (info.turn[2] * 8 + info.turn[3])
@@ -1124,16 +1128,19 @@ public:
             turn[2] = m.cur / 8;
             turn[3] = m.cur % 8;
             int validation = game->run_turn(turn);
-            if (!validation)
-                std::cout << "\tMove is valid\n";
-
-            std::vector<std::array<size_t, M>> avail = game->enemy()->access();
-            if (!validation) {
-                game->prepare_turn();
-                info = game->send_info();
-                std::cout << "\tprepare2";
+            if (validation) {
+                std::string s2 = "\tMove is not valid\n" ;
+                std::cout << s2;
+                (*res) = s2;
+                auto enemy_session = game->enemy()->get_session();
+                if (enemy_session != nullptr)
+                    enemy_session->write(res);
+                return;
             }
-
+            std::vector<std::array<size_t, M>> avail = game->enemy()->access();
+            game->prepare_turn();
+            info = game->send_info();
+            std::cout << "\tprepare2";
             std::cout << avail.size();
             std::stringstream ss;
             ss << "[ ";
@@ -1144,7 +1151,7 @@ public:
                                % ss.str()
                                % info.isPlayer
                                % info.isGame
-                               % info.isVictory
+                               % (int)info.isVictory
                                % info.isCheck
                                % (info.turn[0] * 8 + info.turn[1])
                                % (info.turn[2] * 8 + info.turn[3])
@@ -1153,7 +1160,7 @@ public:
 
             auto enemy_session = game->enemy()->get_session();
             if (enemy_session != nullptr)
-                enemy_session->write(res);
+                enemy_session->write_short(res);
             else
                 std::cout << "\tError: enemy_session is nullptr\n";
     }
