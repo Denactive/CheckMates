@@ -1202,6 +1202,9 @@ public:
                     std::cout << "\tError: enemy_session is nullptr\n";
                
             }
+            if (!info.isGame) {//game over
+                write(res);
+            }
 
             buffer_.consume(buffer_.size());
             do_read();
