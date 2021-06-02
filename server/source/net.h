@@ -1059,11 +1059,11 @@ public:
             // it is a message from a white player
             if (id == game->wPlayer->get_user()->get_id()) {
                 game->wPlayer->set_session(shared_from_this());
-                game->prepare_turn();
+              //  game->prepare_turn();
             }
             if (id == game->bPlayer->get_user()->get_id()) {
                 game->bPlayer->set_session(shared_from_this());
-                game->prepare_turn();
+               // game->prepare_turn();
             }
             if (id != game->bPlayer->get_user()->get_id() && id != game->wPlayer->get_user()->get_id()) {
                 std::cout << "\tPlayer with uid " << id << " does not belong this game! (game token: " << game->get_token_string() << ").\n";
