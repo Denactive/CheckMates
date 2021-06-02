@@ -1063,7 +1063,8 @@ public:
             }
             if (id == game->bPlayer->get_user()->get_id()) {
                 game->bPlayer->set_session(shared_from_this());
-                game->bPlayer->all_available_Moves();
+                game->prepare_turn();
+                //game->bPlayer->all_available_Moves();
             }
             if (id != game->bPlayer->get_user()->get_id() && id != game->wPlayer->get_user()->get_id()) {
                 std::cout << "\tPlayer with uid " << id << " does not belong this game! (game token: " << game->get_token_string() << ").\n";
