@@ -1077,7 +1077,7 @@ public:
             if (game->bPlayer->get_session() != nullptr && game->wPlayer->get_session() != nullptr) {
                 // message to white player
                 auto info = game->send_info();
-                auto avail = game->you()->access();
+                auto avail = game->you(id)->access();
                 std::stringstream ss;
                 ss << "[ ";
                 for (std::array<size_t, M> out : avail)
