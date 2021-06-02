@@ -1059,13 +1059,13 @@ public:
             // it is a message from a white player
             if (id == game->wPlayer->get_user()->get_id()) {
                 game->wPlayer->set_session(shared_from_this());
-                // game->prepare_turn();
+                //game->prepare_turn();
                 game->wPlayer->all_available_Moves();
             }
             if (id == game->bPlayer->get_user()->get_id()) {
                 game->bPlayer->set_session(shared_from_this());
+                //game->prepare_turn();
                 game->bPlayer->all_available_Moves();
-               // game->prepare_turn();
             }
             if (id != game->bPlayer->get_user()->get_id() && id != game->wPlayer->get_user()->get_id()) {
                 std::cout << "\tPlayer with uid " << id << " does not belong this game! (game token: " << game->get_token_string() << ").\n";
@@ -1161,9 +1161,15 @@ public:
 
             auto enemy_session = game->enemy(m.id)->get_session();//
 
-            if (enemy_session != nullptr)
-                //enemy_session->write_short(res);
-                enemy_session->write(res);
+            if (enemy_session != nullptr) {
+                if (enemy_session != shared_from_this()) {
+                    enemy_session->write_short(res);
+                } //else {
+                   // enemy_session->write(res);
+               // }
+               do_read();
+            }
+
             else
                 std::cout << "\tError: enemy_session is nullptr\n";
     }
