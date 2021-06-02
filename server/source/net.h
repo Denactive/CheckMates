@@ -1167,6 +1167,7 @@ public:
                 } //else {
                    // enemy_session->write(res);
                // }
+               buffer_.consume(buffer_.size());
                do_read();
             }
 
