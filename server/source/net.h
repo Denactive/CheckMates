@@ -1140,7 +1140,7 @@ public:
             std::vector<std::array<size_t, M>>& avail = game->wPlayer->access();
             if (m.id == game->wPlayer->get_user()->get_id()) {
                 avail = game->bPlayer->access();
-            } 
+            }
 
 
             info = game->send_info();

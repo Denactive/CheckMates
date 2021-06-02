@@ -8,7 +8,7 @@ void GameSession::move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& 
 
 void GameSession::try_move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) {
     std::array<size_t, M> turn, reverse, capt;
-    std::vector<std::array<size_t, M>> moves = you->access();
+    std::vector<std::array<size_t, M>>& moves = you->access();
     if (moves.empty()) {
         return;
     }
