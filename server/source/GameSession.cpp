@@ -108,16 +108,22 @@ void GameSession::setup() {
     info.isCheck = false;
     info.turn = { 0, 0 , 0 ,0 };
 }
-int GameSession::prepare_turn() {
+int GameSession::prepare_turn(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) {
     std::set<std::array<size_t, K>> thr;
-
-    info.isPlayer = !info.isPlayer;
+    /*info.isPlayer = !info.isPlayer;
     std::shared_ptr<IPlayer> you = bPlayer;
     std::shared_ptr<IPlayer> enemy = wPlayer;
     if (info.isPlayer) {
         you = wPlayer;
         enemy = bPlayer;
+    } */
+    if (wPlayer->get_user()->get_id() == you->get_user()->get_id()) {
+        info.isPlayer = 1;
+    } else {
+        info.isPlayer = 0;
     }
+
+
     enemy->all_available_Moves();
     thr = enemy->all_threatens();
     you->all_available_Moves();

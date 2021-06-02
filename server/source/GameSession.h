@@ -86,7 +86,7 @@ public:
     virtual bool is_stalemate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy)= 0;
     virtual void send_move(std::array<size_t, M>& turn) = 0;
     virtual GInfo send_info() = 0;
-    virtual int prepare_turn() = 0;
+    virtual int prepare_turn(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) = 0;
     virtual GameToken get_token() = 0;
     virtual std::string get_token_string() = 0;
     virtual bool is_in_game(std::shared_ptr<IPlayer>&) = 0;
@@ -142,7 +142,7 @@ public:
     }
 
     void CreateLog() override;
-    int prepare_turn() override;
+    int prepare_turn(std::shared_ptr<IPlayer> you, std::shared_ptr<IPlayer> enemy) override;
     bool is_check(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;
     bool is_mate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;
     bool is_stalemate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;

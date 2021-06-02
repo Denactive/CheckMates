@@ -1059,12 +1059,10 @@ public:
             // it is a message from a white player
             if (id == game->wPlayer->get_user()->get_id()) {
                 game->wPlayer->set_session(shared_from_this());
-                //game->prepare_turn();
                 game->wPlayer->all_available_Moves();
             }
             if (id == game->bPlayer->get_user()->get_id()) {
                 game->bPlayer->set_session(shared_from_this());
-                //game->prepare_turn();
                 game->bPlayer->all_available_Moves();
             }
             if (id != game->bPlayer->get_user()->get_id() && id != game->wPlayer->get_user()->get_id()) {
@@ -1137,9 +1135,7 @@ public:
                 return write(res);
             }
 
-            game->prepare_turn();
-            game->prepare_turn();
-            game->prepare_turn();
+            game->prepare_turn(game->enemy(m.id), game->you(m.id));
             std::vector<std::array<size_t, M>> avail = game->enemy(m.id)->access();
             info = game->send_info();
             std::cout << "\tprepare2";
