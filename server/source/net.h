@@ -1162,7 +1162,8 @@ public:
             auto enemy_session = game->enemy(m.id)->get_session();//
 
             if (enemy_session != nullptr)
-                enemy_session->write_short(res);
+                //enemy_session->write_short(res);
+                enemy_session->write(res);
             else
                 std::cout << "\tError: enemy_session is nullptr\n";
     }
