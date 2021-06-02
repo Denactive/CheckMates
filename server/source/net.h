@@ -1059,7 +1059,7 @@ public:
             // it is a message from a white player
             if (id == game->wPlayer->get_user()->get_id()) {
                 game->wPlayer->set_session(shared_from_this());
-                game->wPlayer->all_available_Moves();
+                //game->wPlayer->all_available_Moves();
             }
             if (id == game->bPlayer->get_user()->get_id()) {
                 game->bPlayer->set_session(shared_from_this());
@@ -1118,7 +1118,7 @@ public:
             (*res) = "Invalid game token";
             return write(res);
         }
-        
+
         auto game =  gameandtoken->second;
         GInfo info = game->send_info();
             std::array<size_t, M> turn;
@@ -1137,6 +1137,7 @@ public:
             }
 
             game->prepare_turn();
+            game->try_move(game->enemy(m.id), game->you(m.id));
             std::vector<std::array<size_t, M>> avail = game->enemy(m.id)->access();
             info = game->send_info();
             std::cout << "\tprepare2";
