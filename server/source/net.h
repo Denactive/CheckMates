@@ -1136,9 +1136,17 @@ public:
                 return write(res);
             }
 
+            std::vector<std::array<size_t, M>> avail;
+
+            if (m.id == game->wPlayer->get_user()->get_id()) {
+                game->try_move(game->bPlayer, game->wPlayer);
+                avail = game->bPlayer->access();
+            } else {
+                game->try_move(game->wPlayer, game->bPlayer);
+                avail = game->wPlayer->access();
+            }
             game->prepare_turn();
-            game->try_move(game->enemy(m.id), game->you(m.id));
-            std::vector<std::array<size_t, M>> avail = game->enemy(m.id)->access();
+
             info = game->send_info();
             std::cout << "\tprepare2";
             std::cout << avail.size();
