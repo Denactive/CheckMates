@@ -1137,7 +1137,7 @@ public:
             }
 
             std::vector<std::array<size_t, M>> avail;
-
+            game->prepare_turn();
             if (m.id == game->wPlayer->get_user()->get_id()) {
                 game->try_move(game->bPlayer, game->wPlayer);
                 avail = game->bPlayer->access();
@@ -1145,7 +1145,7 @@ public:
                 game->try_move(game->wPlayer, game->bPlayer);
                 avail = game->wPlayer->access();
             }
-            game->prepare_turn();
+
 
             info = game->send_info();
             std::cout << "\tprepare2";
