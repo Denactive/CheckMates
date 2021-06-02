@@ -1083,7 +1083,7 @@ public:
                     % ss.str()
                     % info.isPlayer
                     % info.isGame
-                    % info.isVictory
+                    % int(info.isVictory)
                     % info.isCheck
                     % (info.turn[0] * 8 + info.turn[1])
                     % (info.turn[2] * 8 + info.turn[3])
@@ -1092,8 +1092,6 @@ public:
                 return write_game_start(game, res);
             }
             else {
-                //(*res) = "test msg";
-                //write(res);
                 (*res) = "wait for opponent connection";
                 return write_short(res);
             }
@@ -1126,6 +1124,11 @@ public:
             int validation = game->run_turn(turn);
             if (!validation)
                 std::cout << "\tMove is valid\n";
+            else {
+                std::cout << "\tMove is invalid\n";
+                (*res) = "Move is invalid";
+                return write(res);
+            }
 
             std::vector<std::array<size_t, M>> avail = game->enemy()->access();
             if (!validation) {
@@ -1151,9 +1154,9 @@ public:
                                ).str();
             (*res) = content;
 
-            auto enemy_session = game->enemy()->get_session();
+            auto enemy_session = game->you()->get_session();
             if (enemy_session != nullptr)
-                enemy_session->write(res);
+                enemy_session->write_short(res);
             else
                 std::cout << "\tError: enemy_session is nullptr\n";
     }
@@ -1189,12 +1192,12 @@ public:
 
     // simple write with no this session event-loop continuation
     void write_short(std::shared_ptr<std::string> res) {
-        if (BASIC_DEBUG_WS) std::cout << "WS: write\n";
+        if (BASIC_DEBUG_WS) std::cout << "WS: write short\n";
         stream_.text(stream_.got_text());
         stream_.async_write(
             asio::buffer(*res),
             [s = shared_from_this(), res](beast::error_code ec, size_t bytes_transferred) mutable {
-            if (BASIC_DEBUG_WS) std::cout << "WS: on write\n";
+            if (BASIC_DEBUG_WS) std::cout << "WS: on write short\n";
             boost::ignore_unused(bytes_transferred);
             if (ec)
                 return fail(ec, "write");
