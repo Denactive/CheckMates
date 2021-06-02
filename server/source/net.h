@@ -1140,7 +1140,7 @@ public:
             if (m.id == game->wPlayer->get_user()->get_id()) {
                 std::vector<std::array<size_t, M>>& avail = game->bPlayer->access();
             } else {
-                avail = game->wPlayer->access();
+                std::vector<std::array<size_t, M>>& avail = game->wPlayer->access();
             }
             game->prepare_turn();
 
