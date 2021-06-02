@@ -998,6 +998,7 @@ public:
             fail(ec, "read");
 
         handle_request();
+        
     }
 
     void handle_request() {
@@ -1075,7 +1076,7 @@ public:
                 auto avail = game->you()->access();
                 std::stringstream ss;
                 ss << "[ ";
-                for (std::array<size_t, 4> out : avail)
+                for (std::array<size_t, M> out : avail)
                     ss << "[ " << out[0] * 8 + out[1] << ", " << out[2] * 8 + out[3] << " ], ";
                 ss << " ]";
                 std::string msg_to_white = (boost::format(MOVE_RESPONSE)
@@ -1088,17 +1089,13 @@ public:
                     % (info.turn[2] * 8 + info.turn[3])
                     ).str();
                 (*res) = msg_to_white;
-
-                // TODO: check for session loop going on
-                // сейчас луп черного игока продолжается, в то время как луп белого останавливается на async write в write game start
-                // Сделай петлю чтения как на клиенте и не еби мозг
                 return write_game_start(game, res);
             }
             else {
                 //(*res) = "test msg";
                 //write(res);
                 (*res) = "wait for opponent connection";
-                return write(res);
+                return write_short(res);
             }
         }        
         
@@ -1190,10 +1187,29 @@ public:
         do_read();
     }
 
+    // simple write with no this session event-loop continuation
+    void write_short(std::shared_ptr<std::string> res) {
+        if (BASIC_DEBUG_WS) std::cout << "WS: write\n";
+        stream_.text(stream_.got_text());
+        stream_.async_write(
+            asio::buffer(*res),
+            [s = shared_from_this(), res](beast::error_code ec, size_t bytes_transferred) mutable {
+            if (BASIC_DEBUG_WS) std::cout << "WS: on write\n";
+            boost::ignore_unused(bytes_transferred);
+            if (ec)
+                return fail(ec, "write");
+            // Clear the buffer
+            s->buffer_.consume(s->buffer_.size());
+        });
+    }
+
+
     void write_game_start(std::shared_ptr<GameSession> game, std::shared_ptr<std::string> msg_to_white) {
         auto white = game->wPlayer->get_session();
         auto black = game->bPlayer->get_session();
         if (BASIC_DEBUG_WS) std::cout << "WS: write game start\n";
+        //white->write(msg_to_white);
+        //return black->write(std::make_shared<std::string>("started"));
         white->stream_.text(white->stream_.got_text());
         white->stream_.async_write(
             asio::buffer(*msg_to_white),
@@ -1202,7 +1218,7 @@ public:
                 if (ec)
                     return fail(ec, "write to white on game start");
                 white->buffer_.consume(white->buffer_.size());
-                if (BASIC_DEBUG_WS) std::cout << "WS: write game start part 2\n";
+                white->do_read();
                 return black->write(std::make_shared<std::string>("started"));
         });
     }
