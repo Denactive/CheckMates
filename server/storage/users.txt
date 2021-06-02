@@ -1,20 +1,20 @@
 {
-  	uid: 1,
-	name: Sveta,
-	rating: 15,
-	avatar: users/Sveta.png
+  	"uid": 1,
+	"name": "Sveta",
+	"rating": 15,
+	"avatar": "users/Sveta.png"
 }
 
 {
-  	uid: 2,
-	name: Denis,
-	rating: 12,
-	avatar: users/Denis.png
+  	"uid": 2,
+	"name": "Denis",
+	"rating": 12,
+	"avatar": "users/Denis.png"
 }
 
 {
-  	uid: 3,
-	name: Youra,
-	rating: 16,
-	avatar: users/Youra.png
+  	"uid": 3,
+	"name": "Youra",
+	"rating": 16,
+	"avatar": "users/Youra.png"
 }
