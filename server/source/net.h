@@ -1138,8 +1138,9 @@ public:
             }
 
 
-            std::vector<std::array<size_t, M>> avail = game->enemy(m.id)->access();
+
             game->prepare_turn();
+            std::vector<std::array<size_t, M>> avail = game->enemy(m.id)->access();
             info = game->send_info();
             std::cout << "\tprepare2";
             std::cout << avail.size();
