@@ -11,7 +11,7 @@ std::shared_ptr<GameSession> MatcherQueue::start_game(std::shared_ptr<IUser> pw,
     std::cout << "Matcher: ";
 
     auto game_session = std::make_shared<GameSession>(pw, pb);
-    game_session->prepare_turn();
+    //game_session->prepare_turn();
     const auto [game, success] = games_->insert({ game_session->get_token_string(), game_session });
     if (success) {
         std::cout << "the game ¹ " + game->first + " added to the Game Map successfully" << std::endl;

@@ -103,7 +103,7 @@ void GameSession::setup() {
     wPlayer->KingUpdate(thr);
 
     info.isGame = true;
-    info.isPlayer = false;
+    info.isPlayer = true; //
     info.isVictory = 0;
     info.isCheck = false;
     info.turn = { 0, 0 , 0 ,0 };
