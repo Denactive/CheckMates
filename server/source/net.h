@@ -1135,7 +1135,7 @@ public:
                 return write(res);
             }
 
-            game->prepare_turn(game->enemy(m.id), game->you(m.id));
+            game->prepare_turn();
             std::vector<std::array<size_t, M>> avail = game->enemy(m.id)->access();
             info = game->send_info();
             std::cout << "\tprepare2";
