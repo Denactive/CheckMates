@@ -80,8 +80,8 @@ fail(beast::error_code ec, char const* what)
 
 static bool KEEP_GOING = true;
 static NewData NEW_DATA;
-std::string token = "null token";
-std::string game = "null gametoken";
+std::string token = "null_token";
+std::string game = "null_gametoken";
 
 //------------------------------------------------------------------------------
 
@@ -223,10 +223,10 @@ public:
 
         // Write the message to standard out
         std::cout << "http-server responsed: \n" << res_.body() << "\n";
-        auto cookie_beg = res_.body().find("Cookie: ");
+        auto cookie_beg = res_.body().find("\"cookie\": \"");
         if (cookie_beg != std::string::npos) {
-            auto cookie_end = res_.body().substr(cookie_beg + 8).find('\n');
-            auto token_local = res_.body().substr(cookie_beg + 8, cookie_end);
+            auto cookie_end = res_.body().substr(cookie_beg + 11).find('\"');
+            auto token_local = res_.body().substr(cookie_beg + 11, cookie_end);
             token = token_local;
             std::cout << "Got token: " << token << std::endl;
             cookie_beg = std::string::npos;
@@ -478,6 +478,7 @@ int main(int argc, char** argv)
     // Check command line arguments.
     setlocale(LC_ALL, "rus");
 
+    //auto const host("25.34.102.253");
     auto const host = "127.0.0.1";
     auto const port = "8001";
 
@@ -556,7 +557,7 @@ int main(int argc, char** argv)
 
         case 'm':
             // E2 E4 - первый ход белых
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": " + std::to_string(uid) + ",\n\t\"prev\": 12,\n\t\"cur\": 28\n}";
+            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"12\",\n\t\"cur\": \"28\"\n}";
             ws_connection->write(buffer);
             break;
 
@@ -567,37 +568,37 @@ int main(int argc, char** argv)
 
         case 'a':
             // E7 E5 - первый ход черных
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": " + std::to_string(uid) + ",\n\t\"prev\": 52,\n\t\"cur\": 36\n}";
+            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"52\",\n\t\"cur\": \"36\"\n}";
             ws_connection->write(buffer);
             break;
 
         case 'b':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": " + std::to_string(uid) + ",\n\t\"prev\": 5,\n\t\"cur\": 26\n}";
+            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"5\",\n\t\"cur\": \"26\"\n}";
             ws_connection->write(buffer);
             break;
 
         case 'c':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": " + std::to_string(uid) + ",\n\t\"prev\": 57,\n\t\"cur\": 42\n}";
+            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"57\",\n\t\"cur\": \"42\"\n}";
             ws_connection->write(buffer);
             break;
 
         case 'd':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": " + std::to_string(uid) + ",\n\t\"prev\": 3,\n\t\"cur\": 39\n}";
+            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"3\",\n\t\"cur\": \"39\"\n}";
             ws_connection->write(buffer);
             break;
 
         case 'e':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": " + std::to_string(uid) + ",\n\t\"prev\": 62,\n\t\"cur\": 45\n}";
+            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"62\",\n\t\"cur\": \"45\"\n}";
             ws_connection->write(buffer);
             break;
 
         case 'f':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": " + std::to_string(uid) + ",\n\t\"prev\": 39,\n\t\"cur\": 53\n}";
+            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"39\",\n\t\"cur\": \"53\"\n}";
             ws_connection->write(buffer);
             break;
 
         case 's':
-            buffer = "{\n\t\"code\": \"start\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": " + std::to_string(uid) + "\n}";
+            buffer = "{\n\t\"code\": \"start\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\"\n}";
             ws_connection->write(buffer);
             break;
 

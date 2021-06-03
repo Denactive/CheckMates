@@ -15,33 +15,31 @@
 #define BASIC_DEBUG_WS 1
 #define START_GAME_IMITATION 1
 
-// test
-/*
-1 4 3 4
-6 4 4 4
-0 5 3 2
-7 1 5 2
-0 3 4 7
-7 6 5 5
-4 7 6 5
-*/
-#define REGESTRY_IMITATION 1
 #define MOVE_PARSE_DEBUG 1
-
-// comment this
-#define ONLINE_GAME_IMITATION
 
 #define START_GAME_RESPONSE \
 "{\n\
+  \"code\": \"start\",\n\
   \"game_token\": \"%s\",\n\
   \"uid\": \"%zu\",\n\
   \"side\": \"%s\",\n\
   \"opponent\":\n  {\n    \"name\": \"%s\",\n    \"rating\": \"%zu\",\n    \"avatar\": \"%s\"\n  }\n\
 }"
 
+#define USER_DATA_RESPONSE \
+"{\n\
+  \"code\": \"%s\",\n\
+  \"cookie\": \"%s\",\n\
+  \"uid\": \"%zu\",\n\
+  \"name\": \"%s\",\n\
+  \"rating\": \"%zu\",\n\
+  \"avatar\": \"%s\"\n\
+}"
+
 
 #define MOVE_RESPONSE \
 "{\n\
+  \"code\": \"OK\",\n\
   \"available moves\": %s,\n\
   \"Ginfo\": {\n\t\t\"isPlayer\": \"%d\",\n\t\t\"isGame\": \"%d\",\n\t\t\"isVictory\": \"%d\",\n\t\t\"isCheck\": \"%d\",\n\t\t\"prev\": \"%d\",\n\t\t\"cur\": \"%d\"\n\t}\n\
 }"
@@ -282,12 +280,13 @@ public:
     {
     }
 
-    void start_cookie_timer(Cookie c, int value, unsigned short version, bool keep_alive, std::string& logging_data) {
+    void start_cookie_timer(Cookie c, int value, std::shared_ptr<IUser> u, unsigned short version, bool keep_alive, std::string& logging_data) {
         if (BASIC_DEBUG) std::cout << "start cookie timer\n";
         auto cookie_timer = std::make_shared<asio::steady_timer>(ioc_Singleton::instance().get(), std::chrono::minutes{ value });
         auto active_users = active_users_;
-        
-        auto msg = "Cookie: " + serializeTimePoint(c) + "\nCookie is valid for " + std::to_string(value) + " minutes\n";
+
+        auto msg = prepare_user_info_msg(u->get_info(), "cookie", serializeTimePoint(c));
+
         http::response<http::string_body> res{
                 std::piecewise_construct,
                 std::make_tuple(msg),
@@ -594,17 +593,15 @@ public:
         }
 
         auto target = req.target().to_string();
-        logging_data = target;
+        logging_data = target + "\n";
 
-
-        // TODO: check
         auto user_target = target.find("/user/");
         if (user_target != std::string::npos) {
             std::cout << "parse url: user\n";
             std::cout << "\ttarget: " << target << "\n";
             std::cout << "\tfind at: " << user_target << "\n";
             auto uid = atoi(target.substr(user_target + 6).c_str());
-            std::cout << "\tuid: " << uid << "\n";
+            std::cout << "\t|uid|: " << uid << "\n";
             if (uid == 0)
                 return lambda_(bad_request("invalid uid"));
             std::ifstream in((*doc_root_) + "/users.txt");
@@ -612,6 +609,7 @@ public:
                 std::cout << "\tfile " << (*doc_root_) + "/users.txt is not oppened\n";
                 return lambda_(server_error("invalid uid"));
             }
+
             std::string users_data;
             char sym = '\0';
             while (in.get(sym) && sym != EOF && sym != '\0')
@@ -637,9 +635,13 @@ public:
                 logger_->log(logging_data += "not found | invalid user record: no '}'\n");
                 return lambda_(server_error("invalid user record"));
             }
-            auto content = users_data.substr(record_pos, record_end_pos + 1);
-            logger_->log("answer:\n" + content);
-            return lambda_(ok_string_message(content));
+            auto record = users_data.substr(record_pos, record_end_pos + 1);
+            logger_->log(logging_data);
+            logging_data.clear();
+            UserInfo user_info = parse_user_info(record);
+            if (user_info.id == 0)
+                lambda_(server_error("invalid user record"));
+            return lambda_(ok_string_message(prepare_user_info_msg(user_info, "OK", "None")));
         }
 
         auto reg_target = target.find("/register/");
@@ -682,70 +684,12 @@ public:
             }
             auto record = users_data.substr(record_pos, record_end_pos + 1);
 
-            // uid
-            auto uid = record.find("\"uid\": ");
-            if (uid == std::string::npos) {
-                std::cout << "\t\tnot found | invalid user record: no uid\n";
-                logger_->log(logging_data += "not found | invalid user record: no uid\n");
-                return lambda_(server_error("invalid user record"));
-            }
-            auto comma = record.substr(uid + 7).find(',');
-            if (comma == std::string::npos) {
-                std::cout << "\t\tnot found | invalid user record: no comma after uid\n";
-                logger_->log(logging_data += "not found | invalid user record: no comma after uid\n");
-                return lambda_(server_error("invalid user record"));
-            }
-            user_info.id = atoi(record.substr(uid + 7, comma).c_str());
-            if (user_info.id == 0) {
-                std::cout << "\t\tnot found | cannot convert uid\n";
-                logger_->log(logging_data += "not found | cannot convert uid\n");
-                return lambda_(server_error("invalid user record"));
-            }
+            logger_->log(logging_data);
+            logging_data.clear();
+            user_info = parse_user_info(record);
+            if (user_info.id == 0) 
+                lambda_(server_error("invalid user record"));
 
-            // rating
-            auto rating = record.find("\"rating\": ");
-            if (rating == std::string::npos) {
-                std::cout << "\t\tnot found | invalid user record: no rating\n";
-                logger_->log(logging_data += "not found | invalid user record: no rating\n");
-                return lambda_(server_error("invalid user record"));
-            }
-            comma = record.substr(rating + 10).find(',');
-            if (comma == std::string::npos) {
-                std::cout << "\t\tnot found | invalid user record: no comma after rating\n";
-                logger_->log(logging_data += "not found | invalid user record: no comma after rating\n");
-                return lambda_(server_error("invalid user record"));
-            }
-            user_info.rating = atoi(record.substr(rating + 10, comma).c_str());
-            if (user_info.rating == 0) {
-                std::cout << "\t\tnot found | cannot convert rating\n";
-                logger_->log(logging_data += "not found | cannot convert rating\n");
-                return lambda_(server_error("invalid user record"));
-            }
-            
-            // avatar url
-            auto avatar = record.find("\"avatar\": \"");
-            if (avatar == std::string::npos) {
-                std::cout << "\t\tnot found | invalid user record: no avatar\n";
-                logger_->log(logging_data += "not found | invalid user record: no avatar\n");
-                return lambda_(server_error("invalid user record"));
-            }
-            comma = record.substr(avatar + 11).find('\"');
-            //if (comma == std::string::npos)
-            //    comma = record.substr(avatar + 11).find('\n');
-            //if (comma == std::string::npos)
-            //    comma = record.substr(avatar + 11).find('}');
-            if (comma == std::string::npos) {
-                std::cout << "\t\tnot found | invalid user record: no object ending\n";
-                logger_->log(logging_data += "not found | invalid user record: no object ending\n");
-                return lambda_(server_error("invalid user record"));
-            }
-            user_info.avatar = record.substr(avatar + 11, comma);
-
-            std::cout << "REGISTER parsing results:\n" << "\t\t| uid: | " << user_info.id << "\n";
-            std::cout << "\t\t| name: | " << user_info.nickname << "\n";
-            std::cout << "\t\t| rating: | " << user_info.rating << "\n";
-            std::cout << "\t\t| avatar: | " << user_info.avatar << "\n";
-            
             user = std::make_shared<User>(user_info);
             std::cout << "user N " << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
 
@@ -756,7 +700,7 @@ public:
                 std::cout << " has not been added to the map | FAIL" << std::endl;
 
             // sends the cookie
-            return start_cookie_timer(user->get_token(), COOKIE_LIFETIME, req.version(), req.keep_alive(), logging_data);
+            return start_cookie_timer(user->get_token(), COOKIE_LIFETIME, user, req.version(), req.keep_alive(), logging_data);
         }
 
         auto start_game_target = target.find("/start_game/");
@@ -896,6 +840,95 @@ public:
         return result;
     }
 
+    UserInfo parse_user_info(std::string& record) {
+        UserInfo user_info{};
+        // uid
+        auto uid = record.find("\"uid\": ");
+        if (uid == std::string::npos) {
+            std::cout << "\t\tnot found | invalid user record: no uid\n";
+            logger_->log("not found | invalid user record: no uid\n");
+            return {};
+        }
+        auto comma = record.substr(uid + 7).find(',');
+        if (comma == std::string::npos) {
+            std::cout << "\t\tnot found | invalid user record: no comma after uid\n";
+            logger_->log("not found | invalid user record: no comma after uid\n");
+            return {};
+        }
+        user_info.id = atoi(record.substr(uid + 7, comma).c_str());
+        if (user_info.id == 0) {
+            std::cout << "\t\tnot found | cannot convert uid\n";
+            logger_->log("not found | cannot convert uid\n");
+            return {};
+        }
+
+        // name
+        auto name_pos = record.find("\"name\": \"");
+        if (name_pos == std::string::npos) {
+            std::cout << "\t\tnot found | invalid user record: no name\n";
+            logger_->log("not found | invalid user record: no name\n");
+            return {};
+        }
+        comma = record.substr(name_pos + 9).find('\"');
+        if (comma == std::string::npos) {
+            std::cout << "\t\tnot found | invalid user record: no closing quote  after name\n";
+            logger_->log("not found | invalid user record: no closing quote after name\n");
+            return {};
+        }
+        user_info.nickname = record.substr(name_pos + 9, comma);
+
+        // rating
+        auto rating = record.find("\"rating\": ");
+        if (rating == std::string::npos) {
+            std::cout << "\t\tnot found | invalid user record: no rating\n";
+            logger_->log("not found | invalid user record: no rating\n");
+            return {};
+        }
+        comma = record.substr(rating + 10).find(',');
+        if (comma == std::string::npos) {
+            std::cout << "\t\tnot found | invalid user record: no comma after rating\n";
+            logger_->log("not found | invalid user record: no comma after rating\n");
+            return {};
+        }
+        user_info.rating = atoi(record.substr(rating + 10, comma).c_str());
+        if (user_info.rating == 0) {
+            std::cout << "\t\tnot found | cannot convert rating\n";
+            logger_->log("not found | cannot convert rating\n");
+            return {};
+        }
+
+        // avatar url
+        auto avatar = record.find("\"avatar\": \"");
+        if (avatar == std::string::npos) {
+            std::cout << "\t\tnot found | invalid user record: no avatar\n";
+            logger_->log("not found | invalid user record: no avatar\n");
+            return {};
+        }
+        comma = record.substr(avatar + 11).find('\"');
+        if (comma == std::string::npos) {
+            std::cout << "\t\tnot found | invalid user record: no object ending\n";
+            logger_->log("not found | invalid user record: no object ending\n");
+            return {};
+        }
+        user_info.avatar = record.substr(avatar + 11, comma);
+
+        std::cout << "REGISTER parsing results:\n" << "\t\t| uid: | " << user_info.id << "\n";
+        std::cout << "\t\t| name: | " << user_info.nickname << "\n";
+        std::cout << "\t\t| rating: | " << user_info.rating << "\n";
+        std::cout << "\t\t| avatar: | " << user_info.avatar << "\n";
+        return user_info;
+    }
+
+    std::string prepare_user_info_msg(const UserInfo& u, std::string code, std::string cookie) {
+        return (boost::format(USER_DATA_RESPONSE)
+            % code.c_str()
+            % cookie.c_str()
+            % u.id
+            % u.nickname
+            % u.rating
+            % u.avatar
+            ).str();
+    }
 };
 
 
