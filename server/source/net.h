@@ -1037,7 +1037,6 @@ public:
         
     }
 
-
     // TODO ERRORS!
     void handle_request() {
         auto res = std::make_shared<std::string>();
@@ -1160,9 +1159,7 @@ public:
             }
         }        
         
-        // TODO: over
         if (code == "move") {
-
             // parse move
             game_error_code ec;
             Move m = get_move(req, ec);
@@ -1179,9 +1176,15 @@ public:
                 (*res) = "Invalid game token";
                 return write(res);
             }
-
             auto game = gameandtoken->second;
             GInfo info = game->send_info();
+
+            // если не твой ход
+            if (info.isPlayer && m.id != game->wPlayer->get_user()->get_id() ||
+                !info.isPlayer && m.id != game->bPlayer->get_user()->get_id()) {
+                (*res) = "Not your turn";
+                return write(res);
+            }
 
             std::array<size_t, M> turn;
             turn[0] = m.prev / 8;
@@ -1203,7 +1206,6 @@ public:
             if (m.id == game->wPlayer->get_user()->get_id()) {
                 avail = game->bPlayer->access();
             }
-
 
             info = game->send_info();
             std::cout << avail.size();
@@ -1231,6 +1233,12 @@ public:
                 else
                     std::cout << "\tError: enemy_session is nullptr\n";
                
+            }
+
+            // game over
+            if (!info.isGame) {
+                games->erase(game->get_token_string());
+                return write(res);
             }
 
             // continue this session event-loop: read - handle - read

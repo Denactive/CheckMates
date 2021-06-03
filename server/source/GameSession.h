@@ -5,6 +5,8 @@
 #ifndef CHESS_GAMESESSION_H
 #define CHESS_GAMESESSION_H
 
+#define GAMETOKEN_HARDCORE
+
 #include "ChessBoard.h"
 #include "Player.h"
 
@@ -105,7 +107,14 @@ public:
 
     GameSession(
         std::shared_ptr<IUser> player1, std::shared_ptr<IUser> player2)
+        //: token_(std::chrono::system_clock::now())
+        //: token_(std::chrono::system_clock::now().time_since_epoch())
+#ifdef GAMETOKEN_HARDCORE
+        : token_(std::chrono::time_point<std::chrono::system_clock>::max())
+#else
         : token_(std::chrono::system_clock::now())
+#endif
+
     {
         board = std::make_shared<ChessBoard>();
 
