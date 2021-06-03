@@ -34,16 +34,16 @@
 #define START_GAME_RESPONSE \
 "{\n\
   \"game_token\": \"%s\",\n\
-  \"uid\": %zu,\n\
+  \"uid\": \"%zu\",\n\
   \"side\": \"%s\",\n\
-  \"opponent\":\n  {\n    \"name\": \"%s\",\n    \"rating\": %zu,\n    \"avatar\": \"%s\"\n  }\n\
+  \"opponent\":\n  {\n    \"name\": \"%s\",\n    \"rating\": \"%zu\",\n    \"avatar\": \"%s\"\n  }\n\
 }"
 
 
 #define MOVE_RESPONSE \
 "{\n\
   \"available moves\": %s,\n\
-  \"Ginfo\": {\n\t\t\"isPlayer\": %d,\n\t\t\"isGame\": %d,\n\t\t\"isVictory\": %d,\n\t\t\"isCheck\": %d,\n\t\t\"prev\": %d,\n\t\t\"cur\": %d\n\t}\n\
+  \"Ginfo\": {\n\t\t\"isPlayer\": \"%d\",\n\t\t\"isGame\": \"%d\",\n\t\t\"isVictory\": \"%d\",\n\t\t\"isCheck\": \"%d\",\n\t\t\"prev\": \"%d\",\n\t\t\"cur\": \"%d\"\n\t}\n\
 }"
 
 #include <boost/beast/core.hpp>
@@ -689,13 +689,13 @@ public:
                 logger_->log(logging_data += "not found | invalid user record: no uid\n");
                 return lambda_(server_error("invalid user record"));
             }
-            auto comma = record.substr(uid + 6).find(',');
+            auto comma = record.substr(uid + 7).find(',');
             if (comma == std::string::npos) {
                 std::cout << "\t\tnot found | invalid user record: no comma after uid\n";
                 logger_->log(logging_data += "not found | invalid user record: no comma after uid\n");
                 return lambda_(server_error("invalid user record"));
             }
-            user_info.id = atoi(record.substr(uid + 6, comma).c_str());
+            user_info.id = atoi(record.substr(uid + 7, comma).c_str());
             if (user_info.id == 0) {
                 std::cout << "\t\tnot found | cannot convert uid\n";
                 logger_->log(logging_data += "not found | cannot convert uid\n");
@@ -1050,23 +1050,25 @@ public:
                 (*res) = "No comma after game token";
                 return write(res);
             }
+
             // token
             auto token = req.substr(game_token + 15, comma);
-            if (MOVE_PARSE_DEBUG) std::cout << "\t|game_token:| " << token << "\n";
-            auto uid = req.find("\"uid\": ");
+            if (MOVE_PARSE_DEBUG) std::cout << "\t|game_token|: " << token << "\n";
+            auto uid = req.find("\"uid\": \"");
             if (uid == std::string::npos) {
                 std::cout << "\tNo uid\n";
                 (*res) = "\tNo uid";
                 return write(res);
             }
-            auto closing_bracket = req.substr(uid + 7).find('}');
+
+            // uid
+            auto closing_bracket = req.substr(uid + 8).find('\"');
             if (closing_bracket == std::string::npos) {
-                std::cout << "\tNo closing_bracket\n";
-                (*res) = "No closing bracket after uid";
+                std::cout << "\tNo closing quote after uid\n";
+                (*res) = "No closing quote after uid";
                 return write(res);
             }
-            // uid
-            int id = atoi((req.substr(uid + 7, closing_bracket)+ "\0").c_str());
+            int id = atoi((req.substr(uid + 8, closing_bracket)+ "\0").c_str());
             if (MOVE_PARSE_DEBUG) std::cout << "\t|uid|: " << id << std::endl;
 
             // game
@@ -1081,15 +1083,12 @@ public:
             // session filling
             auto game = game_pair->second;
             // it is a message from a white player
-            if (id == game->wPlayer->get_user()->get_id()) {
+            if (id == game->wPlayer->get_user()->get_id())
                 game->wPlayer->set_session(shared_from_this());
-                //game->wPlayer->all_available_Moves();
-            }
-            if (id == game->bPlayer->get_user()->get_id()) {
+
+            if (id == game->bPlayer->get_user()->get_id()) 
                 game->bPlayer->set_session(shared_from_this());
-                //game->prepare_turn();
-                //game->bPlayer->all_available_Moves();
-            }
+
             if (id != game->bPlayer->get_user()->get_id() && id != game->wPlayer->get_user()->get_id()) {
                 std::cout << "\tPlayer with uid " << id << " does not belong this game! (game token: " << game->get_token_string() << ").\n";
                 std::cout << "\t\tWhite player has uid: " << game->wPlayer->get_user()->get_id() << "\n";
@@ -1108,7 +1107,7 @@ public:
                 std::stringstream ss;
                 ss << "[\n";
                 for (std::array<size_t, M> out : avail)
-                    ss << "\t\t[" << out[0] * 8 + out[1] << ", " << out[2] * 8 + out[3] << "],\n";
+                    ss << "\t\t[\"" << out[0] * 8 + out[1] << "\", \"" << out[2] * 8 + out[3] << "\"],\n";
                 ss << "\t]";
                 std::string msg_to_white = (boost::format(MOVE_RESPONSE)
                     % ss.str()
@@ -1124,7 +1123,6 @@ public:
             }
             else {
                 (*res) = "wait for opponent connection";
-                //return write_short(res);
                 return write(res);
             }
         }        
@@ -1175,12 +1173,11 @@ public:
 
 
             info = game->send_info();
-            std::cout << "\tprepare2";
             std::cout << avail.size();
             std::stringstream ss;
             ss << "[\n";
             for (std::array<size_t, M> out : avail)
-                ss << "\t\t[" << out[0] * 8 + out[1] << ", " << out[2] * 8 + out[3] << "],\n";
+                ss << "\t\t[\"" << out[0] * 8 + out[1] << "\", \"" << out[2] * 8 + out[3] << "\"],\n";
             ss << "\t]";
             std::string content = (boost::format(MOVE_RESPONSE)
                                % ss.str()
@@ -1203,6 +1200,7 @@ public:
                
             }
 
+            // continue this session event-loop: read - handle - read
             buffer_.consume(buffer_.size());
             do_read();
         }
@@ -1259,16 +1257,15 @@ public:
         auto black = game->bPlayer->get_session();
         if (BASIC_DEBUG_WS) std::cout << "WS: " << this << " write game start\n";
         
-        
         if (id_last == game->wPlayer->get_user()->get_id())
             white->write(msg_to_white);
         else
             white->write_short(msg_to_white);
 
         if (id_last == game->bPlayer->get_user()->get_id())
-            return black->write(std::make_shared<std::string>("started"));
+            return black->write(std::make_shared<std::string>("{\n\t\"code\": \"started\"\n}"));
         else
-            return black->write_short(std::make_shared<std::string>("started"));
+            return black->write_short(std::make_shared<std::string>("{\n\t\"code\": \"started\"\n}"));
     }
 
     Move get_move(std::string& req, game_error_code& ec) {
@@ -1290,56 +1287,51 @@ public:
         if (MOVE_PARSE_DEBUG) std::cout << "\t\t/game_token:/ " << m.game_token << "\n";
 
         // uid: %zu,
-        auto uid = req.find("\"uid\": ");
+        auto uid = req.find("\"uid\": \"");
         if (uid == std::string::npos) {
             ec = game_error_code::invalid_uid;
             return m;
         }
-        comma = req.substr(uid + 6).find(',');
+        comma = req.substr(uid + 8).find('\"');
         if (comma == std::string::npos) {
             ec = invalid_format;
             return m;
         }
 
         // TODO: check that 
-        m.id = atoi(req.substr(uid + 6, comma).c_str());
+        m.id = atoi(req.substr(uid + 8, comma).c_str());
         if (MOVE_PARSE_DEBUG) std::cout << "\t\t/uid:/ " << m.id << "\n";
 
         // prev: %zu
-        auto prev = req.find("\"prev\": ");
+        auto prev = req.find("\"prev\": \"");
         if (prev == std::string::npos) {
             ec = game_error_code::no_prev_move;
             return m;
         }
         
-        comma = req.substr(prev + 8).find(',');
+        comma = req.substr(prev + 9).find('\"');
         if (comma == std::string::npos) {
             ec = invalid_format;
             return m;
         }
 
         // TODO: check that 
-        m.prev = atoi(req.substr(prev + 8, comma).c_str());
+        m.prev = atoi(req.substr(prev + 9, comma).c_str());
         if (MOVE_PARSE_DEBUG) std::cout << "\t\t/prev:/ " << m.prev << "\n";
 
         // cur: %zu,
-        auto cur = req.find("\"cur\": ");
+        auto cur = req.find("\"cur\": \"");
         if (cur == std::string::npos) {
             ec = game_error_code::no_cur_move;
             return m;
         }
-        comma = req.substr(cur + 7).find(',');
-        if (comma == std::string::npos)
-            comma = req.substr(cur + 7).find('\n');
-        if (comma == std::string::npos)
-            comma = req.substr(cur + 7).find('}');
+        comma = req.substr(cur + 8).find('\"');
         if (comma == std::string::npos) {
             ec = invalid_format;
             return m;
         }
         
-        // TODO: check that 
-        m.cur = atoi(req.substr(cur + 7, comma).c_str());
+        m.cur = atoi(req.substr(cur + 8, comma).c_str());
         if (MOVE_PARSE_DEBUG) std::cout << "\t\t/cur:/ " << m.cur << "\n";
         ec = game_error_code::ok;
         return m;

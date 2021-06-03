@@ -7,7 +7,7 @@ int main() {
     // common data
     const std::string ServerName("SaberLion-Devs");
     const std::string IP("127.0.0.1");
-//    const std::string IP("192.168.1.26");
+ //   const std::string IP("192.168.1.26");
     // додик, юзай свой собсвенный айпи
     // V ЭТОТ V
     //const std::string IP("25.34.102.253");
