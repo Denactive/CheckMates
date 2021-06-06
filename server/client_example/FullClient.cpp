@@ -17,6 +17,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <thread>
 #include <mutex>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -478,8 +479,8 @@ int main(int argc, char** argv)
     // Check command line arguments.
     setlocale(LC_ALL, "rus");
 
-    auto const host("25.34.102.253");
-    //auto const host = "127.0.0.1";
+    //auto const host("25.34.102.253");
+    auto const host = "127.0.0.1";
     auto const port = "8001";
 
     // The io_context is required for all I/O
@@ -551,12 +552,12 @@ int main(int argc, char** argv)
             ws_connection->write(buffer);
             break;
 
-        case 'С':
+        case 'пїЅ':
             ws_connection->close();
             break;
 
         case 'm':
-            // E2 E4 - первый ход белых
+            // E2 E4 - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"12\",\n\t\"cur\": \"28\"\n}";
             ws_connection->write(buffer);
             break;
@@ -567,7 +568,7 @@ int main(int argc, char** argv)
             break;
 
         case 'a':
-            // E7 E5 - первый ход черных
+            // E7 E5 - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"52\",\n\t\"cur\": \"36\"\n}";
             ws_connection->write(buffer);
             break;

@@ -5,7 +5,7 @@
 #ifndef CHESS_GAMESESSION_H
 #define CHESS_GAMESESSION_H
 
-#define GAMETOKEN_HARDCORE
+//#define GAMETOKEN_HARDCORE
 
 #include "ChessBoard.h"
 #include "Player.h"

@@ -1,6 +1,7 @@
 #include "Chesspiece.h"
 #include <iostream>
-
+#include "bishop.h"
+#include "rook.h"
 
 std::vector<std::array<size_t, M>> Queen::available_moves() {
     avail_moves.clear();
@@ -13,9 +14,8 @@ std::vector<std::array<size_t, M>> Queen::available_moves() {
     if (i > 7 || j > 7) {
         return avail_moves;
     }
-    cell temp = bd[i][j];
-    #include "bishop.h"
-    #include "rook.h"
+    bishop (i, j, mov, avail_moves, bd);
+    rook (i,  j,  mov,  avail_moves, bd);
     return avail_moves;
 }
 std::set<std::array<size_t, K>> Queen::threatens() {
@@ -43,11 +43,10 @@ std::vector<std::array<size_t, M>> Rook::available_moves() {
     if (i > 7 || j > 7) {
         return avail_moves;
     }
-    cell temp = bd[i][j];
-    #include "rook.h"
-
+    rook (i,  j,  mov,  avail_moves, bd);
     return avail_moves;
 }
+
 std::set<std::array<size_t, K>> Rook::threatens() {
     threat.clear();
     std::array<size_t, K> mov;
@@ -168,9 +167,7 @@ std::vector<std::array<size_t, M>> Bishop::available_moves() {
         return avail_moves;
     }
     cell temp = bd[i][j];
-
-#include "bishop.h"
-
+    bishop (i, j, mov, avail_moves, bd);
     return avail_moves;
 }
 std::set<std::array<size_t, K>> Bishop::threatens() {
