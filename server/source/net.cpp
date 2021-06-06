@@ -16,6 +16,9 @@ std::string JSON_serializer::deserialize(std::string s) {
 
 void FileLogger::log(const std::string& data) {
     beast::error_code ec;
+    this->init(ec);
+    if (ec)
+        fail(ec, "unable to init log");
     try {
     if (initialized)
         log_stream_ << data;
@@ -56,4 +59,8 @@ void FileLogger::close() {
         return;
     log_stream_.close();
     initialized = false;
+}
+
+FileLogger::~FileLogger() {
+    this->close();
 }

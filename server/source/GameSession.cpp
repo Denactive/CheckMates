@@ -6,6 +6,26 @@ void GameSession::move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& 
     enemy->is_captured(turn);
 }
 
+std::shared_ptr<IPlayer> GameSession::you(int id) {
+    if (id == wPlayer->get_user()->get_id()) {
+        return wPlayer;
+    }
+    if (id == bPlayer->get_user()->get_id()) {
+        return bPlayer;
+    }
+    return nullptr;
+}
+
+std::shared_ptr<IPlayer> GameSession::enemy(int id) {
+    if (id == wPlayer->get_user()->get_id()) {
+        return bPlayer;
+    }
+    if (id == bPlayer->get_user()->get_id()) {
+        return wPlayer;
+    }
+    return nullptr;
+}
+
 void GameSession::try_move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) {
     std::array<size_t, M> turn, reverse, capt;
     std::vector<std::array<size_t, M>>& moves = you->access();

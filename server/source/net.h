@@ -158,7 +158,7 @@ std::string static cast_filepath(const std::string& path) {
 
 // =======================[ Serializer ]=========================
 
-
+// не реализовано
 class ISerializer {
 public:
     virtual std::string serialize(std::string) = 0;
@@ -178,9 +178,8 @@ public:
 class ILogger {
 public:
     virtual void log(const std::string& data) = 0;
-    virtual void set_log_file(const std::string& path) = 0;
-    virtual void close() = 0;
-    virtual void init(beast::error_code& ec) = 0;
+    virtual ~ILogger() {};
+    virtual void set_log_directory(const std::string& path) = 0;
 };
 
 class FileLogger : public ILogger {
@@ -192,19 +191,19 @@ public:
     }
 
     void log(const std::string& data) override;
-    void set_log_file(const std::string& path) override { dir_ = fs::path(path); }
-    void init(beast::error_code& ec) override;
-    void close() override;
+    void set_log_directory(const std::string& path) override { dir_ = fs::path(path); }
     bool is_initialized() { return initialized; }
+    virtual ~FileLogger() override;
 
 private:
-
-    //std::string serializeTimePoint(const time_point& time, const std::string& format);
-
+    
     std::shared_ptr<std::string const> const& log_dir_;
     std::ofstream log_stream_;
     fs::path dir_;
     bool initialized = false;
+
+    void init(beast::error_code& ec);
+    void close();
 };
 
 
@@ -415,7 +414,6 @@ public:
             const auto [item, success] = SessionsSingleton::instance().get().insert({ user->get_token_string(), shared_from_this() });
             if (success) {
                 logger->log("User № " + item->first + " is placed to the matching queue\n");
-                logger->close();
             }
             else {
                 logger->log("An error occured while putting User № " + user->get_token_string() + " to the matching queue. The Session will be aborted\n");
@@ -427,13 +425,7 @@ public:
     // Start the asynchronous operation
     void run() {
         if (BASIC_DEBUG) std::cout << "session run\n";
-        beast::error_code ec;
-        logger_->init(ec);
-        if (ec)
-            fail(ec, "unable to init log");
-        else
-            // TODO: пробросить какой-нибудь айпи или типа
-            logger_->log("Connected\n");
+        logger_->log("Connected\n");
 
         // We need to be executing within a strand to perform async operations
         // on the I/O objects in this session. Although not strictly necessary
@@ -937,6 +929,9 @@ public:
         , db_(db)
     {
     }
+
+    //~WebSocketSession
+
     // Get on the correct executor
     void run()
     {

@@ -5,7 +5,7 @@
 #ifndef CHESS_GAMESESSION_H
 #define CHESS_GAMESESSION_H
 
-#define GAMETOKEN_HARDCORE
+//#define GAMETOKEN_HARDCORE
 
 #include "ChessBoard.h"
 #include "Player.h"
@@ -107,8 +107,6 @@ public:
 
     GameSession(
         std::shared_ptr<IUser> player1, std::shared_ptr<IUser> player2)
-        //: token_(std::chrono::system_clock::now())
-        //: token_(std::chrono::system_clock::now().time_since_epoch())
 #ifdef GAMETOKEN_HARDCORE
         : token_(std::chrono::time_point<std::chrono::system_clock>::max())
 #else
@@ -125,24 +123,6 @@ public:
 
     GameSession() = delete;
 
-    std::shared_ptr<IPlayer> you(int id) override {
-        if (id == wPlayer->get_user()->get_id()) {
-            return wPlayer;
-        }
-        if (id == bPlayer->get_user()->get_id()) {
-            return bPlayer;
-        }
-    }
-
-    std::shared_ptr<IPlayer> enemy(int id) override {
-        if (id == wPlayer->get_user()->get_id()) {
-            return bPlayer;
-        }
-        if (id == bPlayer->get_user()->get_id()) {
-            return wPlayer;
-        }
-    }
-
     bool is_in_game(std::shared_ptr<IPlayer>& player) override {
         if (player->get_user()->get_id() == wPlayer->get_user()->get_id() ||
             player->get_user()->get_id() == bPlayer->get_user()->get_id())
@@ -158,6 +138,8 @@ public:
     bool GameStatus() override;
     int run_turn(std::array<size_t, M>& turn) override;
     void setup() override;
+    std::shared_ptr<IPlayer> enemy(int id) override;
+    std::shared_ptr<IPlayer> you(int id) override;
     ~GameSession() = default;
 
     void print_moves(std::shared_ptr<IPlayer>& you) override;
