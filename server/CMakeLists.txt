@@ -54,7 +54,7 @@ find_package(GMock REQUIRED)
 include_directories(${INCLUDE_DIRECTORIES})
 message(${GMOCK_LIBRARIES})
 
-add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp source/User.cpp source/Player.cpp test/reChessPiece.h source/community.cpp)
+add_executable(test1 test/TestPlayer.cpp test/tests.cpp)
 target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 target_link_libraries (test1 ${Boost_LIBRARIES} -lpthread)
 
