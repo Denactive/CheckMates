@@ -54,16 +54,16 @@ find_package(GMock REQUIRED)
 include_directories(${INCLUDE_DIRECTORIES})
 message(${GMOCK_LIBRARIES})
 
-#add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp source/User.cpp source/Player.cpp test/reChessPiece.h source/community.cpp)
-#target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
-#target_link_libraries (test1 ${Boost_LIBRARIES} -lpthread)
+add_executable(test1 test/test1.cpp test/tests.cpp source/GameSession.cpp source/User.cpp source/Player.cpp test/reChessPiece.h source/community.cpp)
+target_link_libraries(test1 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+target_link_libraries (test1 ${Boost_LIBRARIES} -lpthread)
 
 #add_executable(test2 test/test2.cpp test/tests.cpp source/GameSession.cpp source/User.cpp source/Player.cpp source/community.cpp)
 #target_link_libraries(test2 ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 #target_link_libraries (test2 ${Boost_LIBRARIES} -lpthread)
 
 
-#add_test(test1 ./test1)
+add_test(test1 ./test1)
 #add_test(test2 ./test2)
 #add_test(NetMockTest ./net_mock_test)
 #add_test(CommunityMockTest ./community_mock_test)
