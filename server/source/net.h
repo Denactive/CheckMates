@@ -259,6 +259,7 @@ class Session : public std::enable_shared_from_this<Session>
     MatcherQueue& mq_;
     send_lambda lambda_;
     const std::shared_ptr<ILogger> logger_;
+    const std::shared_ptr<IDBServer> db_;
 
 public:
     size_t token = 0;
@@ -269,11 +270,13 @@ public:
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
         std::shared_ptr<std::string const> const& log_dir,
+        std::shared_ptr<IDBServer> const& db,
         std::shared_ptr<UserMap>& active_users
     )
         : stream_(std::move(socket))
         , doc_root_(doc_root)
         , logger_(std::make_shared<FileLogger>(log_dir))
+        , db_(db)
         , mq_(MQSingleton::instance().get())
         , active_users_(active_users)
         , lambda_(*this)
@@ -595,6 +598,7 @@ public:
         auto target = req.target().to_string();
         logging_data = target + "\n";
 
+        // TODO:
         auto user_target = target.find("/user/");
         if (user_target != std::string::npos) {
             std::cout << "parse url: user\n";
@@ -606,7 +610,7 @@ public:
                 return lambda_(bad_request("invalid uid"));
             std::ifstream in((*doc_root_) + "/users.txt");
             if (!in.is_open()) {
-                std::cout << "\tfile " << (*doc_root_) + "/users.txt is not oppened\n";
+                std::cout << "\tfile " << (*doc_root_) + "/users.txt is not opened\n";
                 return lambda_(server_error("invalid uid"));
             }
 
@@ -649,46 +653,19 @@ public:
             std::cout << "parse url: register\n";
             UserInfo user_info{};
             auto name = target.substr(reg_target + 10);
-            std::ifstream in((*doc_root_) + "/users.txt");
-            if (!in.is_open()) {
-                std::cout << "\tfile " << (*doc_root_) + "/users.txt is not oppened\n";
-                return lambda_(server_error("invalid uid"));
-            }
-            std::string users_data;
-            char sym = '\0';
-            while (in.get(sym) && sym != EOF && sym != '\0')
-                users_data += sym;
-            
-            // name
-            auto user_record = users_data.find("\"name\": \"" + name);
-            if (user_record == std::string::npos) {
-                std::cout << "\t\tno such login: " << name << "\n";
-                return lambda_(not_found("no such login"));;
-            }
-            user_info.nickname = name;
 
-            // whole record
-            auto record_pos = users_data.rfind('{', user_record);
-            std::cout << "\t\trecord_pos ('{'): " << record_pos << " (" << users_data.substr(record_pos, 10) << "...)" << "\n";
-            if (record_pos == std::string::npos) {
-                std::cout << "\t\tnot found | invalid user record: no '{'\n";
-                logger_->log(logging_data += "not found | invalid user record: no '{'\n");
+            db_error de;
+            auto record = db_->query("select * from users where name=" + name, de);
+            if (de) {
+                logger_->log(logging_data + record);
                 return lambda_(server_error("invalid user record"));
             }
-            auto record_end_pos = users_data.substr(record_pos).find('}');
-            std::cout << "\t\trecord_end_pos ('}'): " << record_end_pos << " (" << users_data.substr(record_pos + record_end_pos, 10) << "...)" << "\n";
-            if (record_pos == std::string::npos) {
-                std::cout << "\t\tnot found | invalid user record: no '}'\n";
-                logger_->log(logging_data += "not found | invalid user record: no '}'\n");
-                return lambda_(server_error("invalid user record"));
-            }
-            auto record = users_data.substr(record_pos, record_end_pos + 1);
 
             logger_->log(logging_data);
             logging_data.clear();
             user_info = parse_user_info(record);
             if (user_info.id == 0) 
-                lambda_(server_error("invalid user record"));
+                return lambda_(server_error("invalid user record"));
 
             user = std::make_shared<User>(user_info);
             std::cout << "user N " << serializeTimePoint(user->get_token(), "%y-%m-%d-%H_%M_%S") << ' ';
@@ -734,8 +711,9 @@ public:
         logging_data += req.method_string().to_string() + "-req file: " + req.target().to_string() + "\n";
 
         if (req.method() == http::verb::post) {
-            // go to DB write data
+            // go to DB and write data
         }
+        // get & head
         else {
             // Attempt to open the file
             std::ifstream in(path);
@@ -942,7 +920,7 @@ class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
     std::shared_ptr<std::string const> doc_root_;
     const std::shared_ptr<ILogger> logger_;
     websocket::stream<beast::tcp_stream> stream_;
-    std::string msg = "Hello";
+    const std::shared_ptr<IDBServer> db_;
 
 public:
     // Take ownership of the socket
@@ -950,11 +928,13 @@ public:
     WebSocketSession(
         tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root,
-        std::shared_ptr<std::string const> const& log_dir
+        std::shared_ptr<std::string const> const& log_dir,
+        std::shared_ptr<IDBServer> const& db
     )
         : stream_(std::move(socket))
         , doc_root_(doc_root)
         , logger_(std::make_shared<FileLogger>(log_dir))
+        , db_(db)
     {
     }
     // Get on the correct executor

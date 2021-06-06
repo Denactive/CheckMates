@@ -27,18 +27,18 @@ IChat* User::create_chat(std::set<uid> members) {
 //
 
 
-// this function allocates memory!
 IUser* Authorizer::authorize(WebSocketSession& con, IDBServer& db) {
-    // TODO: tuples
-    std::string user_data = db.query("SELECT username... FROM db.users");
-    User* res = nullptr; //new User();;
+    db_error ec;
+    std::string user_data = db.query("SELECT name FROM users WHERE name=Sveta", ec);
+    User* res = nullptr;
     return res;
 }
 
 // this function allocates memory!
 IUser* Authorizer::registrate(WebSocketSession& con, IDBServer& db) {
-    std::string user_data = db.query("SELECT username... FROM db.users");
-    User* res = nullptr; //new User();;
+    db_error ec;
+    std::string user_data = db.query("SELECT name FROM users WHERE name=Sveta", ec);
+    User* res = nullptr;
     return res;
 }
 

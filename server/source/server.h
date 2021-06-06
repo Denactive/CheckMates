@@ -33,6 +33,7 @@ public:
         , port_(port)
         , doc_root_(std::make_shared<std::string>(doc_root))
         , log_dir_(std::make_shared<std::string>(log_dir))
+        , db_(std::make_shared<DBServer>(doc_root))
     {
     }
 
@@ -43,7 +44,8 @@ public:
     const unsigned short port_;
     asio::ip::address const ip_;
     std::shared_ptr<std::string> const doc_root_;
-    std::shared_ptr< std::string> const log_dir_;
+    std::shared_ptr<std::string> const log_dir_;
+    const std::shared_ptr<IDBServer> db_;
 };
 
 
@@ -52,7 +54,7 @@ public:
 
 class Server {
 public:
-    Server(Options opts,
+    Server(Options& opts,
         std::shared_ptr<UserMap>& active_users
     )
         : opts_(opts)
@@ -85,18 +87,17 @@ class Listener : public std::enable_shared_from_this<Listener>
     std::shared_ptr<std::string const> doc_root_;
     std::shared_ptr<std::string const> log_dir_;
     std::shared_ptr<std::string const> type_;
+    const std::shared_ptr<IDBServer> db_;
     std::shared_ptr<UserMap>& active_users_;
 
 public:
-    // TODO: mutex
-    size_t token_cnt = 0;
-
     Listener(
         asio::io_context& ioc,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& type,
         std::shared_ptr<std::string const> const& doc_root,
         std::shared_ptr<std::string const> const& log_dir,
+        const std::shared_ptr<IDBServer>& db,
         std::shared_ptr<UserMap>& active_users
     )
         : ioc_(ioc)
@@ -104,6 +105,7 @@ public:
         , type_(type)
         , doc_root_(doc_root)
         , log_dir_(log_dir)
+        , db_(db)
         , active_users_(active_users)
     {
         beast::error_code ec;
@@ -176,13 +178,15 @@ private:
                     std::move(socket),
                     doc_root_,
                     log_dir_,
+                    db_,
                     active_users_
                     )->run();
             if (*type_ == "ws")
                 std::make_shared<WebSocketSession>(
                     std::move(socket),
                     doc_root_,
-                    log_dir_
+                    log_dir_,
+                    db_
                     )->run();
         }
 

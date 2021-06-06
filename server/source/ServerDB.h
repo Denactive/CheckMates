@@ -1,28 +1,40 @@
 #ifndef CHECKMATES_SERVERDB_H
 #define CHECKMATES_SERVERDB_H
 
+#include <iostream>
+#include <fstream>
+#include <vector>
 #include <string>
+#include <memory>
+
+typedef enum {
+    OK,
+    invalid_command,
+    invalid_record,
+    no_table,
+    unsupported,
+    not_found
+} db_error;
 
 class IDBServer {
 public:
-    virtual std::string query(std::string q) = 0;
-    virtual std::string read() = 0;
-    virtual void write(std::string q) = 0;
+    virtual std::string query(std::string, db_error&) = 0;
 };
 
 class DBServer: public IDBServer {
 public:
-    DBServer(std::string filepath): filepath_(filepath) {
-
+    DBServer(const std::string filepath): doc_root_(filepath)
+    {
+        tables_.push_back("users");
     }
     DBServer() = default;
+    std::string query(std::string, db_error&) override;
 
-    std::string query(std::string q) {return q;};
-    std::string read() {return filepath_;};
-    void write(std::string q) {filepath_ = q;};
-private :
-    std::string filepath_;
-    std::string fileDB() { return ""; }
+private:
+    const std::string doc_root_;
+    std::vector<std::string> tables_;
+
+    std::string parse_error(const db_error&);
 };
 
 #endif //CHECKMATES_SERVERDB_H
