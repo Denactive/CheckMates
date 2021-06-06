@@ -1,6 +1,10 @@
 
 class rePlayer: public IPlayer {
 public:
+    rePlayer(bool wb = true) {
+        wb = wb;
+    }
+    bool wb;
     MOCK_METHOD(std::shared_ptr<WebSocketSession>, get_session, (), (override));
     MOCK_METHOD(void, set_session, (std::shared_ptr<WebSocketSession>), (override));
     MOCK_METHOD((std::vector<std::array<size_t, 4>>), all_available_Moves, (), (override));

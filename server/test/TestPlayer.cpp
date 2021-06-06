@@ -9,7 +9,7 @@ using ::testing::AtLeast;
 
 
 TEST(Player, Mock) {
-    rePlayer player;
+    rePlayer player, player2(false);
     ON_CALL(player, get_session())
             .WillByDefault(Return(nullptr));
     EXPECT_FALSE(player.get_session());
@@ -43,7 +43,15 @@ TEST(Player, Mock) {
     std::array<size_t, 2> to = {1, 2};
     threat.insert(to);
     EXPECT_CALL(player, all_threatens).Times(AtLeast(1)).WillOnce(Return(threat));
-    EXPECT_EQ(to, player.all_threatens());
+    EXPECT_EQ(threat, player.all_threatens());
+    UserInfo info;
+    User user(info);
+    std::shared_ptr<IUser> pw = std::make_shared<User>(user);
+    std::shared_ptr<IUser> pb = std::make_shared<User>(user);
+
+    auto session = std::make_shared<GameSession>(pw, pb);
+    EXPECT_FALSE(session->wPlayer->get_session());
+    EXPECT_EQ(session->wPlayer->all_available_Moves(), session->wPlayer->access());
 
 }
 
