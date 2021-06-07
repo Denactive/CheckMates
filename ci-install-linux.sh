@@ -23,7 +23,7 @@ ls -lh
 sudo make
 ls -lh
 #sudo cp ./lib/libgtest*.a /usr/lib
-#cd -
+cd -
 
 
 

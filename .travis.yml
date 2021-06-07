@@ -26,16 +26,16 @@ script:
   - mkdir build
   - cd build
   - cmake .. && make
-  - ./client
-  - ./tests/tst
-#  - valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all --track-origins=yes ./tests/tst
-  - lcov --directory . --capture --output-file coverage.info
-  - lcov --remove coverage.info '/usr/*' "${HOME}"'/.cache/*' --output-file coverage.info
-  - lcov --list coverage.info
-  - make clean
-  - codecov
+#  - ./client
+#  - ./tests/tst
+##  - valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all --track-origins=yes ./tests/tst
+#  - lcov --directory . --capture --output-file coverage.info
+#  - lcov --remove coverage.info '/usr/*' "${HOME}"'/.cache/*' --output-file coverage.info
+#  - lcov --list coverage.info
+#  - make clean
+#  - codecov
 
-  - cd ../server
+  - cd ../../server
   - mkdir build
   - cd build
   - cmake .. && make
