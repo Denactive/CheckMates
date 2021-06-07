@@ -2,7 +2,7 @@
 #define _WIN32_WINNT 0x0A00
 #endif
 
-#define BASIC_DEBUG 1
+#define WWBASIC_DEBUG 1
 
 
 #define BOOST_DATE_TIME_NO_LIB
@@ -10,14 +10,12 @@
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/strand.hpp>
+#include <thread>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <memory>
-#include <thread>
-
 #include <string>
-#include <mutex>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -27,59 +25,15 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
-struct NewData
-{
-    bool state() {
-        std::lock_guard<std::recursive_mutex> locker(mtx_new_data_);
-        return flg;
-    }
-    void set(bool val) {
-        std::lock_guard<std::recursive_mutex> locker(mtx_new_data_);
-        flg = val;
-    }
-private:
-    std::recursive_mutex mtx_new_data_;
-    bool flg = false;
-};
-
-static bool KEEP_GOING = true;
-static NewData NEW_DATA;
-
-class msg_Singleton
-{
-public:
-    static msg_Singleton& instance()
-    {
-        static msg_Singleton singleton;
-        return singleton;
-    }
-
-    std::string& get() { return msg; }
-    
-    void set(std::string& text) {
-        std::lock_guard<std::recursive_mutex> locker(mtx_);
-        msg = text;
-    }
-
-    // Other non-static member functions
-private:
-    msg_Singleton() {}                                  // Private constructor
-    ~msg_Singleton() {}
-    msg_Singleton(const msg_Singleton&);                 // Prevent copy-construction
-    msg_Singleton& operator=(const msg_Singleton&);      // Prevent assignment
-    std::string msg;
-    std::recursive_mutex mtx_;
-};
-
-// Report a failure
+// Report a wfailure
 void
-fail(beast::error_code ec, char const* what)
+wfail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
 
 // Sends a WebSocket message and prints the response
-class session : public std::enable_shared_from_this<session>
+class wsession : public std::enable_shared_from_this<wsession>
 {
     tcp::resolver resolver_;
     websocket::stream<beast::tcp_stream> ws_;
@@ -92,7 +46,7 @@ class session : public std::enable_shared_from_this<session>
 public:
     // Resolver and socket require an io_context
     explicit
-        session(net::io_context& ioc)
+        wsession(net::io_context& ioc)
         : resolver_(net::make_strand(ioc))
         , ws_(net::make_strand(ioc))
     {
@@ -104,7 +58,7 @@ public:
             char const* host,
             char const* port)
     {
-        if (BASIC_DEBUG) std::cout << "run\n";
+        if (WBASIC_DEBUG) std::cout << "run\n";
         // Save these for later
         host_ = host;
         need_close = false;
@@ -114,7 +68,7 @@ public:
             host,
             port,
             beast::bind_front_handler(
-                &session::on_resolve,
+                &wsession::on_resolve,
                 shared_from_this()));
     }
 
@@ -123,9 +77,9 @@ public:
             beast::error_code ec,
             tcp::resolver::results_type results)
     {
-        if (BASIC_DEBUG) std::cout << "on resolve\n";
+        if (WBASIC_DEBUG) std::cout << "on resolve\n";
         if (ec)
-            return fail(ec, "resolve");
+            return wfail(ec, "resolve");
 
         // Set the timeout for the operation
         beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
@@ -134,16 +88,16 @@ public:
         beast::get_lowest_layer(ws_).async_connect(
             results,
             beast::bind_front_handler(
-                &session::on_connect,
+                &wsession::on_connect,
                 shared_from_this()));
     }
 
     void
         on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
     {
-        if (BASIC_DEBUG) std::cout << "on connect\n";
+        if (WBASIC_DEBUG) std::cout << "on connect\n";
         if (ec)
-            return fail(ec, "connect");
+            return wfail(ec, "connect");
 
         // Turn off the timeout on the tcp_stream, because
         // the websocket stream has its own timeout system.
@@ -172,16 +126,16 @@ public:
         ws_.async_handshake(host_, "/",
             beast::bind_front_handler(
                 // call handler
-                &session::on_handshake,
+                &wsession::on_handshake,
                 shared_from_this()));
     }
 
     void
         on_handshake(beast::error_code ec)
     {
-        if (BASIC_DEBUG) std::cout << "on handshake\n";
+        if (WBASIC_DEBUG) std::cout << "on handshake\n";
         if (ec)
-            return fail(ec, "handshake");
+            return wfail(ec, "handshake");
 
         // Start reading
         do_read();
@@ -192,25 +146,22 @@ public:
     ////////
 
     void do_read() {
-        if (!KEEP_GOING)
-            return close();
-
         ws_.async_read(
             buffer_,
             beast::bind_front_handler(
                 // call handler when done
-                &session::on_read,
+                &wsession::on_read,
                 shared_from_this()));
     }
 
     void on_read(beast::error_code ec, std::size_t bytes_transferred)
     {
         // if we are here - then reading operation is done
-        if (BASIC_DEBUG) std::cout << "on read\n";
+        if (WBASIC_DEBUG) std::cout << "on read\n";
         boost::ignore_unused(bytes_transferred);
 
         if (ec)
-            return fail(ec, "read");
+            return wfail(ec, "read");
 
         if (need_close)
             do_close();
@@ -225,15 +176,11 @@ public:
     void do_some_work(beast::error_code ec, std::size_t bytes_transferred) {
         //Sleep(2000);
         //std::cout << "LOGIC HERE | Server send to me: ";
-        // 
-        // if there is some data from server    
-        if (bytes_transferred) {
-            std::string msg = beast::buffers_to_string(buffer_.data());
-            msg_Singleton::instance().set(msg);
-            //try static
+        //
+        // if there is some data from server
+        if (bytes_transferred)
             std::cout << "The server send you: " << beast::make_printable(buffer_.data()) << std::endl;
-            NEW_DATA.set(true);
-        }
+
         // clear the buffer!
         buffer_.consume(bytes_transferred);
 
@@ -247,7 +194,7 @@ public:
 
     void write(std::string& msg)
     {
-        if (BASIC_DEBUG) std::cout << "write\n";
+        if (WBASIC_DEBUG) std::cout << "write\n";
 
         // Send the message
         ws_.async_write(
@@ -260,7 +207,7 @@ public:
 
     void on_write(beast::error_code ec, std::size_t bytes_transferred, std::string& msg) {
         if (ec)
-            fail(ec, "failed while writing (write)");
+            wfail(ec, "wfailed while writing (write)");
         std::cout << "You have sent: " << msg << " to server. " << bytes_transferred << " bytes were delivered\n";
     }
 
@@ -276,15 +223,15 @@ public:
     void do_close() {
         ws_.async_close(websocket::close_code::normal,
             beast::bind_front_handler(
-                &session::on_close,
+                &wsession::on_close,
                 shared_from_this()));
     }
 
     void on_close(beast::error_code ec)
     {
-        if (BASIC_DEBUG) std::cout << "on close\n";
+        if (WBASIC_DEBUG) std::cout << "on close\n";
         if (ec)
-            return fail(ec, "close");
+            return wfail(ec, "close");
 
         // If we get here then the connection is closed gracefully
         std::cout << "Connection is closed gracefully\n" << std::endl;
@@ -293,7 +240,7 @@ public:
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char** argv)
+void testWSClient()
 {
     // Check command line arguments.
     setlocale(LC_ALL, "rus");
@@ -302,111 +249,78 @@ int main(int argc, char** argv)
     auto const port = "8001";
 
     // The io_context is required for all I/O
-    msg_Singleton::instance();
     net::io_context ioc;
 
     // Launch the asynchronous operation
-    auto connection = std::make_shared<session>(ioc);
+    auto connection = std::make_shared<wsession>(ioc);
     connection->run(host, port);
 
     // create a thread to maintain communication
     std::thread t(
         [&ioc]() { ioc.run(); }
     );
-    //t.detach();
+    t.detach();
 
     // Run the I/O service. The call will return when
     // the socket is closed.
 
 
-    std::cout << "==========\nw - write\nC - close\nm - send move json example\nE - exit\n==========\n";
+    std::cout << "==========\nw - write\nc - close\nm - send move json example\nCtrl + C - exit\n==========\n";
 
     char cmd = '\0';
 
     // long-living string!!!
     std::string buffer;
-    bool skip_waiting = false;
 
-    while (KEEP_GOING) {
-        skip_waiting = false;
+    while (std::cin >> cmd) {
+         std::cout << '[' << cmd << ']' << ' ';
+         switch (cmd) {
+         case 'w':
+             std::cout << " write a message >> ";
+             std::cin >> buffer;
+             connection->write(buffer);
+             break;
 
-        std::cin >> cmd;
-        std::cout << '[' << cmd << ']' << ' ';
-        switch (cmd) {
-        case 'w':
-            std::cout << " write a message >> ";
-            std::cin >> buffer;
-            connection->write(buffer);
-            break;
+         case 'C':
+             connection->close();
+             break;
 
-        case 'z':
-            connection->close();
-            break;
 
-        case 'm':
-            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
-            connection->write(buffer);
-            break;
+         case 'm':
+             buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 12,\n\tcur: 28\n}";
+             connection->write(buffer);
+             break;
+         case 'a':
+             buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 52,\n\tcur: 36\n}";
+             connection->write(buffer);
+             break;
 
-        case 'E':
-            KEEP_GOING = false;
-            connection->close();
-            break;
+             case 'b':
+                 buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 5,\n\tcur: 26\n}";
+                 connection->write(buffer);
+                 break;
+             case 'c':
+                 buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 57,\n\tcur: 42\n}";
+                 connection->write(buffer);
+                 break;
+             case 'd':
+                 buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 3,\n\tcur: 39\n}";
+                 connection->write(buffer);
+                 break;
+             case 'e':
+                 buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 62,\n\tcur: 45\n}";
+                 connection->write(buffer);
+                 break;
+             case 'f':
+                 buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337,\n\tprev: 39,\n\tcur: 53\n}";
+                 connection->write(buffer);
+                 break;
 
-        case 'a':
-            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 52,\n\tcur: 36\n}";
-            connection->write(buffer);
-            break;
 
-        case 'b':
-            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 5,\n\tcur: 26\n}";
-            connection->write(buffer);
-            break;
-
-        case 'c':
-            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 57,\n\tcur: 42\n}";
-            connection->write(buffer);
-            break;
-
-        case 'd':
-            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 3,\n\tcur: 39\n}";
-            connection->write(buffer);
-            break;
-
-        case 'e':
-            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 62,\n\tcur: 45\n}";
-            connection->write(buffer);
-            break;
-
-        case 'f':
-            buffer = "{\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29,\n\tprev: 39,\n\tcur: 53\n}";
-            connection->write(buffer);
-            break;
-
-        case 's':
-            buffer = "{\n\tstart,\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29\n}";
-            connection->write(buffer);
-            break;
-
-        case 'p':
-            buffer = "{\n\tprepare,\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 21-05-26-00_11_29\n}";
-            connection->write(buffer);
-            break;
-
-        default:
-            skip_waiting = true;
-        }
-
-        if (!skip_waiting) {
-            // wait for response
-            while (!NEW_DATA.state());
-            NEW_DATA.set(false);
-            std::cout << "I am standart thread. I've got a message from server:\n" << msg_Singleton::instance().get() << std::endl;
-        }
+          case 's':
+                 buffer = "{\n\tstart,\n\tgame_token: 70-01-01-03_00_00,\n\tuid: 212281337\n}";
+                 connection->write(buffer);
+                 break;
+         }
     }
-
-    t.join();
-
-    system("pause");
-    return EXIT_SUCCESS;
 }

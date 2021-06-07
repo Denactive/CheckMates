@@ -7,17 +7,18 @@
 #include <QDebug>
 #include <QMessageBox>
 
-MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, std::vector<std::shared_ptr<Chat>> chatInfo,
-                       std::vector<std::shared_ptr<User>> friendsInfo, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent, std::vector<std::shared_ptr<User>> frnsInfo)
-    :QWidget(parent), main(main), isMatching(isMatching), gameInfo(gameInfo), friendsInfo(frnsInfo), opponent(opponent)
+MenuWindow::MenuWindow(QWidget * parent, QStackedWidget * main, bool isMatching,
+                                  std::vector<std::shared_ptr<Chat>> chatInfo, std::vector<std::shared_ptr<User>> friendsInfo,
+                                  std::shared_ptr<GameInfo> gameInfo,  std::shared_ptr<User> opponent, std::vector<std::shared_ptr<User>> frnsInfo,
+                                  std::shared_ptr<Database> db, GlobalNet *globalNet, std::shared_ptr<std::string> token)
+    :QWidget(parent), main(main), isMatching(isMatching), gameInfo(gameInfo), friendsInfo(frnsInfo), opponent(opponent), db(db), globalNet(globalNet), token_(token)
 {
     menu = new QHBoxLayout();
     menu->setAlignment(Qt::AlignCenter);
+    menuWidgets = std::make_shared<MenuWidgets>();
 
     drawChats(chatInfo);
-    //menu->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
     drawMiddle();
-    //menu->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
     drawFriends(friendsInfo);
 
     setLayout(menu);
@@ -27,7 +28,6 @@ MenuWindow::MenuWindow(QWidget *parent, QStackedWidget *main, bool isMatching, s
 }
 
 void MenuWindow::drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) {
-    //QWidget *chatsLayoutWidget = new QWidget();
     QVBoxLayout *chatsLayout = new QVBoxLayout();
 
 
@@ -36,15 +36,15 @@ void MenuWindow::drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) {
     chatsLayout->addWidget(chatHeader);
 
     QHBoxLayout * searchLayout = new QHBoxLayout();
-    searchChatLine = new QLineEdit();
-    searchLayout->addWidget(searchChatLine);
+    menuWidgets->searchChatLine = new QLineEdit();
+    searchLayout->addWidget(menuWidgets->searchChatLine);
 
     QToolButton * searchChatBtn = new QToolButton();
     searchChatBtn->setText("SEARCH");
     connect(searchChatBtn, SIGNAL(clicked()), this, SLOT(searchChat()));
     searchLayout->addWidget(searchChatBtn);
 
-    searchChatBtn->setStyleSheet("height: " + QString::number(searchChatLine->sizeHint().height()) + ";");
+    searchChatBtn->setStyleSheet("height: " + QString::number(menuWidgets->searchChatLine->sizeHint().height()) + ";");
 
     chatsLayout->addLayout(searchLayout);
 
@@ -53,12 +53,10 @@ void MenuWindow::drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) {
     }
 
     for (int i = 0; i < 5; ++i) {
-        if (i < chats.size()) chatsLayout->addWidget(chats[i]);
+        if (i < menuWidgets->chats.size()) chatsLayout->addWidget(menuWidgets->chats[i]);
         else chatsLayout->addWidget(new QWidget());
     }
 
-    //chatsLayoutWidget->setLayout(chatsLayout);
-    //menu->addWidget(chatsLayoutWidget);
     menu->addLayout(chatsLayout);
 }
 
@@ -75,32 +73,29 @@ void MenuWindow::drawMiddle()
 
     middleLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
-    playButton = new MyButton("PLAY");
-    connect(playButton, SIGNAL(clicked()), this, SLOT(tapPlay()));
-    middleLayout->addWidget(playButton);
+    menuWidgets->playButton = new MyButton("PLAY");
+    connect(menuWidgets->playButton, SIGNAL(clicked()), this, SLOT(tapPlay()));
+    middleLayout->addWidget(menuWidgets->playButton);
 
-    isMatchingBox = new QCheckBox(" choose to search random player for play");
-    middleLayout->addWidget(isMatchingBox);
+    menuWidgets->isMatchingBox = new QCheckBox(" choose to search random player for play");
+    middleLayout->addWidget(menuWidgets->isMatchingBox);
 
-    //previewLabelImage = new QLabel();
-    //previewLabelImage->setScaledContents(true);
-    previewLabelImage = new LabelImage();
-    previewLabelImage->setAlignment(Qt::AlignCenter);
-//    previewLabelImage->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored));
+    menuWidgets->previewLabelImage = new LabelImage();
+    menuWidgets->previewLabelImage->setAlignment(Qt::AlignCenter);
     QPixmap photo;
     if (photo.load("../img/preview.jpg")) {
-        QSize photoSize(playButton->width(), playButton->height());
+        QSize photoSize(menuWidgets->playButton->width(), menuWidgets->playButton->height());
         QPixmap preview = photo.scaled(photoSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        previewLabelImage->setPixmap(preview);
-        previewLabelImage->setStyleSheet("border: 2px solid #464545; border-radius: 10%;");
+        menuWidgets->previewLabelImage->setPixmap(preview);
+        menuWidgets->previewLabelImage->setStyleSheet("border: 2px solid #464545; border-radius: 10%;");
         if (DEBUG) qDebug() << "file preview set";
     }
     else {
-      previewLabelImage->setText(QString::fromLatin1("Sorry. Cannot find file for preview photo."));
+        menuWidgets->previewLabelImage->setText(QString::fromLatin1("Sorry. Cannot find file for preview photo."));
       if (DEBUG) qDebug() << "file preview not found";
     }
 
-    middleLayout->addWidget(previewLabelImage);
+    middleLayout->addWidget(menuWidgets->previewLabelImage);
     middleLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
     middleLayoutWidget->setLayout(middleLayout);
@@ -108,20 +103,7 @@ void MenuWindow::drawMiddle()
 }
 
 
-void MenuWindow::resizeEvent(QResizeEvent *event)
-{
-
-//    QPixmap photo("../img/preview.jpg");
-//    previewPhotoWidget->resize(event->size().width(), double(event->size().width()) * double(photo.width() / photo.height()));
-//    QSize photoSize(previewLabelImage->width(), previewLabelImage->height());
-    if (DEBUG) qDebug() << "event size" << event->size().width() <<  " " << event->size().height();
-    if (DEBUG) qDebug() << "preview size label" << previewLabelImage->getSize().width() <<  " " << previewLabelImage->getSize().height();
-//    QPixmap preview = previewLabelImage->pixmap()->scaled(photoSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-////    preview.scaledToWidth(playButton->width());
-//    previewLabelImage->setPixmap(preview);
-//    previewPhotoWidget->setStyleSheet("border-image: url(../img/preview.jpg) cover");
-    //previewLabelImage->resizeLabel(event);
-}
+void MenuWindow::resizeEvent(QResizeEvent *event){}
 
 
 void MenuWindow::drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) {
@@ -132,16 +114,16 @@ void MenuWindow::drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) {
     friendsLayout->addWidget(friendHeader);
 
     QHBoxLayout * searchLayout = new QHBoxLayout();
-    searchFriendLine = new QLineEdit();
-    searchLayout->addWidget(searchFriendLine);
+    menuWidgets->searchFriendLine = new QLineEdit();
+    searchLayout->addWidget(menuWidgets->searchFriendLine);
 
     QToolButton * searchFriendBtn = new QToolButton();
     searchFriendBtn->setText("SEARCH");
     connect(searchFriendBtn, SIGNAL(clicked()), this, SLOT(searchFriend()));
     searchLayout->addWidget(searchFriendBtn);
 
-    searchFriendBtn->setStyleSheet("height: " + QString::number(searchFriendLine->sizeHint().height()) + ";");
-    searchFriendBtn->resize(searchFriendBtn->width(), searchFriendLine->sizeHint().height());
+    searchFriendBtn->setStyleSheet("height: " + QString::number(menuWidgets->searchFriendLine->sizeHint().height()) + ";");
+    searchFriendBtn->resize(searchFriendBtn->width(), menuWidgets->searchFriendLine->sizeHint().height());
 
 
     friendsLayout->addLayout(searchLayout);
@@ -152,7 +134,7 @@ void MenuWindow::drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) {
         addFriend(i, friendsInfo);
     }
 
-    for (auto & friendValue : friends) {
+    for (auto & friendValue : menuWidgets->friends) {
         friendsLayout->addWidget(friendValue);
     }
 
@@ -161,17 +143,31 @@ void MenuWindow::drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) {
 
 void MenuWindow::tapPlay()
 {
-    if (!choosenFriend->isChecked() && !isMatchingBox->isChecked()) {
+    auto tmp = false;
+    queryReceive::instance().set(tmp);
+
+    if (!choosenFriend->isChecked() && !menuWidgets->isMatchingBox->isChecked()) {
         QMessageBox::warning(this, "Not player to play", "Yot don't want to play with random player and you don't choose friend");
     } else {
         if (DEBUG) qDebug() << "game info opponent id: " << gameInfo->opponentId;
         if (DEBUG) qDebug() << "opponent: " << opponent->getName();
 
-        GameWindow *gameWindow = new GameWindow(this, main, gameInfo, opponent);
-        main->insertWidget(1, gameWindow);
-        main->setCurrentIndex(1);
-        qDebug() << "main -> play\n";
+        std::shared_ptr<std::string> h_target = std::make_shared<std::string>("/start_game/" + msg_Singleton::instance().get());SIGNAL(finished(QNetworkReply*));
+
+        qDebug() << "token after begin game: " << QString::fromLocal8Bit(token_->c_str()) << " target: " << QString::fromLocal8Bit((*h_target).c_str());
+
+        globalNet->httpClient->getData(h_target, 's');
+        beginGame();
+        // connect(&globalNet->httpClient->getManager(), SIGNAL(globalNet->httpClient::finished), this, SLOT(beginGame()));
     }
+}
+
+void MenuWindow::beginGame() {
+    qDebug() << "begin game";
+    GameWindow *gameWindow = new GameWindow(this, main, gameInfo, opponent, globalNet, db);
+    main->insertWidget(1, gameWindow);
+    main->setCurrentIndex(1);
+    qDebug() << "main -> play\n";
 }
 
 void MenuWindow::chooseFriend()
@@ -201,7 +197,7 @@ void MenuWindow::chooseChat()
 
 void MenuWindow::changeMatching()
 {
-    isMatchingBox->setChecked(isMatchingBox->isChecked());
+    menuWidgets->isMatchingBox->setChecked(menuWidgets->isMatchingBox->isChecked());
 }
 
 void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> friendsInfo)
@@ -231,7 +227,7 @@ void MenuWindow::addFriend(size_t index, std::vector<std::shared_ptr<User>> frie
     friendLayout->addWidget(friendCheckBox);
 
     newFriend->setLayout(friendLayout);
-    friends.push_back(newFriend);
+    menuWidgets->friends.push_back(newFriend);
 }
 
 void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatInfo)
@@ -240,11 +236,8 @@ void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatIn
 
     QHBoxLayout *chatLayout = new QHBoxLayout();
 
-    //User * user = chatInfo[index]->getUser();
     QLabel *userPhotoContainer = new QLabel("User photo");
     QSize sizePhoto(50, 50);
-    //QPixmap userPhoto("../img/userPhoto.png"); //user->getUserPhoto().scaled(sizePhoto);
-    //userPhoto = userPhoto.scaled(sizePhoto);
     QPixmap userPhoto(chatInfo[index]->getUser()->getUserPhoto().scaled(sizePhoto));
     userPhotoContainer->setPixmap(userPhoto);
 
@@ -258,7 +251,7 @@ void MenuWindow::addChat(size_t index, std::vector<std::shared_ptr<Chat>> chatIn
 
     chat->setLayout(chatLayout);
 
-    chats.push_back(chat);
+    menuWidgets->chats.push_back(chat);
     chat->setChat(chatInfo[index]);
-    connect(chats[index], SIGNAL(clicked()), this, SLOT(chooseChat()));
+    connect(menuWidgets->chats[index], SIGNAL(clicked()), this, SLOT(chooseChat()));
 }

@@ -7,7 +7,6 @@
 
 #define WBASIC_DEBUG 1
 
-
 #define BOOST_DATE_TIME_NO_LIB
 #include <boost/beast/core.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
@@ -50,7 +49,6 @@ private:
     asio::io_context ioc_;
 };
 */
-
 
 class wssession : public std::enable_shared_from_this<wssession>
 {
@@ -114,8 +112,6 @@ private:
     asio::io_context ioc_;
 };
 
-static net::io_context ioc;
-static auto connection = std::make_shared<wssession>(ioc);
 
 void runGame();
 

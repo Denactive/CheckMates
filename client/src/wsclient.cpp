@@ -177,7 +177,7 @@ void wssession::onClose(beast::error_code ec)
 void runGame() {
     // -------------------------------------- [boost example]--------------------------------------
 
-    auto const host = "127.0.0.1";
+    /*auto const host = "127.0.0.1";
     auto const port = "8001";
 
     connection->run(host, port);
@@ -218,7 +218,7 @@ void runGame() {
         buffer = "{\n\tgame_token: 21-05-26-00_11_30,\n\tuid: 21-05-26-00_11_29,\n\tprev: 12,\n\tcur: 28\n}";
         connection->write(buffer);
         break;
-    }
+    }*/
 
     // -------------------------------------[ end boost example]---------------------------------
 
