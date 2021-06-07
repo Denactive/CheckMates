@@ -23,6 +23,14 @@
 
 #include "include/wsclient.h"
 
+typedef struct {
+    QVBoxLayout *game;
+    QListWidget * gameChat;
+    QLineEdit * writeMessage;
+    QLabel *gameMessage;
+    QLabel * gameTime;
+} GameWidgets;
+
 class IGameWindow {
 
 public:
@@ -38,8 +46,8 @@ class GameWindow :  public QWidget, public IGameWindow {
     Q_OBJECT
 
 public:
-    GameWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr,
-               std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(), std::shared_ptr<User> opponent = std::make_shared<User>());
+    GameWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(),
+               std::shared_ptr<User> opponent = std::make_shared<User>(), GlobalNet *globalNet = nullptr, std::shared_ptr<Database> db = std::make_shared<Database>());
     void checkGame();
     bool moveFigure(Figure *figure) override { return true; };
     QWidget* drawGameChat();
@@ -59,10 +67,10 @@ private:
     std::shared_ptr<User> opponent;
 
     QStackedWidget * main;
-    QVBoxLayout *game;
-    QListWidget * gameChat;
-    QLineEdit * writeMessage;
-    QLabel *gameMessage;
-    QLabel * gameTime;
+    std::shared_ptr<GameWidgets> gameWidgets;
+
+    GlobalNet *globalNet;
+    std::shared_ptr<Database> db;
+    std::shared_ptr<StartGame> startGame;
 };
 #endif // GAMEWINDOW_H

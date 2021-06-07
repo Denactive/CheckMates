@@ -2,6 +2,7 @@
 #define MENUWINDOW_H
 #define DEBUG 0
 
+#include "global.h"
 #include <algorithm>
 #include <iterator>
 
@@ -18,10 +19,28 @@
 #include <QDesktopWidget>
 #include <QMainWindow>
 
+#include <string>
+#include <memory>
+#include <iostream>
 #include "include/community.h"
 #include "include/windows/chatwindow.h"
 #include "include/database.h"
 #include "include/windows/gamewindow.h"
+#include "include/graphics.h"
+#include "include/global.h"
+
+typedef struct {
+    QCheckBox *isMatchingBox;
+
+    QLineEdit *searchChatLine;
+    QLineEdit *searchFriendLine;
+
+    QList<FrameButton*> chats; // info from Chat
+    QList<FrameButton*> friends; // info from User
+
+    MyButton * playButton;
+    LabelImage * previewLabelImage;
+} MenuWidgets;
 
 class IMenuWindow {
 public:
@@ -38,7 +57,9 @@ class MenuWindow : public QWidget, public IMenuWindow {
 public:
     MenuWindow(QWidget * parent = nullptr, QStackedWidget * main = nullptr, bool isMatching = false,
                std::vector<std::shared_ptr<Chat>> chatInfo = {}, std::vector<std::shared_ptr<User>> friendsInfo = {},
-               std::shared_ptr<GameInfo> gameInfo = {},  std::shared_ptr<User> opponent = nullptr, std::vector<std::shared_ptr<User>> frnsInfo = {});
+               std::shared_ptr<GameInfo> gameInfo = {},  std::shared_ptr<User> opponent = nullptr, std::vector<std::shared_ptr<User>> frnsInfo = {},
+               std::shared_ptr<Database> db = std::make_shared<Database>(),
+               GlobalNet *globalNet = nullptr, std::shared_ptr<std::string> token = nullptr);
     void drawChats(std::vector<std::shared_ptr<Chat>> chatInfo) override;
     void drawMiddle();
     void drawFriends(std::vector<std::shared_ptr<User>> friendsInfo) override;
@@ -50,6 +71,8 @@ public:
 
 public slots:
     void tapPlay() override;
+    void beginGame();
+
     void chooseFriend() override;
     void chooseChat() override;
     void changeMatching();
@@ -59,15 +82,8 @@ public slots:
 private:
     QStackedWidget * main;
     QHBoxLayout *menu;
-
+    std::shared_ptr<MenuWidgets> menuWidgets;
     bool isMatching;
-    QCheckBox *isMatchingBox;
-
-    QLineEdit *searchChatLine;
-    QLineEdit *searchFriendLine;
-
-    QList<FrameButton*> chats; // info from Chat
-    QList<FrameButton*> friends; // info from User
 
     std::shared_ptr<GameInfo> gameInfo;
     QCheckBox *choosenFriend;
@@ -75,8 +91,9 @@ private:
     std::shared_ptr<User> opponent;
     std::vector<std::shared_ptr<Chat>> chatInfo;
 
-    MyButton * playButton;
-    LabelImage * previewLabelImage;
+    std::shared_ptr<Database> db;
+    GlobalNet *globalNet;
+    std::shared_ptr<std::string> token_;
 };
 
 #endif // MENUWINDOW_H

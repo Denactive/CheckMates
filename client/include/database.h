@@ -12,13 +12,26 @@
 #include "../include/community.h"
 #define DEBUGDATA 0
 
+// after login
 typedef struct {
+    int id;
     QString name;
     QString login;
     QString password;
-    QString photoPath;
+    // QString photoPath;
+    QPixmap photo;
     int rating;
 } UserInfo;
+
+// after start game
+typedef struct {
+    QString gameToken;
+    int uid;
+    bool side; // true - white, false - black
+    QString nameOpponent;
+    int ratingOpponent;
+    QPixmap avatarOpponent;
+} StartGame;
 
 typedef struct {
     QString text;
@@ -32,7 +45,7 @@ typedef struct {
 typedef struct {
     int meId;
     int opponentId;
-    bool currentPlayer; // true - me, false - opponent
+    bool currentPlayer; // true - white, false - black
     bool isCheck; // true - is shax
     bool isGame; // false - quit game
     int isVictory; // 0 - draw, 1 - me, 2 - opponent
@@ -52,6 +65,7 @@ public:
     Database();
     void setUserDataFromQuery() override;
     std::vector<UserInfo> getUsersData() override { return usrInfo; }
+    void addUser(int id, QString name, QString login = "", QString password = "", QPixmap photo = QPixmap(), int rating = 0);
     void fillChats();
     std::vector<std::shared_ptr<Chat>> getChats() { return chatsInfo; }
     std::shared_ptr<User> findUser(int index);
@@ -59,38 +73,14 @@ public:
     void setGameInfoFromQuery();
     std::shared_ptr<GameInfo> getGameInfo() { return gameInfo; }
 
+    void setStartGameInfo(std::shared_ptr<QString> gameToken, int uid, std::shared_ptr<QString> nameOpponent, int ratingOpponent, std::shared_ptr<QPixmap>  avatarOpponent, bool side);
+    std::shared_ptr<StartGame> getStartGameInfo() { return startGame; }
+
 private:
     std::vector<UserInfo> usrInfo;
     std::vector<std::shared_ptr<Chat>> chatsInfo;
     std::shared_ptr<GameInfo> gameInfo;
-};
-
-struct Stats {
-    int avgGameLen;
-    int movesToWinQuantity;
-    int staleMatePercentage;
-    int gameLeavingPercentage;
-    int giveUpsPercentage;
-};
-
-class IStatistics {
-    virtual Stats * getStats(User * user) = 0;
-    virtual int getAverageGameLen() = 0;
-    virtual int getAverageMovesToWinQuantity()= 0;
-    virtual int getStaleMatePercentage() = 0;
-    virtual int getGameLeavingPercentage() = 0;
-    virtual int giveUpsPercentage() = 0;
-};
-
-
-class Statistics : public IStatistics {
-public:
-    Stats * getStats(User * user) override { return nullptr; }
-    int getAverageGameLen() override { return -1; }
-    int getAverageMovesToWinQuantity() override { return -1; }
-    int getStaleMatePercentage() override { return -1; }
-    int getGameLeavingPercentage() override { return -1; }
-    int giveUpsPercentage() override { return -1; }
+    std::shared_ptr<StartGame> startGame;
 };
 
 #endif // DATABASE_H

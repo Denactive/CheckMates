@@ -11,8 +11,12 @@ Database::Database()
 
     if (!bd.isOpen())
         qDebug() << "database not open";
+    else {
+        qDebug() << "bd is open";
+    }
 
     gameInfo = make_shared<GameInfo>();
+    startGame = make_shared<StartGame>();
 
     setGameInfoFromQuery();
     setUserDataFromQuery();
@@ -39,11 +43,23 @@ void Database::setUserDataFromQuery()
         newUsrInfo.name = name;
         newUsrInfo.login = login;
         newUsrInfo.password = password;
-        newUsrInfo.photoPath = photoPath;
+        // newUsrInfo.photoPath = photoPath;
         newUsrInfo.rating = rating;
 
         usrInfo.push_back(newUsrInfo);
     }
+}
+
+void Database::addUser(int id, QString name, QString login, QString password, QPixmap photo, int rating) {
+    // std::shared_ptr<UserInfo> newUserInfo = std::make_shared<UserInfo>();
+    UserInfo newUserInfo;
+    newUserInfo.id = id;
+    newUserInfo.name = name;
+    newUserInfo.login = login;
+    newUserInfo.password = password;
+    newUserInfo.photo = photo;
+    newUserInfo.rating = rating;
+    usrInfo.push_back(newUserInfo);
 }
 
 void Database::fillChats()
@@ -126,4 +142,14 @@ void Database::setGameInfoFromQuery()
     gameInfo->lastFigurePos = 8;
     gameInfo->newFigurePos = 16;
     gameInfo->movesID = 0;
+}
+
+void Database::setStartGameInfo(std::shared_ptr<QString> gameToken, int uid, std::shared_ptr<QString>  nameOpponent, int ratingOpponent,
+                                std::shared_ptr<QPixmap>  avatarOpponent, bool side) {
+    startGame->gameToken = *(gameToken);
+    startGame->uid = uid;
+    startGame->nameOpponent = *(nameOpponent);
+    startGame->ratingOpponent = ratingOpponent;
+    startGame->avatarOpponent = *(avatarOpponent);
+    startGame->side = side;
 }

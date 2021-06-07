@@ -70,12 +70,11 @@ Thumbs.db
 # --------
 *.dll
 *.exe
-
-Testing/
+.idea/
+cmake-build-debug/
 build/
+chess_ru_RU.ts
+client_ru_RU.ts
 GMockConfig.cmake
-
-tests/build_test/
-tests/googletest-release-1.10.0/
-CMakeLists.txt.user
-
+CMakeLists.in
+CMakeLists.user
