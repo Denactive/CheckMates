@@ -29,13 +29,28 @@
 #include "include/windows/chatwindow.h"
 #include "include/windows/settingswindow.h"
 #include "include/windows/gamewindow.h"
+// #include "include/serverconnection.h"
 
+typedef struct {
+    QComboBox *topUsers;
+    QWidget *authorizerIs;
+    QWidget *authorizerNo;
+
+    std::shared_ptr<QMainWindow> loginWin;
+    QComboBox * names;
+    PhotoWidget *userPhoto;
+    QLabel * userNameWidget;
+} MainWidgets;
+
+#include <memory>
+#include <string>
+#include <iostream>
 
 class MainWindow : public QWidget
 {
     Q_OBJECT
 public:
-    MainWindow(std::shared_ptr<Database> db, QWidget * parent = 0);
+    MainWindow(std::shared_ptr<Database> db, GlobalNet *globalNet = nullptr, QWidget * parent = 0);
     ~MainWindow();
     void drawTop();
     void drawBottom();
@@ -45,6 +60,9 @@ public:
     void printTopUsers(User * users);
 
     void setRegisterUser(int index);
+
+signals:
+    void onSaveToken();
 
 private slots:
     void onSearchChatClicked();
@@ -58,7 +76,11 @@ private slots:
     void exitClicked();
     void logoutClicked();
     void loginClicked();
+    void saveToken();
+    // void setRegisterUserSettings();
+
     void registrClicked();
+    void closeLoginWin();
 private:
     QStackedWidget * main;
     QVBoxLayout *mainLayout;
@@ -67,19 +89,18 @@ private:
     QString heart = QChar(0x00002764);
 
     std::vector<std::shared_ptr<User>> topUsersInfo;
-    QComboBox *topUsers;
-
-    QWidget *authorizerIs;
-    QWidget *authorizerNo;
     std::shared_ptr<User> infoAboutMe;
-
     std::vector<UserInfo> usrsInfo;
     std::vector<UserInfo>  frnsInfo;
-
     std::vector<std::shared_ptr<User>> friendsInfo;
     std::shared_ptr<User> opponent;
 
     std::shared_ptr<Database> db;
+    GlobalNet *globalNet;
+    std::shared_ptr<std::string> token_;
+
+    QString userName;
+    MainWidgets mainWidgets;
 };
 
 #endif // MAINWINDOW_H

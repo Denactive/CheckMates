@@ -87,13 +87,5 @@ private:
     int index;
 };
 
-//class ChatItem : public QListWidgetItem
-//{
-//    Q_OBJECT
-//public:
-//    ChatItem(QString text = "");
-//private:
-//    QString text;
-//};
 
 #endif // GAMEOBJECTS_H

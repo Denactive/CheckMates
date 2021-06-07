@@ -1,7 +1,10 @@
 #include <QDebug>
 #include "include/windows/mainwindow.h"
 
-MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(parent), db(db) {
+MainWindow::MainWindow(std::shared_ptr<Database> db, GlobalNet *globalNet, QWidget * parent)
+    :QWidget(parent), db(db), globalNet(globalNet) {
+    token_ = std::make_shared<std::string>("0000");
+
     setStyleSheet("background-image: url(../img/background2.jpg); background-color: #EDECEA;");
     main = new QStackedWidget();
     mainLayout = new QVBoxLayout();
@@ -15,22 +18,13 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
 
     for (int i = 0; i < int(usrsInfo.size()); ++i) {
         std::shared_ptr<User> newUser = std::make_shared<User>(usrsInfo[i].name, usrsInfo[i].rating,
-                         frnsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
+                         frnsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photo);
         friendsInfo.push_back(newUser);
     }
 
-    /*qDebug() << "chats" << chatsInfo.size();
-    for (auto & value : chatsInfo) {
-       std::vector<MyMessage> msgs = value->getMessages();
-       if (!msgs.size()) qDebug() << "not messages in chat";
-
-       for (auto & msg : msgs)
-          qDebug() << msg.getMessage();
-    }*/
-
     for (int i = 0; i < 5 && i < int(usrsInfo.size()); ++i) {
         std::shared_ptr<User> newUser = std::make_shared<User>(usrsInfo[i].name, usrsInfo[i].rating,
-                                  usrsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photoPath);
+                                  usrsInfo[i].password, usrsInfo[i].login, usrsInfo[i].photo);
 
         topUsersInfo.push_back(newUser);
     }
@@ -39,12 +33,11 @@ MainWindow::MainWindow(std::shared_ptr<Database> db, QWidget * parent) :QWidget(
     opponent = friendsInfo[gameInfo->opponentId];
     // end of get data
 
-    MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo, gameInfo, opponent, friendsInfo);
+    MenuWindow *menuWindow = new MenuWindow(this, main, false, chatsInfo, friendsInfo, gameInfo, opponent, friendsInfo, db, globalNet, token_);
+    main->insertWidget(0, menuWindow);
 
     SettingsWindow *settingsWindow = new SettingsWindow(this, main, infoAboutMe);
     AuthorizerWindow *authorizerWindow = new AuthorizerWindow(this, main, true);
-
-    main->insertWidget(0, menuWindow);
 
     main->insertWidget(2, settingsWindow);
     main->insertWidget(3, authorizerWindow);
@@ -72,10 +65,10 @@ void MainWindow::drawTop()
 
      MyButton* community = createButton("Community", SLOT(communityClicked()));
 
-     topUsers = new QComboBox(this);
+    mainWidgets.topUsers = new QComboBox(this);
 
      for (auto & userValue : topUsersInfo) {
-         topUsers->addItem(userValue->getName(), Qt::TextAlignmentRole);
+         mainWidgets.topUsers->addItem(userValue->getName(), Qt::TextAlignmentRole);
      }
      //connect(topUsers, SIGNAL(clicked()), this, SLOT(topPlayersClicked()));
 
@@ -83,20 +76,21 @@ void MainWindow::drawTop()
 
      topLayout->addWidget(gameName);
      topLayout->addWidget(community);
-     topLayout->addWidget(topUsers);
+     topLayout->addWidget(mainWidgets.topUsers);
      topLayout->addWidget(settings);
 
-     authorizerIs = new QWidget();
-     authorizerNo = new QWidget();
+    mainWidgets.authorizerIs = new QWidget();
+    mainWidgets.authorizerNo = new QWidget();
 
      // is authorizer
      QHBoxLayout * authorizeIsLayout = new QHBoxLayout();
      QVBoxLayout *settingsLayout = new QVBoxLayout();
      settingsLayout->setAlignment(Qt::AlignRight);
 
-     PhotoWidget *userPhoto = new PhotoWidget(infoAboutMe->getUserPhoto(), QSize(50,50));
-     settingsLayout->addWidget(userPhoto);
-     settingsLayout->addWidget(new QLabel(infoAboutMe->getName()));
+     mainWidgets.userPhoto = new PhotoWidget(infoAboutMe->getUserPhoto(), QSize(50,50));
+     settingsLayout->addWidget(mainWidgets.userPhoto);
+     mainWidgets.userNameWidget = new QLabel(infoAboutMe->getName());
+     settingsLayout->addWidget(mainWidgets.userNameWidget);
 
      MyButton* logout = createButton("Log out", SLOT(logoutClicked()));
 
@@ -117,27 +111,28 @@ void MainWindow::drawTop()
      authorizerContainer->addWidget(login);
      authorizerContainer->addWidget(reg);
 
-     authorizerIs->setLayout(authorizeIsLayout);
-     authorizerNo->setLayout(authorizerContainer);
+     mainWidgets.authorizerIs->setLayout(authorizeIsLayout);
+     mainWidgets.authorizerNo->setLayout(authorizerContainer);
 
-     topLayout->addWidget(authorizerIs);
-     topLayout->addWidget(authorizerNo);
+     topLayout->addWidget(mainWidgets.authorizerIs);
+     topLayout->addWidget(mainWidgets.authorizerNo);
 
-     if (!infoAboutMe)
-         authorizerIs->hide();
+     if (infoAboutMe->getName() != "" || userName == "")
+         mainWidgets.authorizerIs->hide();
      else
-         authorizerNo->hide();
+         mainWidgets.authorizerNo->hide();
 
      // some design correct
-     topUsers->setEditable(true);
-     topUsers->lineEdit()->setReadOnly(true);
-     topUsers->lineEdit()->setText("TOP PLAYERS");
-     topUsers->lineEdit()->setAlignment(Qt::AlignCenter);
-     topUsers->setStyleSheet("height: " + QString::number(community->sizeHint().height() + 30) + "; text-align:center; \
+     mainWidgets.topUsers->setEditable(true);
+     mainWidgets.topUsers->lineEdit()->setReadOnly(true);
+     mainWidgets.topUsers->lineEdit()->setText("TOP PLAYERS");
+     mainWidgets.topUsers->lineEdit()->setAlignment(Qt::AlignCenter);
+     mainWidgets.topUsers->setStyleSheet("height: " + QString::number(community->sizeHint().height() + 30) + "; text-align:center; \
             background-color: #ACCCC4; border: 2px solid #464545; border-radius: 10%");
 
      mainLayout->addLayout(topLayout);
 }
+
 
 void MainWindow::drawBottom()
 {
@@ -162,13 +157,20 @@ void MainWindow::setRegisterUser(int index)
 {
     if (usrsInfo.size() > 0) {
         infoAboutMe = std::make_shared<User>();
-        infoAboutMe->setName(usrsInfo[index].name);
+        infoAboutMe->setName(userName);
         infoAboutMe->setLogin(usrsInfo[index].login);
         infoAboutMe->setPassword(usrsInfo[index].password);
-        infoAboutMe->setUserPhoto(usrsInfo[index].photoPath);
+        infoAboutMe->setUserPhoto(QPixmap(usrsInfo[index].photo));
         infoAboutMe->changeRating(usrsInfo[index].rating);
 
         if (DEBUGDATA) qDebug() << "current user: " << infoAboutMe->getName();
+    } else {
+        infoAboutMe = std::make_shared<User>();
+        infoAboutMe->setName("");
+        infoAboutMe->setLogin("");
+        infoAboutMe->setPassword("");
+        infoAboutMe->setUserPhoto(QPixmap(""));
+        infoAboutMe->changeRating(0);
     }
 }
 
@@ -199,8 +201,7 @@ void MainWindow::developersClicked()
     QMessageBox::information(this, "Developers", "Developers: \n"\
                                                 "Турчин Денис \n"\
                                                 "Очеретная Светлана \n"\
-                                                "Любский Юрий \n"\
-                                                "Овчинникова Ксения");
+                                                "Любский Юрий \n");
 }
 
 void MainWindow::donateClicked()
@@ -213,8 +214,7 @@ void MainWindow::contactsClicked()
     QMessageBox::information(this, "Contacts", "Если есть вопросы, пишите вк: \n"\
                                                 "@denactive\n"\
                                                 "@svetlanlka\n"\
-                                                "@ylybskiy\n"\
-                                                "@kseniaparvaty");
+                                                "@ylybskiy\n");
 }
 
 void MainWindow::exitClicked()
@@ -225,27 +225,83 @@ void MainWindow::exitClicked()
 
 void MainWindow::logoutClicked()
 {
+    qDebug() << "token before logout : " << QString::fromLocal8Bit(token_->c_str());
     QMessageBox::StandardButton reply =
             QMessageBox::question(this, "Logout", "Если вы действительно хотите выйти из аккаунта, нажмите ОК", QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
         infoAboutMe = nullptr;
-        authorizerIs->hide();
-        authorizerNo->show();
+        mainWidgets.authorizerIs->hide();
+        mainWidgets.authorizerNo->show();
     }
 }
 
 void MainWindow::loginClicked()
 {
+    mainWidgets.loginWin = std::make_shared<QMainWindow>();
+    mainWidgets.loginWin->setWindowTitle("LOGIN");
+    userName = "";
+
+    QWidget *centralLoginWidget = new QWidget();
+    QVBoxLayout *loginLayout = new QVBoxLayout();
+
+    QLabel * nameChoose = new QLabel("Choose name of user:");
+    loginLayout->addWidget(nameChoose);
+
+    mainWidgets.names = new QComboBox(this);
+    mainWidgets.names->addItem("Sveta");
+    mainWidgets.names->addItem("Denis");
+    mainWidgets.names->addItem("Youra");
+    loginLayout->addWidget(mainWidgets.names);
+
+    QPushButton *chooseButton = new QPushButton("CHOOSE");
+    connect(chooseButton, SIGNAL(clicked()), this, SLOT(closeLoginWin()));
+
+    mainWidgets.loginWin->show();
+
+    centralLoginWidget->setLayout(loginLayout);
+    loginLayout->addWidget(chooseButton);
+    mainWidgets.loginWin->setCentralWidget(centralLoginWidget);
+}
+
+void MainWindow::closeLoginWin() {
+    mainWidgets.loginWin->close();
+    userName = mainWidgets.names->currentText();
+    mainWidgets.userNameWidget->setText(userName);
+
+    qDebug() << "choose userName: " << userName;
+    std::shared_ptr<std::string> h_target = std::make_shared<std::string>("/register/" + userName.toStdString());
+    // std::shared_ptr<std::string> h_targetPhoto = std::make_shared<std::string>("/users/" + userName.toStdString() +".png");
+
+    auto tmp = false;
+    queryReceive::instance().set(tmp);
+    globalNet->httpClient->getData(h_target, 'l');
+
+    saveToken();
+    // connect(&globalNet->httpClient->getManager(), SIGNAL(globalNet->httpClient::finished), this, SLOT(saveToken()));
+}
+
+void MainWindow::saveToken()
+{
+    // for (int i  = 0; queryReceive::instance().get() == false && i < 1000000; ++i);
+    *(token_) =  *(globalNet->httpClient->getToken()); // std::shared_ptr<std::string>((globalNet->httpClient->getToken()));
+
+    qDebug() << "token after login: " << QString::fromLocal8Bit(token_->c_str());
     setRegisterUser(0);
-    authorizerIs->show();
-    authorizerNo->hide();
+
+    // setRegisterUserSettings();
+    std::vector<UserInfo> usrInfo = db->getUsersData();
+    qDebug() << "new user photo" << usrInfo[usrInfo.size() - 1].photo;
+    mainWidgets.userPhoto->setPixmap(usrInfo[usrInfo.size() - 1].photo);
+
+    mainWidgets.authorizerIs->show();
+    mainWidgets.authorizerNo->hide();
 }
 
 void MainWindow::registrClicked()
 {
     setRegisterUser(0);
-    authorizerIs->show();
-    authorizerNo->hide();
+    mainWidgets.authorizerIs->show();
+    mainWidgets.authorizerNo->hide();
 }
 
 MyButton *MainWindow::createButton(const QString &text, const char *member)

@@ -1,6 +1,9 @@
 ﻿#ifndef GRAPHICS_H
 #define GRAPHICS_H
 
+#define HTTPDEBUG 0
+
+#include "global.h"
 #include <string>
 #include <vector>
 #include <iostream>
@@ -20,12 +23,21 @@
 
 // #include <QtWebSockets/QWebSocket>
 
-#include "include/community.h"
-#include "include/chessboard.h"
-#include "include/figures.h"
-#include "include/windows/mainwindow.h"
+// #include "include/community.h"
+// #include "include/figures.h"
 #include "include/database.h"
+#include "include/echoclient.h"
+// #include "include/windows/mainwindow.h"
 #include <unistd.h>
+#include <string>
+#include <functional>
+#include <QImageReader>
+#include <QPixmap>
+
+#include <QImage>
+#include <QMainWindow>
+#include <QLabel>
+#include <QLayout>
 
 #include <../boost/beast/http.hpp>
 #include <../boost/asio/strand.hpp>
@@ -44,16 +56,21 @@ class MyCookieJar : public QNetworkCookieJar
 class Client : public QObject {
     Q_OBJECT
 public:
-    Client(QObject *parent = nullptr);
+    Client(std::shared_ptr<std::string> host = std::make_shared<std::string>("127.0.0.1"), int port = 8000,
+        std::shared_ptr<Database> db = std::make_shared<Database>(),
+        std::shared_ptr<std::string> target = std::make_shared<std::string>("/"),
+        QObject *parent = nullptr);
     QUrl setUrl(char const* host, int port, char const* target);
-    void download(QString);
+    void download(std::shared_ptr<std::string> target);
     void _download(QUrl);
+    std::shared_ptr<std::string> getToken() { return token_; }
+    QNetworkAccessManager & getManager() { return manager; }
 
 signals:
     void onReady();
 
 public slots:
-    void getData(char const* host, int port, char const* target);
+    void getData(std::shared_ptr<std::string> target, char status = '\0');
     void post(char const* host, int port, char const* target, QByteArray data);
 
 private slots:
@@ -74,5 +91,21 @@ private:
     QNetworkAccessManager manager;
     MyCookieJar *cookieJar;
     QList<QNetworkCookie> cookiesList;
+    std::shared_ptr<std::string> token_;
+
+    std::shared_ptr<std::string> host;
+    int port;
+    std::shared_ptr<std::string> target;
+
+    std::shared_ptr<Database> db;
+
+    void setRegisterUserSettings(QString name);
+    void setStartGameInfo(QNetworkReply *reply);
 };
+
+typedef struct {
+    std::shared_ptr<EchoClient> webSocket;
+    std::shared_ptr<Client> httpClient;
+} GlobalNet;
+
 #endif // GRAPHICS_H

@@ -9,8 +9,8 @@
 #include  "include/chessboard.h"
 #include "include/cell.h"
 
-ChessBoard::ChessBoard(QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, int newSize, QWidget *parent)
-    :QWidget(parent), main(main), size(newSize), gameInfo(gameInfo) {
+ChessBoard::ChessBoard(QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, int newSize, GlobalNet * globalNet, QWidget *parent)
+    :QWidget(parent), main(main), size(newSize), gameInfo(gameInfo), globalNet(globalNet) {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     mainLayout = new QGridLayout();
@@ -19,9 +19,7 @@ ChessBoard::ChessBoard(QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo
     initBoard();
     drawBoardLabels();
 
-    srand(time(NULL));
-    int i = rand() % 2;
-    arrangeFigures(bool(i));
+    arrangeFigures(gameInfo->currentPlayer); // true - white, false - black
     if (gameInfo->isCheck) isKingUnderMat();
 
     mainLayout->setSpacing(0);
@@ -140,7 +138,6 @@ void ChessBoard::cellClicked()
         }
     }
 
-    // здесь нужно отправить данные Юре о сделанном ходе
 }
 
 Cell* ChessBoard::createCell(const QString &color, int x, int y, const char *member)

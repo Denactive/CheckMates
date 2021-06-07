@@ -9,37 +9,21 @@
 
 void runGame();
 
-GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo, std::shared_ptr<User> opponent)
-    : QWidget(parent), gameInfo(gameInfo), opponent(opponent), main(main)
+GameWindow::GameWindow(QWidget *parent, QStackedWidget * main, std::shared_ptr<GameInfo> gameInfo,
+                       std::shared_ptr<User> opponent, GlobalNet *globalNet, std::shared_ptr<Database> db)
+    : QWidget(parent), gameInfo(gameInfo), opponent(opponent), main(main), globalNet(globalNet), db(db)
 {
-//    net::io_context ioc;
-//    ioc.run();
-
-//    std::unique_ptr<Client> client(new Client);
-
-//    auto const port = 8000;
-//    // auto const host = "25.40.253.246";
-//    auto const host = "127.0.0.1";
-//    auto const target = "/test.txt";
-
-//    // QByteArray name;
-//    // name.append("Sergey");
-//    // client->post(host, port, target, name);
-
-//    client->getData(host, port, target);
-    // std::thread run(runGame);
-    // runGame();
-    // run.join();
+    gameWidgets = make_shared<GameWidgets>();
+    startGame = db->getStartGameInfo();
     drawGame();
-    //connect(this, SIGNAL(), this, SLOT(runGame()));
 }
 
 void GameWindow::drawGame()
 {
-    if (DEBUG) qDebug() << "game opponent: " << opponent->getName();
+    // qDebug() << "game opponent: " << opponent->getName();
     checkGame();
 
-    game = new QVBoxLayout();
+    gameWidgets->game = new QVBoxLayout();
 
     drawGameTop();
 
@@ -49,11 +33,11 @@ void GameWindow::drawGame()
     middle->addWidget(board);
     middle->addWidget(drawGameChat());
 
-    game->addLayout(middle);
+    gameWidgets->game->addLayout(middle);
 
     setStyleSheet("QListWidget::item { color: #464545; padding: 5px; background:  #E2DFD8; } ");
 
-    setLayout(game);
+    setLayout(gameWidgets->game);
 }
 
 void GameWindow::checkGame () {
@@ -105,31 +89,24 @@ void GameWindow::drawGameTop()
 {
     QHBoxLayout *topLayout = new QHBoxLayout();
 
-    gameTime = new QLabel("Time: " + QTime::currentTime().toString("hh:mm:ss"));
-    topLayout->addWidget(gameTime);
+    gameWidgets->gameTime = new QLabel("Time: " + QTime::currentTime().toString("hh:mm:ss"));
+    topLayout->addWidget(gameWidgets->gameTime);
     QTimer * gameTimer = new QTimer();
     connect(gameTimer, SIGNAL(timeout), this, SLOT(slotTimerAlarm()));
     gameTimer->start(1000);
 
     topLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
-    gameMessage = new QLabel("");
-    if (gameInfo->isCheck) gameMessage->setText("King under Mat!");
-    gameMessage->setStyleSheet("color: lightred; font-size: bold; ");
-    topLayout->addWidget(gameMessage);
+    gameWidgets->gameMessage = new QLabel("");
+    if (gameInfo->isCheck) gameWidgets->gameMessage->setText("King under Mat!");
+    gameWidgets->gameMessage->setStyleSheet("color: lightred; font-size: bold; ");
+    topLayout->addWidget(gameWidgets->gameMessage);
 
     topLayout->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
-
-//    User user;
-//    user.setName("Friend name");
-//    QPixmap photo("../img/friendPhoto.png");
-//    user.setUserPhoto(photo);
     topLayout->addLayout(playerStatisticsDraw());
-
-
     topLayout->setAlignment(Qt::AlignRight);
 
-    game->addLayout(topLayout);
+    gameWidgets->game->addLayout(topLayout);
 }
 
 QVBoxLayout *GameWindow::playerStatisticsDraw()
@@ -137,51 +114,51 @@ QVBoxLayout *GameWindow::playerStatisticsDraw()
     QVBoxLayout * playerStatistics = new QVBoxLayout();
 
     QSize photoSize(50, 50);
-    QPixmap photo = opponent->getUserPhoto().scaled(photoSize, Qt::KeepAspectRatio);
+    QPixmap photo = /*opponent->getUserPhoto()*/ startGame->avatarOpponent.scaled(photoSize, Qt::KeepAspectRatio);
     QLabel * playerPhotoWidget = new QLabel();
     playerPhotoWidget->setPixmap(photo);
     playerStatistics->addWidget(playerPhotoWidget);
 
-    int time = opponent->gameTime();
-    QLabel * playerTime = new QLabel(opponent->getName() + "\nTime: " + QString::number(time));
-    playerStatistics->addWidget(playerTime);
+    int rating = startGame->ratingOpponent; // opponent->gameTime();
+    QLabel * playerRating = new QLabel(/*opponent->getName()*/startGame->nameOpponent + "\nRating: " + QString::number(rating));
+    playerStatistics->addWidget(playerRating);
 
     return playerStatistics;
 }
 
 QVBoxLayout* GameWindow::drawChat(Chat *chat)  {
     QVBoxLayout *chatLayout = new QVBoxLayout();
-    gameChat = new QListWidget();
-    gameChat->setStyleSheet("background: #EDECEA; border-radius: 0%;");
-    chatLayout->addWidget(gameChat);
+    gameWidgets->gameChat = new QListWidget();
+    gameWidgets->gameChat->setStyleSheet("background: #EDECEA; border-radius: 0%;");
+    chatLayout->addWidget(gameWidgets->gameChat);
 
-    writeMessage = new QLineEdit;
-    writeMessage->setVisible(true);
-    writeMessage->setStyleSheet("background: #EDECEA; border: 2px solid #464545; height: 40px; padding-left: 20px;");
-    chatLayout->addWidget(writeMessage);
+    gameWidgets->writeMessage = new QLineEdit;
+    gameWidgets->writeMessage->setVisible(true);
+    gameWidgets->writeMessage->setStyleSheet("background: #EDECEA; border: 2px solid #464545; height: 40px; padding-left: 20px;");
+    chatLayout->addWidget(gameWidgets->writeMessage);
 
     return chatLayout;
 }
 
 void GameWindow::sendClicked()
 {
-    qDebug() << "send: " << writeMessage->text();
-    qDebug() << "buffer: " << QString::fromLocal8Bit(connection->buffer().c_str());
+    qDebug() << "send: " << gameWidgets->writeMessage->text();
+    // qDebug() << "buffer: " << QString::fromLocal8Bit(connection->buffer().c_str());
 
-    QListWidgetItem *item = new QListWidgetItem(writeMessage->text());
+    QListWidgetItem *item = new QListWidgetItem(gameWidgets->writeMessage->text());
     QFont font("Helvetica [Cronyx]", 20);
     item->setFont(font);
 
-    gameChat->addItem(item);
-    gameChat->item(gameChat->count() - 1)->setTextAlignment(Qt::AlignRight);
+    gameWidgets->gameChat->addItem(item);
+    gameWidgets->gameChat->item(gameWidgets->gameChat->count() - 1)->setTextAlignment(Qt::AlignRight);
 
-    writeMessage->clear();
-    connect(gameChat->model(), SIGNAL(rowsInserted(const QModelIndex &, int, int)), gameChat, SLOT(scrollToBottom()));
+    gameWidgets->writeMessage->clear();
+    connect(gameWidgets->gameChat->model(), SIGNAL(rowsInserted(const QModelIndex &, int, int)), gameWidgets->gameChat, SLOT(scrollToBottom()));
 }
 
 void GameWindow::slotTimerAlarm()
 {
-    gameTime->setText("Time: " + QTime::currentTime().toString("hh:mm:ss"));
+    gameWidgets->gameTime->setText("Time: " + QTime::currentTime().toString("hh:mm:ss"));
 }
 
 void GameWindow::surrender()

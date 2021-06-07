@@ -26,8 +26,8 @@ public:
 class User : public IUser {
 public:
     User(QString name = "", int nrating = 0, QString npassword = "", QString nlogin = "",
-         QString photopath = "../img/userPhoto.png", int ntime = 100);
-    void setUserPhoto(QPixmap photo) { this->photo = photo; };
+         /*QString photopath = "../img/userPhoto.png"*/QPixmap photo = QPixmap(), int ntime = 100);
+    void setUserPhoto(QPixmap photo) { this->photo = photo;  if (photo.isNull()) qDebug() << "User photo not load";};
     QPixmap getUserPhoto() { return photo; }
     void setName(QString name) { this->name = name; };
     QString getName() { return name; }
@@ -41,11 +41,11 @@ public:
     void setPassword(QString password) override { this->password = password; }
     void setLogin(QString login) override { this->login = login; };
 private:
-    QPixmap photo;
     QString name;
     int rating;
     QString password;
     QString login;
+    QPixmap photo;
     int time;
     std::pair<int, int> step;
 };

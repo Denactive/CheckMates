@@ -13,9 +13,6 @@ SettingsWindow::SettingsWindow(QWidget *parent, QStackedWidget *main, std::share
     addSettings("Login: ", user->getLogin());
     addSettings("Password: ", user->getUserPassword());
 
-    //MyButton * chooseThemeBtn = new MyButton("Choose theme");
-    //settings->addWidget(chooseThemeBtn);
-
     MyButton * backBtn = new MyButton("BACK");
     connect(backBtn, SIGNAL(clicked()), this, SLOT(backToMenu()));
     settings->addWidget(backBtn);
