@@ -478,8 +478,8 @@ int main(int argc, char** argv)
     // Check command line arguments.
     setlocale(LC_ALL, "rus");
 
-    auto const host("25.34.102.253");
-    //auto const host = "127.0.0.1";
+    //auto const host("25.34.102.253");
+    auto const host = "127.0.0.1";
     auto const port = "8001";
 
     // The io_context is required for all I/O

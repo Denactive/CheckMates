@@ -24,8 +24,8 @@ before_install:
   - cd -
 
 install:
-  - pip install codecov
-  - sudo apt-get install google-mock
+  # скрипт настройки среды и установки зависимостей:
+  - source ci-install-$TRAVIS_OS_NAME.sh
 
 script:
 #  - cppcheck src/*.c include/*.h
