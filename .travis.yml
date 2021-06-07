@@ -22,8 +22,9 @@ install:
 
 script:
 #  - cppcheck src/*.c include/*.h
-  - cd client
-  - mkdir build
+  - ls -lh
+  - cd client/
+  - sudo mkdir build
   - cd build
   - cmake .. && make
 #  - ./client
