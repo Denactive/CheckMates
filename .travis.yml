@@ -37,5 +37,11 @@ script:
   - make clean
   - codecov
 
+  - cd ../server
+  - mkdir build
+  - cd build
+  - cmake .. && make
+  - ./net_mock_test
+
 after_success:
   - bash <(curl -s https://codecov.io/bash)
