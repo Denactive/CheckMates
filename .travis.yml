@@ -16,13 +16,6 @@ addons:
       - qtbase5-dev
       - qtdeclarative5-dev
 
-before_install:
-  - cd /usr/src/gtest
-  - sudo cmake CMakeLists.txt || (cat CMakeFiles/CMakeError.log && CMakeFiles/CMakeOutput.log)
-  - sudo make
-  - sudo cp *.a /usr/lib
-  - cd -
-
 install:
   # скрипт настройки среды и установки зависимостей:
   - source ci-install-$TRAVIS_OS_NAME.sh
