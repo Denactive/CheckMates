@@ -5,11 +5,11 @@
 #ifndef SERVER_REMATCHER_H
 #define SERVER_REMATCHER_H
 
-class reMatcher: IMatcherQueue {
+class reMatcher: public IMatcherQueue {
 public:
-    MOCK_METHOD(GameSession&, start_game, (), (override));
-    MOCK_METHOD(void, push_user, (IUser* u), (override));
-    MOCK_METHOD(void, pop_user, (IUser* u), (override));
+    MOCK_METHOD(std::shared_ptr<GameSessionMap> ,get_games, (), (override));
+    MOCK_METHOD(std::shared_ptr<GameSession>, start_game, (std::shared_ptr<IUser>, std::shared_ptr<IUser>), (override));
+    MOCK_METHOD(std::shared_ptr<GameSession>, push_user, (std::shared_ptr<IUser>), (override));
 };
 
 #endif //SERVER_REMATCHER_H

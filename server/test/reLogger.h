@@ -7,7 +7,8 @@
 
 class reLogger : public ILogger  {
 public:
-    MOCK_METHOD(void, log, (std::string), (override));
+    MOCK_METHOD(void, log, (const std::string&), (override));
+    MOCK_METHOD(void, set_log_directory, (const std::string&), (override));
 };
 
 #endif //SERVER_RELOGGER_H

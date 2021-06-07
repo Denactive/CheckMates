@@ -7,15 +7,14 @@
 #ifndef CHECKMATES_NET_H
 #define CHECKMATES_NET_H
 
-#define TIMEOUT_DELAY 300  // (s)
+#define TIMEOUT_DELAY 30  // (s)
 #define COOKIE_LIFETIME 15 // min
 #define THREADS_NUM 1
 
 #define BASIC_DEBUG 1
 #define BASIC_DEBUG_WS 1
-#define START_GAME_IMITATION 1
 
-#define MOVE_PARSE_DEBUG 1
+#define MOVE_PARSE_DEBUG 0
 
 #define START_GAME_RESPONSE \
 "{\n\

@@ -51,8 +51,3 @@ std::shared_ptr<GameSession> MatcherQueue::push_user(std::shared_ptr<IUser> u) {
     }
     return nullptr;
 }
-
-bool MatcherQueue::pop_user(std::shared_ptr<IUser> u) {
-    std::cout << "Matcher: popping user " << u->get_id() << ' ' << u->get_nickname() << "\n";
-    return true;
-}

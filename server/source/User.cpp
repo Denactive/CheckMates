@@ -9,17 +9,13 @@ Stats User::get_full_stats(IDBServer& db) {
 }
 
 // this function allocates memory!
-ICommunity* User::create_community() {
-    std::set<uid> member_list;
-    // add somebody
-    Community* community = new Community(member_list);
-    return community;
+std::shared_ptr<ICommunity> User::create_community() {
+    return nullptr;
 };
 
 // this function allocates memory!
-IChat* User::create_chat(std::set<uid> members) {
-    Chat* chat = new Chat;
-    return chat;
+std::shared_ptr<IChat> User::create_chat(std::set<uid> members) {
+    return nullptr;
 };
 
 //

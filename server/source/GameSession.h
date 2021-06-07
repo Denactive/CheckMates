@@ -80,20 +80,19 @@ public:
     virtual void CreateLog() = 0;
     virtual bool GameStatus() = 0;
     virtual int run_turn(std::array<size_t, M>&) = 0;
-    virtual void setup() = 0;
+    //virtual void setup() = 0;
     virtual std::shared_ptr<IPlayer> you(int id) = 0;
     virtual std::shared_ptr<IPlayer> enemy(int id) = 0;
     virtual bool is_check(std::shared_ptr<IPlayer>&, std::shared_ptr<IPlayer>&) = 0;
     virtual bool is_mate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy)= 0;
     virtual bool is_stalemate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy)= 0;
-    virtual void send_move(std::array<size_t, M>& turn) = 0;
     virtual GInfo send_info() = 0;
     virtual int prepare_turn() = 0;
     virtual GameToken get_token() = 0;
     virtual std::string get_token_string() = 0;
     virtual bool is_in_game(std::shared_ptr<IPlayer>&) = 0;
-    virtual void try_move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) = 0;
-    virtual void move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy, std::array<size_t, M>& turn) = 0;
+    // virtual void try_move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) = 0;
+    //virtual void move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy, std::array<size_t, M>& turn) = 0;
     virtual void print_moves(std::shared_ptr<IPlayer>& you) = 0;
 };
 
@@ -112,7 +111,6 @@ public:
 #else
         : token_(std::chrono::system_clock::now())
 #endif
-
     {
         board = std::make_shared<ChessBoard>();
 
@@ -129,6 +127,7 @@ public:
             return true;
         return false;
     }
+    ~GameSession() = default;
 
     void CreateLog() override;
     int prepare_turn() override;
@@ -136,30 +135,19 @@ public:
     bool is_mate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;
     bool is_stalemate(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;
     bool GameStatus() override;
-    int run_turn(std::array<size_t, M>& turn) override;
-    void setup() override;
     std::shared_ptr<IPlayer> enemy(int id) override;
     std::shared_ptr<IPlayer> you(int id) override;
-    ~GameSession() = default;
-
     void print_moves(std::shared_ptr<IPlayer>& you) override;
-    void move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy, std::array<size_t, M>& turn) override;
-
-    void send_move(std::array<size_t, M>& turn) {
-        std::cout <<"\n"<< turn[0] << turn[1] << turn[2] << turn[3]<<"\n";
-    }
-
-    GInfo send_info() override {
-        std::cout <<"\tGameInfo: "<< info.isPlayer << info.isGame << info.isVictory << info.isCheck <<"\n";
-        return info;
-    }
-
-    void try_move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy) override;
-
     GameToken get_token() override { return token_; }
     std::string get_token_string() override { return serializeTimePoint(token_); }
+    int run_turn(std::array<size_t, M>& turn);
+    GInfo send_info() override { return info; }
 
 private:
+    void setup();
+    void move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy, std::array<size_t, M>& turn);
+    void try_move(std::shared_ptr<IPlayer>& you, std::shared_ptr<IPlayer>& enemy);
+
     GInfo info;
     GameToken token_;
 };

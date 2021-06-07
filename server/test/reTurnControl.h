@@ -1,3 +1,5 @@
+#include "../source/TurnControl.h"
+
 class reTurnControl: public ITurnControl {
 public:
     MOCK_METHOD(void, StopTimer, ());

@@ -9,7 +9,7 @@
 #include "gmock/gmock.h"
 #include "../source/User.h"
 
-class reUser: IUser {
+class reUser: public IUser {
 public:
     MOCK_METHOD(UserInfo, get_info, (), (override));
     MOCK_METHOD(uid, get_id, (), (override));
@@ -17,8 +17,12 @@ public:
     MOCK_METHOD(int, get_rating, (), (override));
     MOCK_METHOD(void, set_rating, (int), (override));
     MOCK_METHOD(Stats, get_full_stats, (IDBServer&), (override));
-    MOCK_METHOD(Community*, create_community ,(), (override));
-    MOCK_METHOD(Chat*, create_chat, (std::set<uid>), (override));
+    MOCK_METHOD(void, set_user_data, (uid, std::string, int));
+    MOCK_METHOD(std::shared_ptr<ICommunity>, create_community, ());
+    MOCK_METHOD(std::shared_ptr<IChat>, create_chat, (std::set<uid>));
+    MOCK_METHOD(Cookie, get_token, ());
+    MOCK_METHOD(std::string, get_token_string, ());
+    MOCK_METHOD(std::string, get_avatar, ());
 };
 
 #endif //SERVER_REUSER_H

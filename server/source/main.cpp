@@ -16,7 +16,6 @@ int main() {
     
     std::string http_logger(storage_root + "/http_logs/");
     std::string ws_logger(storage_root + "/ws_logs/");
-    std::shared_ptr<JSON_serializer> js = std::make_shared<JSON_serializer>();
     MQSingleton::instance();
     auto active_users = std::make_shared<UserMap>();
 

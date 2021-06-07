@@ -12,7 +12,6 @@ set(SOURCE_DIR source)
 set(LIB_DIR lib)
 include_directories(source/ test/ client_example/)
 
-#find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost)
 IF (Boost_FOUND)
     message("Boost version: ${Boost_VERSION} | ${Boost_INCLUDE_DIR}")
@@ -32,9 +31,39 @@ add_executable(${PROGRAM_NAME}
         source/Player.cpp
         source/User.cpp
         source/King.cpp
-        source/TurnControl.cpp
         source/ChessBoard.cpp
         source/Chesspiece.cpp)
 target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
+
+# TEST CLIENT
 add_executable(client client_example/FullClient.cpp)
 target_link_libraries (client ${Boost_LIBRARIES} -lpthread)
+
+# TESTING
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GTEST_LIBRARIES})
+find_package(GMock REQUIRED)
+include_directories(${INCLUDE_DIRECTORIES})
+message(${GMOCK_LIBRARIES})
+
+add_executable(net_mock_test
+        test/tests.cpp
+        test/NetMock.cpp
+        source/server.cpp
+        source/matcher.cpp
+        source/net.cpp
+        source/community.cpp
+        source/ServerDB.cpp
+        source/GameSession.cpp
+        test/reSerializer.h
+        source/Player.cpp
+        source/User.cpp
+        source/King.cpp
+        source/ChessBoard.cpp
+        source/Chesspiece.cpp)
+target_link_libraries(net_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+target_link_libraries (net_mock_test ${Boost_LIBRARIES} -lpthread)
+
+add_test(NetMockTest ./net_mock_test)

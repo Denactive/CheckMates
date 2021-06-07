@@ -7,16 +7,8 @@
 
 class reDB: public IDBServer {
 public:
-    MOCK_METHOD(std::string, query, (std::string), (override));
-    MOCK_METHOD(std::string, read, (), (override));
-    MOCK_METHOD(void, write, (std::string), (override));
+    MOCK_METHOD(std::string, query, (std::string, db_error&), (override));
+    MOCK_METHOD0(Die, void());
+    virtual ~reDB() { Die(); }
 };
-
-class fakeDB: public IDBServer {
-public:
-    std::string query(std::string q) { return "test_query"; }
-    std::string read() { return "test_read"; }
-    void write(std::string q) {}
-};
-
 #endif //SERVER_REDB_H

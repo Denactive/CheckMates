@@ -100,8 +100,8 @@ public:
     virtual void set_rating(int) = 0;
     virtual void set_user_data(uid, std::string, int) = 0;
     virtual Stats get_full_stats(IDBServer&) = 0;
-    virtual ICommunity* create_community() = 0;
-    virtual IChat* create_chat(std::set<uid> members) = 0;
+    virtual std::shared_ptr<ICommunity> create_community() = 0;
+    virtual std::shared_ptr<IChat> create_chat(std::set<uid> members) = 0;
     virtual Cookie get_token() = 0;
     virtual std::string get_token_string() = 0;
     virtual std::string get_avatar() = 0;
@@ -139,8 +139,8 @@ public:
     void set_user_data(uid id, std::string nickame, int new_rating) override { rating_ = new_rating; id_ = id; nickname_ = nickame; }
     void set_rating(int new_rating) override { rating_ = new_rating; }
 
-    ICommunity* create_community() override;
-    IChat* create_chat(std::set<uid> members) override;
+    std::shared_ptr<ICommunity> create_community() override;
+    std::shared_ptr<IChat> create_chat(std::set<uid> members) override;
 
 private:
 

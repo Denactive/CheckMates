@@ -9,8 +9,6 @@
 #include "ChessBoard.h"
 #include "Chesspiece.h"
 
-
-
 class IPlayer {
 public:
     virtual std::shared_ptr<WebSocketSession> get_session() = 0;
