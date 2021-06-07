@@ -13,8 +13,19 @@ sudo make
 sudo cp ./lib/libgtest*.a /usr/lib
 cd -
 
-- pip install codecov
+- sudo apt-get install libgmock-dev
 - sudo apt-get install google-mock
+#cd /usr/src/googletest/googlemock/
+#sudo mkdir build
+##cd build
+#sudo cmake ..
+#sudo make
+#sudo cp ./lib/libgtest*.a /usr/lib
+#cd -
+
+
+
+- pip install codecov
 #sudo apt-get install -y valgrind
 #sudo apt-get install -y cppcheck
 
