@@ -1,3 +1,6 @@
+#ifndef TEST_CLIENT_H
+#define TEST_CLIENT_H
+
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0A00
 #endif
@@ -13,6 +16,7 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/strand.hpp>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -80,9 +84,6 @@ fail(beast::error_code ec, char const* what)
 
 static bool KEEP_GOING = true;
 static NewData NEW_DATA;
-std::string token = "null_token";
-std::string game = "null_gametoken";
-
 //------------------------------------------------------------------------------
 
 
@@ -98,25 +99,34 @@ class http_session : public std::enable_shared_from_this<http_session>
     http::response<http::string_body> res_;
     std::string host_;
     std::string port_;
+    std::shared_ptr<std::string> token;
+    std::shared_ptr<std::string> game;
+    std::shared_ptr<std::string> side;
+    std::shared_ptr<std::string> uid;
 
 public:
-
+    std::string buffer_str;
     ~http_session() { std::cout << "http_session died\n"; }
 
     // Objects are constructed with a strand to
     // ensure that handlers do not execute concurrently.
     explicit
-        http_session(net::io_context& ioc)
+        http_session(net::io_context& ioc,
+                     std::shared_ptr<std::string>& token,
+                     std::shared_ptr<std::string>& uid,
+                     std::shared_ptr<std::string>& game,
+                     std::shared_ptr<std::string>& side)
         : resolver_(net::make_strand(ioc))
         , stream_(net::make_strand(ioc))
+        , token(token)
+        , uid(uid)
+        , game(game)
+        , side(side)
     {
     }
 
     // Start the asynchronous operation
-    void
-        run(
-            char const* host,
-            char const* port)
+    void run(char const* host, char const* port)
     {
         host_ = host;
         port_ = port;
@@ -132,10 +142,7 @@ public:
                 shared_from_this()));
     }
 
-    void
-        on_resolve(
-            beast::error_code ec,
-            tcp::resolver::results_type results)
+    void on_resolve(beast::error_code ec, tcp::resolver::results_type results)
     {
         if (BASIC_DEBUG) std::cout << "http_session on resolve \n";
 
@@ -153,8 +160,7 @@ public:
                 shared_from_this()));
     }
 
-    void
-        on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
+    void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
     {
         if (BASIC_DEBUG) std::cout << "http_session on_connect \n";
 
@@ -166,8 +172,7 @@ public:
         std::cout << "Connected\n";
     }
 
-    void
-        write(std::string target)
+    void write(std::string target)
     {
         if (BASIC_DEBUG) std::cout << "http_session get: " << target << "\n";
 
@@ -189,9 +194,7 @@ public:
                 shared_from_this()));
     }
 
-    void on_write(
-        beast::error_code ec,
-        std::size_t bytes_transferred)
+    void on_write(beast::error_code ec, std::size_t bytes_transferred)
     {
         if (BASIC_DEBUG) std::cout << "http_session on_write\n";
         if (!KEEP_GOING)
@@ -209,10 +212,7 @@ public:
                 shared_from_this()));
     }
 
-    void
-        on_read(
-            beast::error_code ec,
-            std::size_t bytes_transferred)
+    void on_read(beast::error_code ec, std::size_t bytes_transferred)
     {
         if (BASIC_DEBUG) std::cout << "http_session on_read\n";
 
@@ -227,18 +227,34 @@ public:
         if (cookie_beg != std::string::npos) {
             auto cookie_end = res_.body().substr(cookie_beg + 11).find('\"');
             auto token_local = res_.body().substr(cookie_beg + 11, cookie_end);
-            token = token_local;
-            std::cout << "Got token: " << token << std::endl;
+            (*token) = token_local;
+            std::cout << "Got token: " << (*token) << std::endl;
             cookie_beg = std::string::npos;
+            auto uid_beg = res_.body().find("\"uid\": \"");
+            if (uid_beg != std::string::npos) {
+                uid_beg += 8;
+                auto uid_end = res_.body().substr(uid_beg).find('\"');
+                (*uid) = res_.body().substr(uid_beg, uid_end);
+                std::cout << "Side: " << (*uid) << "\n";
+            }
         }
 
         auto gt_beg = res_.body().find("\"game_token\": \"");
         if (gt_beg != std::string::npos) {
             gt_beg += 15;
             auto gt_end = res_.body().substr(gt_beg).find('\"');
-            game = res_.body().substr(gt_beg, gt_end);
-            std::cout << "Game token: " << game << "\n";
+            (*game) = res_.body().substr(gt_beg, gt_end);
+            std::cout << "Game token: " << (*game) << "\n";
             gt_beg = std::string::npos;
+        }
+
+        auto side_beg = res_.body().find("\"side\": \"");
+        if (side_beg != std::string::npos) {
+            side_beg += 9;
+            auto side_end = res_.body().substr(side_beg).find('\"');
+            (*side) = res_.body().substr(side_beg, side_end);
+            std::cout << "Side: " << (*side) << "\n";
+            side_beg = std::string::npos;
         }
         res_.body() = "";
     }
@@ -263,26 +279,35 @@ class session : public std::enable_shared_from_this<session>
     websocket::stream<beast::tcp_stream> ws_;
     beast::flat_buffer buffer_;
     std::string host_;
-    std::string text_;
     bool need_close = false;
     std::string close_str = "NEED_CLOSE";
+    std::shared_ptr<std::string> game;
+    std::shared_ptr<std::string> token;
+    std::shared_ptr<std::string> side;
+    std::shared_ptr<std::string> uid;
 
 public:
+    std::string buffer_str;
     // Resolver and socket require an io_context
     explicit
-        session(net::io_context& ioc)
+        session(net::io_context& ioc,
+                std::shared_ptr<std::string>& token,
+                std::shared_ptr<std::string>& uid,
+    std::shared_ptr<std::string>& game,
+                std::shared_ptr<std::string>& side)
         : resolver_(net::make_strand(ioc))
         , ws_(net::make_strand(ioc))
+        , token(token)
+        , uid(uid)
+        , game(game)
+        , side(side)
+
     {
     }
     ~session() { std::cout << "ws_session died\n"; }
 
-
     // Start the asynchronous operation
-    void
-        run(
-            char const* host,
-            char const* port)
+    void run(char const* host, char const* port)
     {
         if (BASIC_DEBUG) std::cout << "run\n";
         // Save these for later
@@ -298,10 +323,7 @@ public:
                 shared_from_this()));
     }
 
-    void
-        on_resolve(
-            beast::error_code ec,
-            tcp::resolver::results_type results)
+    void on_resolve(beast::error_code ec, tcp::resolver::results_type results)
     {
         if (BASIC_DEBUG) std::cout << "on resolve\n";
         if (ec)
@@ -318,8 +340,7 @@ public:
                 shared_from_this()));
     }
 
-    void
-        on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
+    void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
     {
         if (BASIC_DEBUG) std::cout << "on connect\n";
         if (ec)
@@ -356,8 +377,7 @@ public:
                 shared_from_this()));
     }
 
-    void
-        on_handshake(beast::error_code ec)
+    void on_handshake(beast::error_code ec)
     {
         if (BASIC_DEBUG) std::cout << "on handshake\n";
         if (ec)
@@ -471,151 +491,21 @@ public:
     }
 };
 
-//------------------------------------------------------------------------------
+class client {
+public:
+    std::shared_ptr<std::string> token = std::make_shared<std::string>("null_token");
+    std::shared_ptr<std::string> game = std::make_shared<std::string>("null_gametoken");
+    std::shared_ptr<std::string> side = std::make_shared<std::string>("undefined");
+    std::shared_ptr<std::string> uid = std::make_shared<std::string>("undefined");
+    http_session http_connection;
+    session ws_connection;
 
-int main(int argc, char** argv)
-{
-    // Check command line arguments.
-    setlocale(LC_ALL, "rus");
-
-    auto const host("25.34.102.253");
-    //auto const host = "127.0.0.1";
-    auto const port = "8001";
-
-    // The io_context is required for all I/O
-    msg_Singleton::instance();
-    net::io_context ioc;
-
-    // Launch the asynchronous operation
-    auto ws_connection = std::make_shared<session>(ioc);
-    ws_connection->run(host, "1234");
-
-    auto http_connection = std::make_shared<http_session>(ioc);
-    http_connection->run(host, "8000");
-
-    // create a thread to maintain communication
-    std::thread t(
-        [&ioc]() { ioc.run(); }
-    );
-    //t.detach();
-
-    // Run the I/O service. The call will return when
-    // the socket is closed.
-
-
-    char cmd = '\0';
-
-    // long-living string!!!
-    std::string buffer;
-    std::string http_buffer;
-    bool skip_waiting = false;
-
-#ifdef _WIN32
-    Sleep(500);
-#else 
-    sleep(1);
-#endif // WIN32
-
-    std::cout << "Set user [1] - Sveta, [2] - Denis, [3] - Youra >> ";
-    int uid = 0;
-    std::cin >> uid;
-    if (uid > 3)
-        uid = 1;
-    std::string names[] = { "Sveta", "Denis", "Youra" };
-
-    std::cout << "==========\n1 - http login\n2 - http connect\n==========\n";
-    std::cout << "==========\nw - ws write\nC - ws close\nm - send move json example\nE - exit\n==========\n";
-
-    while (KEEP_GOING) {
-        skip_waiting = true;//false;
-
-        std::cin >> cmd;
-        std::cout << '[' << cmd << ']' << ' ';
-        switch (cmd) {
-
-        case '1':
-            http_buffer = "/register/" + names[uid - 1];
-            http_connection->write(http_buffer);
-            skip_waiting = true;
-            break;
-
-        case '2':
-            http_buffer = "/start_game/" + token;
-            http_connection->write(http_buffer);
-            skip_waiting = true;
-            break;
-
-        case 'w':
-            std::cout << " write a message >> ";
-            std::cin >> buffer;
-            ws_connection->write(buffer);
-            break;
-
-        case 'C':
-            ws_connection->close();
-            break;
-
-        case 'm':
-            // E2 E4 - ������ ��� �����
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"12\",\n\t\"cur\": \"28\"\n}";
-            ws_connection->write(buffer);
-            break;
-
-        case 'E':
-            KEEP_GOING = false;
-            ws_connection->close();
-            break;
-
-        case 'a':
-            // E7 E5 - ������ ��� ������
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"52\",\n\t\"cur\": \"36\"\n}";
-            ws_connection->write(buffer);
-            break;
-
-        case 'b':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"5\",\n\t\"cur\": \"26\"\n}";
-            ws_connection->write(buffer);
-            break;
-
-        case 'c':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"57\",\n\t\"cur\": \"42\"\n}";
-            ws_connection->write(buffer);
-            break;
-
-        case 'd':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"3\",\n\t\"cur\": \"39\"\n}";
-            ws_connection->write(buffer);
-            break;
-
-        case 'e':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"62\",\n\t\"cur\": \"45\"\n}";
-            ws_connection->write(buffer);
-            break;
-
-        case 'f':
-            buffer = "{\n\t\"code\": \"move\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\",\n\t\"prev\": \"39\",\n\t\"cur\": \"53\"\n}";
-            ws_connection->write(buffer);
-            break;
-
-        case 's':
-            buffer = "{\n\t\"code\": \"start\",\n\t\"game_token\": \"" + game + "\",\n\t\"uid\": \"" + std::to_string(uid) + "\"\n}";
-            ws_connection->write(buffer);
-            break;
-
-        default:
-            skip_waiting = true;
-        }
-
-        if (!skip_waiting) {
-            // wait for response
-            while (!NEW_DATA.state());
-            NEW_DATA.set(false);
-            std::cout << "I am standart thread. I've got a message from server:\n" << msg_Singleton::instance().get() << std::endl;
-        }
+    client() = delete;
+    client(net::io_context& ioc)
+    : http_connection(ioc, token, uid, game, side)
+    , ws_connection(ioc, token, uid, game, side)
+    {
     }
+};
 
-    t.join();
-
-    system("pause");
-    return EXIT_SUCCESS;
-}
+#endif  // TEST_CLIENT_H

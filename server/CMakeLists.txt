@@ -11,6 +11,7 @@ set(PROGRAM_NAME server)
 set(SOURCE_DIR source)
 set(LIB_DIR lib)
 include_directories(source/ test/ client_example/)
+add_definitions(-fprofile-arcs -ftest-coverage)
 
 find_package(Boost)
 IF (Boost_FOUND)
@@ -33,11 +34,11 @@ add_executable(${PROGRAM_NAME}
         source/King.cpp
         source/ChessBoard.cpp
         source/Chesspiece.cpp)
-target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread)
+target_link_libraries (${PROGRAM_NAME} ${Boost_LIBRARIES} -lpthread -fprofile-arcs)
 
 # TEST CLIENT
 add_executable(client client_example/FullClient.cpp)
-target_link_libraries (client ${Boost_LIBRARIES} -lpthread)
+target_link_libraries (client ${Boost_LIBRARIES} -lpthread -fprofile-arcs)
 
 # TESTING
 enable_testing()
@@ -63,7 +64,10 @@ add_executable(net_mock_test
         source/King.cpp
         source/ChessBoard.cpp
         source/Chesspiece.cpp)
-target_link_libraries(net_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
-target_link_libraries (net_mock_test ${Boost_LIBRARIES} -lpthread)
-
+target_link_libraries(net_mock_test ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} -lpthread -fprofile-arcs)
 add_test(NetMockTest ./net_mock_test)
+
+# Server Unit GTest
+add_executable(server_unit_test test/ServerUnitTest.cpp)
+target_link_libraries(server_unit_test ${GTEST_LIBRARIES} -lpthread -fprofile-arcs)
+add_test(server_test ./server_unit_test)
