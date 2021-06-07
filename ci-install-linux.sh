@@ -13,11 +13,9 @@ sudo make
 sudo cp ./lib/libgtest*.a /usr/lib
 cd -
 
-- sudo apt-get install libgmock-dev
-cd /usr/src/googletest/googlemock/
-ls -lh
-sudo mkdir build
-cd build
+sudo apt-get install libgmock-dev
+sudo mkdir /usr/src/googletest/googlemock/build
+cd /usr/src/googletest/googlemock/build
 sudo cmake ..
 ls -lh
 sudo make
