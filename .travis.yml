@@ -18,7 +18,7 @@ addons:
 
 install:
   # скрипт настройки среды и установки зависимостей:
-  - source ci-install-$TRAVIS_OS_NAME.sh
+  - source libs/ci-install-$TRAVIS_OS_NAME.sh
 
 script:
 #  - cppcheck src/*.c include/*.h

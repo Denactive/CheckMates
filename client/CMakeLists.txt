@@ -9,17 +9,27 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "--coverage -Wall")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
+set(INCLUDE_DIRECTORIES include include/windows)
+#find_package(GTest REQUIRED)
+#include_directories(${GTEST_INCLUDE_DIRS})
+#message(${GTEST_LIBRARIES})
+#find_package(GMock REQUIRED)
+#include_directories(${INCLUDE_DIRECTORIES})
+#message(${GMOCK_LIBRARIES})
+enable_testing()
 find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+include_directories(${INCLUDE_DIRECTORIES})
 message(${GTEST_LIBRARIES})
 find_package(GMock REQUIRED)
-set(INCLUDE_DIRECTORIES include include/windows)
 include_directories(${INCLUDE_DIRECTORIES})
 message(${GMOCK_LIBRARIES})
+
+
 
 find_package(Boost REQUIRED COMPONENTS system)
 #find_package(Boost)
