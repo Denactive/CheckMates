@@ -75,6 +75,5 @@ cmake-build-debug/
 build/
 chess_ru_RU.ts
 client_ru_RU.ts
-GMockConfig.cmake
 CMakeLists.in
 CMakeLists.user
