@@ -4,7 +4,7 @@ sudo apt-get update -qq
 sudo apt-get install g++
 sudo apt-get install cmake
 
-#sudo apt-get install libgtest-dev
+sudo apt-get install libgtest-dev
 ##cd /usr/src/gtest
 #sudo cmake CMakeLists.txt
 #sudo make
@@ -12,8 +12,8 @@ sudo apt-get install cmake
 #cd -
 
 #gmock
-#sudo apt-get install libgmock-dev
-curl -O https://github.com/google/googletest/archive/refs/heads/master.zip
+sudo apt-get install libgmock-dev
+#curl -O https://github.com/google/googletest/archive/refs/heads/master.zip
 #ls -lh /home/travis/Downloads 
 #sudo mv /home/travis/Downloads/googletest-master.zip /usr/src/
 #sudo unzip /usr/src/googletest-master.zip
@@ -26,7 +26,7 @@ curl -O https://github.com/google/googletest/archive/refs/heads/master.zip
 #sudo cp *.a /usr/lib
 #cd /home/travis/
 #ls -lh
-sudo cp libs/*.a /usr/local/bin
+#sudo cp libs/*.a /usr/local/bin
 
 
 
