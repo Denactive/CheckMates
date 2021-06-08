@@ -14,7 +14,6 @@ cd -
 #gmock
 #sudo apt-get install libgmock-dev
 curl -O https://github.com/google/googletest/archive/refs/heads/master.zip
-#sudo mkdir /usr/src/googletest/googlemock/build
 ls -lh /home/travis/Downloads 
 sudo mv /home/travis/Downloads/googletest-master.zip /usr/src/
 sudo unzip /usr/src/googletest-master.zip
@@ -22,10 +21,11 @@ sudo mv /usr/src/googletest-master /usr/src/googletest
 ls -lh /usr/src/googletest
 sudo mkdir /usr/src/googletest/googlemock/build
 sudo cd /usr/src/googletest/googlemock/
-sudo cmake .
+sudo cmake ..
 sudo make
 sudo cp *.a /usr/lib
-cd -
+cd /home/travis/
+ls -lh
 
 
 
