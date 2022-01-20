@@ -1,0 +1,13 @@
+SaberChessServer/
+SaberChessServer/*
+.vs/
+.vs/*
+.vs/SaberDevs/v16/
+.vs/SaberDevs/v16/*
+SaberDevs.sln
+SaberChessServer/SaberChessServer/Debug/
+SaberChessServer/SaberChessServer/Debug/*
+
+storage/http_logs/*
+storage/logs/*
+storage/ws_logs/*

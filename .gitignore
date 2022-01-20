@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .gitignore
 .idea
 
@@ -9,6 +10,7 @@ community/cmake-build-debug
 community/cmake-build-debug/*
 client/cmake-build-debug
 client/cmake-build-debug/*
+client/googlemock/
 
 /server/build
 /server/build/*
@@ -19,4 +21,17 @@ client/cmake-build-debug/*
 
 /server/test/Testing/
 /community/test/Testing/
-/client/test/Testing/
+/client/tests/Testing/
+/client/tests/build_test/
+/client/tests/googletest-release-1.10.0/
+/client/Testing/
+/client/googlemock
+
+/server/CMakeLists.txt.user
+
+**/build-client-Dekstop-Debug/
+**/build/
+*.swp
+.idea/
+build-server-Desktop_Qt_5_12_5_GCC_64bit-Debug/
+

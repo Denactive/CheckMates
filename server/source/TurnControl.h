@@ -1,20 +1,30 @@
-//
-// Created by yura11011 on 15.04.2021.
-//
-
-#ifndef CHECKMATES_TURNCONTROL_H
-#define CHECKMATES_TURNCONTROL_H
-#include "GameSession.h"
-
-class TurnControl {
+#ifndef CHESS_TURNCONTROL_H
+#define CHESS_TURNCONTROL_H
+#include <ctime>
+class ITurnControl {
 private:
-    void switch_turn();
-    void enable_timer();
-    void stop_timer();
+    virtual void SwitchTurn() = 0;
+    virtual void StopTimer() = 0;
+    virtual void EnableTimer() = 0;
 public:
-    time_t Timer1;
-    time_t Timer2;
+    virtual ~ITurnControl() { };
+    virtual time_t GetTime(bool Turn) = 0;
+    virtual bool GetTurn(void) = 0;
+
 };
 
+class TurnControl: public ITurnControl {
+private:
+    bool Turn;
+    time_t Timer1;
+    time_t Timer2;
+public:
+    void SwitchTurn();
+    void EnableTimer();
+    void StopTimer();
+    ~TurnControl();
+    time_t GetTime(const bool Turn);
+    bool GetTurn(void);
+};
 
-#endif //CHECKMATES_TURNCONTROL_H
+#endif //CHESS_TURNCONTROL_H

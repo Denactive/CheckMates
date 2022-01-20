@@ -1,20 +1,50 @@
-//
-// Created by yura11011 on 14.04.2021.
-//
 
-#ifndef CHECKMATES_CHESSBOARD_H
-#define CHECKMATES_CHESSBOARD_H
+#ifndef CHESS_CHESSBOARD_H
+#define CHESS_CHESSBOARD_H
+#define N 8
 
-#include "GameSession.h"
+#include "array"
+#include "iostream"
 
+enum cell {
+    Empty,
+    White,
+    Black
+};
 
 class ChessBoard {
 private:
-    std::vector<char> board;
+    std::array<std::array<cell, N>, N> board;
+
 public:
-    void get_board();
-    void chess_board();
+
+    ChessBoard() {
+        set_board();
+    }
+
+    std::array<std::array<cell, N>, N> get_board() {
+        return board;
+    };
+
+    void set_board();
+
+    void move_chess(std::array<size_t, N/2> turn) {
+        cell temp  = board[turn[0]][turn[1]];
+        board[turn[0]][turn[1]] = Empty;
+        board[turn[2]][turn[3]] = temp;
+    }
+
+    void set(cell Cell, size_t i, size_t j) {
+        board[i][j] = Cell;
+    }
+
+    void draw_board() {
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+                std::cout << board[i][j] << ' ';
+            }
+            std::cout << '\n';
+        }
+    }
 };
-
-
-#endif //CHECKMATES_CHESSBOARD_H
+#endif //CHESS_CHESSBOARD_H

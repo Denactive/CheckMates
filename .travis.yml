@@ -1,0 +1,51 @@
+dist:     focal    # используем Ubuntu 20.04 Focal Fossa
+sudo:     required  # используем Virtual Machine (а не Docker container)
+language: cpp
+os: linux
+compiler: gcc
+
+addons:
+  apt:
+    update: true
+    packages:
+      - cppcheck
+      - valgrind
+      - cmake
+      - libgtest-dev
+      - lcov
+      - qtbase5-dev
+      - qtdeclarative5-dev
+
+install:
+  # скрипт настройки среды и установки зависимостей:
+  - source libs/ci-install-$TRAVIS_OS_NAME.sh
+
+script:
+#  - cppcheck src/*.c include/*.h
+  - ls -lh
+  - cd client/
+  - sudo mkdir build
+  - cd build
+  - cmake .. && make
+#  - ./client
+#  - ./tests/tst
+##  - valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all --track-origins=yes ./tests/tst
+#  - lcov --directory . --capture --output-file coverage.info
+#  - lcov --remove coverage.info '/usr/*' "${HOME}"'/.cache/*' --output-file coverage.info
+#  - lcov --list coverage.info
+#  - make clean
+#  - codecov
+
+  - cd ../../server
+  - mkdir build
+  - cd build
+  - cmake .. && make
+  - ./net_mock_test
+  - lcov --directory . --capture --output-file coverage.info
+  - lcov --remove coverage.info '/usr/*' "${HOME}"'/.cache/*' --output-file coverage.info
+  - lcov --list coverage.info
+  - make clean
+  - codecov
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
