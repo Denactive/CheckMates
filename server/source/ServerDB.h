@@ -1,25 +1,28 @@
-//
-// Created by denactive on 15.04.2021.
-//
-
 #ifndef CHECKMATES_SERVERDB_H
 #define CHECKMATES_SERVERDB_H
 
 #include <string>
 
-
-class IDB_server {
+class IDBServer {
 public:
     virtual std::string query(std::string q) = 0;
+    virtual std::string read() = 0;
+    virtual void write(std::string q) = 0;
 };
 
-class DB_server: IDB_server {
+class DBServer: public IDBServer {
 public:
-    std::string query(std::string q) override;
+    DBServer(std::string filepath): filepath_(filepath) {
 
-private:
+    }
+    DBServer() = default;
+
+    std::string query(std::string q) {return q;};
+    std::string read() {return filepath_;};
+    void write(std::string q) {filepath_ = q;};
+private :
     std::string filepath_;
+    std::string fileDB() { return ""; }
 };
-
 
 #endif //CHECKMATES_SERVERDB_H
