@@ -1,6 +1,6 @@
-[< Назад](..)
+< [Назад](https://github.com/Denactive/CheckMates/)
 
-# Проект CheckMates. Back-end #
+# <a name="top"></a>Проект CheckMates. Back-end #
 ## Разработчики ##
 - [Очеретная Светлана](https://github.com/Svetlanlka)
 
@@ -17,12 +17,14 @@
 
 Используйте [Тестовый клиент](../server#test).
 
-- Сборка на Linux:
+Сборка на Linux:
+    0. Установить QT 6, указать путь до библиотеки в $path
     1. mkdir tmp && cd tmp/
     2. cmake ..
     3. make
     4. ./client
-- Сборка на Windows (Visual Studio):
+Сборка на Windows (Visual Studio):
+    0. Установить QT 6
     1. Создать пустой проект
     2. Установить стандарт языка С++17 в свойствах проекта
     3. Указать путь до файлов библиотеки QT в "подключаемых каталогах"
