@@ -23,14 +23,14 @@ install:
   - pip install codecov
 
 script:
-#  - cppcheck src/*.c include/*.h
+  - cppcheck src/*.c include/*.h
   - cd client
   - mkdir build
   - cd build
   - cmake .. && make
   - ./client
   - ./tests/tst
-#  - valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all --track-origins=yes ./tests/tst
+  - valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all --track-origins=yes ./tests/tst
   - lcov --directory . --capture --output-file coverage.info
   - lcov --remove coverage.info '/usr/*' "${HOME}"'/.cache/*' --output-file coverage.info
   - lcov --list coverage.info
