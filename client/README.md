@@ -1,4 +1,4 @@
-< [Назад](https://github.com/Denactive/CheckMates/)
+< [Назад](https://github.com/Denactive/CheckMates#top)
 
 # <a name="top"></a>Проект CheckMates. Back-end #
 ## Разработчики ##

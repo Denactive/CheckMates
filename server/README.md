@@ -1,4 +1,4 @@
-< [Назад](https://github.com/Denactive/CheckMates/)
+< [Назад](https://github.com/Denactive/CheckMates/#top
 
 # <a name="backend"></a>Проект CheckMates. Back-end #
 ## Разработчики ##
@@ -16,21 +16,21 @@
 
 ## Сборка ##
 Сборка на Linux:
-    0. Установить Boost::beast и Boost::asio, указать путь до библиотеки в $path
-    1. mkdir tmp && cd tmp/
-    2. cmake ..
-    3. make
-    4. ./server
+0. Установить Boost::beast и Boost::asio, указать путь до библиотеки в $path
+1. mkdir tmp && cd tmp/
+2. cmake ..
+3. make
+4. ./server
 Сборка на Windows (Visual Studio):
-    0. Установить Boost::beast и Boost::asio
-    1. Создать пустой проект
-    2. Установить стандарт языка С++17 в свойствах проекта
-    3. Указать путь до файлов библиотеки Boost в "подключаемых каталогах"
-    4. Ctrl + F5
+0. Установить Boost::beast и Boost::asio
+1. Создать пустой проект
+2. Установить стандарт языка С++17 в свойствах проекта
+3. Указать путь до файлов библиотеки Boost в "подключаемых каталогах"
+4. Ctrl + F5
 
 ## <a name="test"></a>Тестовый клиент ##
 Требования в ПО аналогичны требованию ПО сервера.
 
 CMakeList.txt не прилагаю.
 
-Исходник находится [тут](./test_client/FullClient.cpp)
+Исходник находится [тут](./test_client/FullClient.cpp).
