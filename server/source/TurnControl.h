@@ -1,11 +1,6 @@
-//
-// Created by yura11011 on 15.04.2021.
-//
-
-#ifndef CHECKMATES_TURNCONTROL_H
-#define CHECKMATES_TURNCONTROL_H
-
-
+#ifndef CHESS_TURNCONTROL_H
+#define CHESS_TURNCONTROL_H
+#include <ctime>
 class ITurnControl {
 private:
     virtual void SwitchTurn() = 0;
@@ -23,13 +18,13 @@ private:
     bool Turn;
     time_t Timer1;
     time_t Timer2;
+public:
     void SwitchTurn();
     void EnableTimer();
     void StopTimer();
-public:
     ~TurnControl();
     time_t GetTime(const bool Turn);
     bool GetTurn(void);
 };
 
-#endif //CHECKMATES_TURNCONTROL_H
+#endif //CHESS_TURNCONTROL_H

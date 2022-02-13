@@ -1,73 +1,59 @@
-﻿#ifndef CHESSBOARD_H
+#ifndef CHESSBOARD_H
 #define CHESSBOARD_H
+#define DEBUGCHESS 0
+
 #include <QAbstractListModel>
 #include <string>
-//#include "../graphics.h"
-#include "../include/figures.h"
+#include <QToolButton>
+#include <QSize>
+#include <QGridLayout>
+#include <QWidget>
+#include <QFrame>
+#include <QStackedWidget>
+#include <QMessageBox>
 
-//class Cell;
-//class Figure;
-//class ChessBoard;
-//class King;
-
-class Cell {
-private:
-    int x;
-    int y;
-    std::string color;
-    bool hasFigure;
-    Figure *figure;
-public:
-    Cell(int nx = 0, int ny = 0, std::string ncolor = "white", bool nhasFigure = false, Figure * nfigure = nullptr): x(nx), y(ny), color(ncolor), hasFigure(nhasFigure), figure(nfigure) {}
-    size_t value {};
-    Cell& operator=(const size_t newValue) {
-        value = newValue;
-        return *this;
-    }
-    bool operator ==(const size_t other) {
-        return other == value;
-    }
-
-    void setFigure(Figure *) { hasFigure = true; };
-    Figure * getFigure();
-    bool isHasFigure() { return hasFigure == true; }
-    void setColor(std::string ncolor) { color = ncolor; }
-    std::string getColor() { return color; }
-};
+#include "include/cell.h"
+#include "include/figures.h"
+#include "include/database.h"
+#include "include/graphics.h"
 
 class IChessBoard {
-    virtual void displayOnScreen() = 0;
-    virtual bool move(int index) = 0;
-    virtual bool isBorderOfBoard(const size_t index) = 0;
-    virtual size_t getSize() const = 0;
-    virtual bool isKingUnderMat(King * king) = 0;
+    virtual void arrangeFigures(bool isWhite) = 0;
+    virtual int getSize() const = 0;
+    virtual void isKingUnderMat() = 0;
 };
 
-class ChessBoard : public QAbstractListModel, public IChessBoard
+class ChessBoard : public QWidget,  public IChessBoard
 {
     Q_OBJECT
-    Q_PROPERTY(int size READ getSize CONSTANT)
 public:
-    static constexpr size_t defaultSize = {8};
-    using Position = std::pair<size_t, size_t> const;
+    ChessBoard(QStackedWidget * main = nullptr, std::shared_ptr<GameInfo> gameInfo = std::make_shared<GameInfo>(),
+               int newSize = 0, GlobalNet * globalNet = nullptr, QWidget * parent = nullptr);
+    void arrangeFigures(bool isWhite) override;;
+    int getSize() const override { return size; }
+    void setSize(int newSize) { size = newSize; }
+    void isKingUnderMat() override;
+    QSize sizeHint() const;
 
-    ChessBoard(const size_t newSize = defaultSize, QObject * parrent = nullptr);
-    void displayOnScreen() override;
-
-    int rowCount(const QModelIndex& parent = QModelIndex{}) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-
-
-    Q_INVOKABLE bool move(int index) override;
-    Position getPosition(size_t index);
-    bool isBorderOfBoard(const size_t index) override;
-    size_t getSize() const override;
-    bool isKingUnderMat(King * king) override;
+private slots:
+    void cellClicked();
 
 private:
-    std::vector<Cell> cells;
-    const size_t size;
-    King *king;
+    QStackedWidget * main;
+    QGridLayout *mainLayout;
+    Cell* m_cells[64];
+    Cell *clickCell;
+    int size;
+
+    std::shared_ptr<GameInfo> gameInfo;
+    int kingPos;
+
+    GlobalNet * globalNet;
+
+    Cell* createCell(const QString &color, int x, int y, const char *member);
+    void drawBoardLabels();
+    void initBoard();
+    int makeIndex(int i, int j) { return i*8 + j; }
 };
 
 #endif // CHESSBOARD_H

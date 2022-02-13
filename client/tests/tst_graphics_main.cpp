@@ -9,7 +9,7 @@ using namespace std;
 using namespace testing;
 using ::testing::Return;
 
-#include "../graphics.h"
+#include "../include/graphics.h"
 #include "reGraphics.h"
 #include "reAuthorizer.h"
 #include "reChatMenu.h"
@@ -35,7 +35,7 @@ TEST(GameWindow, ok) {
     Figure *figure = nullptr;
     MyMessage *msg = nullptr;
     MockWGame mock;
-    Game wgame;
+    GameWindow wgame;
 
     ON_CALL(mock, moveFigure(figure)).WillByDefault(Return(true));
     ON_CALL(mock, sendMessage(msg)).WillByDefault(Return(true));
@@ -52,7 +52,7 @@ TEST(MenuWindow, ok) {
     User * user = nullptr;
     Chat * chat = nullptr;
     MockWMenu mock;
-    Menu menu;
+    MenuWindow menu;
 
     ON_CALL(mock, turnOnMatching()).WillByDefault(Return(true));
     ON_CALL(mock, tapPlay()).WillByDefault(Return(true));
@@ -67,7 +67,7 @@ TEST(MenuWindow, ok) {
 
 TEST(SettingsWindow, ok) {
     MockWUserSettings mock;
-    UserSettings usrStgs;
+    SettingsWindow usrStgs;
 
     ON_CALL(mock, changeSettings()).WillByDefault(Return(true));
     ON_CALL(mock, saveSettings()).WillByDefault(Return(true));
@@ -82,7 +82,7 @@ TEST(AuthorizerWindow, ok) {
     MockWAuthorizer mock;
     MyMessage * msg = nullptr;
     User * user = nullptr;
-    Authorizer authorizer;
+    AuthorizerWindow authorizer;
 
     ON_CALL(mock, sendMessage(msg)).WillByDefault(Return(true));
     ON_CALL(mock, checkFromOnValid(user)).WillByDefault(Return(true));
@@ -93,7 +93,7 @@ TEST(AuthorizerWindow, ok) {
 
 TEST(ChatMenu, ok) {
     MockWChatMenu mock;
-    ChatMenu menu;
+    ChatWindow menu;
 
     ON_CALL(mock, sendMessage()).WillByDefault(Return(true));
     ON_CALL(mock, backToMenu()).WillByDefault(Return(true));

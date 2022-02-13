@@ -7,22 +7,24 @@
 
 class IMatcherQueue {
 public:
-    virtual GameSession& start_game() = 0;
-    virtual void push_user(IUser* u) = 0;
-    virtual void pop_user(IUser* u) = 0;
+    virtual std::shared_ptr<GameSessionMap> get_games() = 0;
+    virtual std::shared_ptr<GameSession> start_game(std::shared_ptr<IUser> p1, std::shared_ptr<IUser> p2) = 0;
+    virtual std::shared_ptr<GameSession> push_user(std::shared_ptr<IUser> u) = 0;
+    virtual bool pop_user(std::shared_ptr<IUser> u) = 0;
 };
 
-class MatcherQueue: IMatcherQueue {
+class MatcherQueue: public IMatcherQueue {
 public:
-    GameSession& start_game() override;
-    void push_user(IUser* u) override;
-    void pop_user(IUser* u) override;
+    MatcherQueue():
+    games_(std::make_shared<GameSessionMap>())
+    {
+    }
+    std::shared_ptr<GameSessionMap> get_games() override { return games_; }
+    std::shared_ptr<GameSession> start_game(std::shared_ptr<IUser> p1, std::shared_ptr<IUser> p2) override;
+    std::shared_ptr<GameSession> push_user(std::shared_ptr<IUser> u) override;
+    bool pop_user(std::shared_ptr<IUser> u) override;
 
 private:
-    // todo: learn more about std::queue
-    std::vector< std::queue<const IUser*> > q_;
+    std::queue<std::shared_ptr<IUser>> q_;
+    std::shared_ptr<GameSessionMap> games_;
 };
-
-
-
-

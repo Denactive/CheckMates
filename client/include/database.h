@@ -1,49 +1,86 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 #include <string>
+#include <QtSql/QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlRecord>
+#include <QString>
+#include <memory>
+#include <vector>
+
 #include "../include/community.h"
-//#include "../graphics.h"
+#define DEBUGDATA 0
 
-/*in develop*/
-struct Stats {
-    int avgGameLen;
-    int movesToWinQuantity;
-    int staleMatePercentage;
-    int gameLeavingPercentage;
-    int giveUpsPercentage;
-};
+// after login
+typedef struct {
+    int id;
+    QString name;
+    QString login;
+    QString password;
+    // QString photoPath;
+    QPixmap photo;
+    int rating;
+} UserInfo;
 
-class IStatistics {
-    virtual Stats * getStats(User * user) = 0;
-    virtual int getAverageGameLen() = 0;
-    virtual int getAverageMovesToWinQuantity()= 0;
-    virtual int getStaleMatePercentage() = 0;
-    virtual int getGameLeavingPercentage() = 0;
-    virtual int giveUpsPercentage() = 0;
-};
+// after start game
+typedef struct {
+    QString gameToken;
+    int uid;
+    bool side; // true - white, false - black
+    QString nameOpponent;
+    int ratingOpponent;
+    QPixmap avatarOpponent;
+} StartGame;
 
+typedef struct {
+    QString text;
+    int chatID;
+} MsgInfo;
 
-class Statistics : public IStatistics {
-public:
-    Stats * getStats(User * user) override { return nullptr; }
-    int getAverageGameLen() override { return -1; }
-    int getAverageMovesToWinQuantity() override { return -1; }
-    int getStaleMatePercentage() override { return -1; }
-    int getGameLeavingPercentage() override { return -1; }
-    int giveUpsPercentage() override { return -1; }
-};
+typedef struct {
+    int move;
+} MovesInfo;
+
+typedef struct {
+    int meId;
+    int opponentId;
+    bool currentPlayer; // true - white, false - black
+    bool isCheck; // true - is shax
+    bool isGame; // false - quit game
+    int isVictory; // 0 - draw, 1 - me, 2 - opponent
+    int lastFigurePos; // [0-63]
+    int newFigurePos;
+    int movesID; // доступные ходы
+} GameInfo;
 
 class IDatabase {
-     virtual std::string query(std::string) const = 0;
+    virtual void setUserDataFromQuery() = 0;
+    virtual std::vector<UserInfo> getUsersData() = 0;
 };
 
-class Database : public IDatabase
+class Database : public QSqlDatabase,  public IDatabase
 {
 public:
     Database();
-    std::string query(std::string) const override;
+    void setUserDataFromQuery() override;
+    std::vector<UserInfo> getUsersData() override { return usrInfo; }
+    void addUser(int id, QString name, QString login = "", QString password = "", QPixmap photo = QPixmap(), int rating = 0);
+    void fillChats();
+    std::vector<std::shared_ptr<Chat>> getChats() { return chatsInfo; }
+    std::shared_ptr<User> findUser(int index);
+
+    void setGameInfoFromQuery();
+    std::shared_ptr<GameInfo> getGameInfo() { return gameInfo; }
+
+    void setStartGameInfo(std::shared_ptr<QString> gameToken, int uid, std::shared_ptr<QString> nameOpponent, int ratingOpponent, std::shared_ptr<QPixmap>  avatarOpponent, bool side);
+    std::shared_ptr<StartGame> getStartGameInfo() { return startGame; }
+
 private:
-    std::string fileDB;
+    std::vector<UserInfo> usrInfo;
+    std::vector<std::shared_ptr<Chat>> chatsInfo;
+    std::shared_ptr<GameInfo> gameInfo;
+    std::shared_ptr<StartGame> startGame;
 };
 
 #endif // DATABASE_H

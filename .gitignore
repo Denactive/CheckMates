@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .gitignore
 .idea
 
@@ -26,4 +27,13 @@ client/googlemock/
 /client/Testing/
 /client/googlemock
 
-/server/tmp_code/
+/server/CMakeLists.txt.user
+
+**/build-client-Dekstop-Debug/
+**/build/
+*.swp
+.idea/
+build-server-Desktop_Qt_5_12_5_GCC_64bit-Debug/
+
+/tests/
+
